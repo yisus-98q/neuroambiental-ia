@@ -86,6 +86,12 @@ def validate_model(db: Session, admin: User, model: AIModel, evidence: str) -> A
         raise ModelStateError("Solo un modelo «entrenado» puede validarse.")
     if model.trained_with_simulated:
         raise ModelStateError("Un modelo entrenado con datos simulados nunca puede marcarse como validado.")
+    m = model.metrics or {}
+    if model.task == "clasificacion" and m.get("accuracy", 0) <= m.get("baseline_majority", 1):
+        raise ModelStateError("El modelo no supera la línea base (predecir siempre la clase mayoritaria): "
+                              "no puede validarse.")
+    if model.task == "regresion" and m.get("mae", float("inf")) >= m.get("baseline_mae_mean", 0):
+        raise ModelStateError("El modelo no supera la línea base (predecir siempre la media): no puede validarse.")
     if len(evidence.strip()) < MIN_EVIDENCE_CHARS:
         raise ModelStateError(f"Describa la evidencia de validación (mín. {MIN_EVIDENCE_CHARS} caracteres): "
                               "datos independientes usados, métricas obtenidas y quién revisó.")
@@ -96,6 +102,8 @@ def validate_model(db: Session, admin: User, model: AIModel, evidence: str) -> A
 
 
 def retire_model(db: Session, admin: User, model: AIModel) -> AIModel:
+    if model.status == "retirado":
+        raise ModelStateError("El modelo ya está retirado.")
     model.status = "retirado"
     audit(db, "retirar_modelo", user_id=admin.id, target_type="ai_model", target_id=model.id, commit=False)
     db.commit()

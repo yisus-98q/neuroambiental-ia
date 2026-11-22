@@ -10,3 +10,5 @@ numpy>=2.1,<3
 rasterio>=1.4,<2
 # Fase 3: modelos ligeros (autorizado por el usuario).
 scikit-learn>=1.5,<2
+# Fase 4 (integración avanzada): visión artificial (autorizado por el usuario).
+opencv-python-headless>=4.10,<5

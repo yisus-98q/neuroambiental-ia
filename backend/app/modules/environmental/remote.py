@@ -20,7 +20,12 @@ from rasterio.abc import FileContainer
 
 STAC_URL = "https://earth-search.aws.element84.com/v1"
 COLLECTION = "sentinel-2-l2a"
-ALLOWED_HOSTS = {"earth-search.aws.element84.com", "sentinel-cogs.s3.us-west-2.amazonaws.com"}
+ALLOWED_HOSTS = {
+    "earth-search.aws.element84.com",
+    "sentinel-cogs.s3.us-west-2.amazonaws.com",
+    # Copernicus DEM GLO-30 (AWS Open Data, gratuito, sin cuenta) para NEURO 3D LAB / NEUROTERRAIN.
+    "copernicus-dem-30m.s3.eu-central-1.amazonaws.com",
+}
 ITEM_ID_RE = re.compile(r"^S2[A-D]_[0-9]{2}[A-Z]{3}_[0-9]{8}_[0-9]+_L2A$")
 USER_AGENT = "neuroambiental-ia/0.2 (uso local, investigación ambiental)"
 TIMEOUT_S = 60

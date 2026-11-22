@@ -6,6 +6,8 @@ import { canWrite, fmtDate, session } from "../services/api";
 import type { DataRecord, ModuleInfo } from "../services/types";
 import { useApi } from "../services/useApi";
 import { EnvironmentalPanel } from "./EnvironmentalPanel";
+import { Neuro3DLab } from "./Neuro3DLab";
+import { NeurovisionPanel } from "./NeurovisionPanel";
 
 /** Página genérica para los módulos especializados. */
 export function ModulePage({ moduleKey }: { moduleKey: string }) {
@@ -16,6 +18,8 @@ export function ModulePage({ moduleKey }: { moduleKey: string }) {
     <div className="stack">
       <ModuleOverview module={mod.data} />
       {moduleKey === "environmental" && <EnvironmentalPanel />}
+      {moduleKey === "neurovision" && <NeurovisionPanel />}
+      {moduleKey === "neuro3d" && <Neuro3DLab />}
       {moduleKey === "construction" && <ConstructionDocs />}
       {moduleKey === "disasters" && (
         <Notice kind="danger">

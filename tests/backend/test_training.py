@@ -85,6 +85,22 @@ def test_validation_requires_admin_evidence_and_real_data(client, analyst_h, adm
     assert _train(client, analyst_h, mid, ds).status_code == 422     # un modelo validado no se reentrena sin retirar
 
 
+def test_model_worse_than_baseline_cannot_be_validated(client, analyst_h, admin_h):
+    rng = np.random.default_rng(21)
+    rows = ["a,b,clase"] + [f"{x:.4f},{y:.4f},{'alto' if rng.random() < 0.9 else 'bajo'}"
+                            for x, y in rng.random((200, 2))]   # etiqueta al azar: no hay nada que aprender
+    ds = _upload(client, analyst_h, "ruido.csv", ("\n".join(rows) + "\n").encode(), "false")
+    mid = _model(client, analyst_h, "Ruido")
+    r = _train(client, analyst_h, mid, ds, features=["a", "b"])
+    assert r.status_code == 200
+    if r.json()["metrics"]["accuracy"] <= r.json()["metrics"]["baseline_majority"]:
+        v = client.post(f"/api/neurotraining/models/{mid}/validate", headers=admin_h, json={"evidence": "x" * 60})
+        assert v.status_code == 422 and "línea base" in v.text
+    retire = client.post(f"/api/neurotraining/models/{mid}/retire", headers=admin_h)
+    assert retire.status_code == 200
+    assert client.post(f"/api/neurotraining/models/{mid}/retire", headers=admin_h).status_code == 422
+
+
 def test_rejects_leakage_bad_columns_and_small_data(client, analyst_h):
     ds = _upload(client, analyst_h, "leak.csv", _csv(seed=9), "true")
     mid = _model(client, analyst_h, "Fugas")

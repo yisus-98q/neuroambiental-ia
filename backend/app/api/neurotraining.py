@@ -93,7 +93,8 @@ def validate(model_id: str, body: ValidateIn, admin: User = Depends(require_role
 
 @router.post("/models/{model_id}/retire", response_model=AIModelOut)
 def retire(model_id: str, admin: User = Depends(require_role("admin")), db: Session = Depends(get_db)) -> AIModel:
-    return service.retire_model(db, admin, _get(db, model_id))
+    model = _get(db, model_id)
+    return _handle(lambda: service.retire_model(db, admin, model))
 
 
 @router.post("/models/{model_id}/predict")

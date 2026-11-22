@@ -84,8 +84,11 @@ def read_to_grid(src: rasterio.io.DatasetReader, grid: Grid, *, resampling: Resa
     if win.width < 1 or win.height < 1:
         raise GridError("La escena no cubre el área de estudio.")
     # Factor de reducción: que el píxel leído sea ~ del tamaño del píxel de la malla.
-    target_m = grid.res * KM_PER_DEG * 1000 * math.cos(math.radians((grid.bbox[1] + grid.bbox[3]) / 2))
-    factor = max(1.0, target_m / abs(src.res[0]))
+    coslat = math.cos(math.radians((grid.bbox[1] + grid.bbox[3]) / 2))
+    target_m = grid.res * KM_PER_DEG * 1000 * coslat
+    # El tamaño de píxel de la fuente puede venir en metros (UTM) o en grados (EPSG:4326, p. ej. DEM GLO-30).
+    src_m = abs(src.res[0]) * (KM_PER_DEG * 1000 * coslat if src.crs and src.crs.is_geographic else 1.0)
+    factor = max(1.0, target_m / src_m)
     out_h, out_w = max(1, round(win.height / factor)), max(1, round(win.width / factor))
     data = src.read(1, window=win, out_shape=(out_h, out_w), resampling=resampling)
     win_transform = src.window_transform(win) @ Affine.scale(win.width / out_w, win.height / out_h)

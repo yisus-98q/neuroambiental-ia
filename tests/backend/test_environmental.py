@@ -156,6 +156,21 @@ def test_ndvi_excludes_nonpositive_reflectance():
     assert st["ndvi_p90"] < 1.0
 
 
+def test_read_to_grid_with_geographic_source(tmp_path):
+    """Regresión: con fuentes en grados (EPSG:4326, como el DEM GLO-30) la ventana no debe colapsar a 1 píxel."""
+    res = 0.0003
+    cols = np.tile(np.arange(400, dtype="float32"), (400, 1))  # gradiente de oeste a este
+    path = tmp_path / "geo.tif"
+    with rasterio.open(path, "w", driver="GTiff", width=400, height=400, count=1, dtype="float32", crs="EPSG:4326",
+                       transform=from_origin(-77.62, -9.48, res, res), nodata=-9999) as dst:
+        dst.write(cols, 1)
+    grid = raster.make_grid([-77.60, -9.58, -77.55, -9.53], 0.0009)
+    with rasterio.open(path) as src:
+        out = raster.read_to_grid(src, grid, resampling=rasterio.enums.Resampling.average)
+    assert np.isfinite(out).all()
+    assert out[:, -1].mean() - out[:, 0].mean() > 100   # el gradiente se conserva (antes era un solo valor)
+
+
 def test_make_grid_limits():
     with pytest.raises(raster.GridError):
         raster.make_grid([-78, -10, -77, -9], 0.0001)

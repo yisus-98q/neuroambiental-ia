@@ -31,8 +31,11 @@ def test_eight_specialized_modules_plus_core_systems(client):
 
 
 def test_new_modules_are_contracts_only():
-    for key in ("neurogeo", "neurovision", "neuroindustrial", "neuro3d"):
+    for key in ("neurogeo", "neuroindustrial"):
         assert registry.get(key).status == "en_desarrollo", key
+    # Integración avanzada: OpenCV y terreno 3D ya tienen capacidades reales, pero no todas.
+    for key in ("neurovision", "neuro3d"):
+        assert registry.get(key).status == "parcial", key
     assert registry.get("neurotraining").status == "parcial"
     assert registry.get("neuro3d").codename == "NEURO 3D SIMULATION ENGINE"
 
