@@ -29,7 +29,7 @@ export function TrainingCenter() {
     <div className="stack">
       <div className="row" style={{ justifyContent: "space-between" }}>
         <div><h1>NEURAL TRAINING CENTER</h1>
-          <p className="muted" style={{ margin: 0 }}>Datasets → entrenamiento → evaluación con datos independientes → validación humana.</p></div>
+          <p className="muted" style={{ margin: 0 }}>Datasets → entrenamiento → evaluación con filas reservadas del mismo CSV → validación humana con datos externos.</p></div>
         {mod.data && <StatusBadge status={mod.data.status} />}
       </div>
       <Notice kind="info">
@@ -152,6 +152,8 @@ function Metrics({ model }: { model: AIModel }) {
         </table></div>
       )}
       {perClass && <p className="small">{Object.entries(perClass).map(([c, v]) => `${c}: ${v.false_positives} falsos positivos, ${v.false_negatives} falsos negativos`).join(" · ")}</p>}
+      <p className="small" style={{ margin: 0 }}>Evaluación: {String(m.evaluated_on ?? "")}</p>
+      {Array.isArray(m.warnings) && (m.warnings as string[]).map((w) => <Notice key={w} kind="dev">{w}</Notice>)}
       <p className="small muted" style={{ margin: 0 }}>Huella del artefacto: <code>{model.artifact_sha256?.slice(0, 16)}…</code></p>
     </div>
   );
@@ -215,7 +217,7 @@ function ValidateForm({ model, onChange }: { model: AIModel; onChange: () => voi
   async function submit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    try { await post(`/api/neurotraining/models/${model.id}/validate`, { evidence }); onChange(); }
+    try { await post(`/api/neurotraining/models/${model.id}/validate`, { evidence, version: model.version, artifact_sha256: model.artifact_sha256 }); onChange(); }
     catch (err) { setError((err as Error).message); }
   }
   return (
@@ -224,7 +226,7 @@ function ValidateForm({ model, onChange }: { model: AIModel; onChange: () => voi
       {model.trained_with_simulated
         ? <Notice kind="dev">Entrenado con datos simulados: no puede validarse. Entrene con datos reales.</Notice>
         : <>
-          <div className="field"><label htmlFor="val-ev">Evidencia: datos independientes, métricas y quién revisó</label>
+          <div className="field"><label htmlFor="val-ev">Evidencia: datos externos independientes usados, métricas obtenidas y quién revisó (aprueba la versión v{model.version} mostrada)</label>
             <textarea id="val-ev" value={evidence} onChange={(e) => setEvidence(e.target.value)} minLength={40} required /></div>
           <div><button className="btn btn-green">Aprobar modelo</button></div>
         </>}
@@ -249,7 +251,7 @@ function PredictForm({ model, datasets }: { model: AIModel; datasets: DataRecord
       <div className="row">
         <select value={dsId} onChange={(e) => setDsId(e.target.value)} required style={{ flex: 1 }} aria-label="Dataset para predecir">
           <option value="">CSV con las columnas: {model.features.join(", ")}</option>
-          {datasets.map((d) => <option key={d.id} value={d.id}>{d.title}</option>)}
+          {datasets.map((d) => <option key={d.id} value={d.id}>{d.title} {d.is_simulated ? "(SIMULADO)" : "(real)"}</option>)}
         </select>
         <button className="btn">Predecir</button>
       </div>
@@ -259,8 +261,8 @@ function PredictForm({ model, datasets }: { model: AIModel; datasets: DataRecord
           <Notice kind={res.is_validated ? "info" : "dev"}>{res.uncertainty}</Notice>
           <p className="small">{res.n} filas predichas · {res.skipped} omitidas · resumen: {JSON.stringify(res.summary)}</p>
           <div className="table-wrap" style={{ maxHeight: 220, overflowY: "auto" }}><table>
-            <thead><tr><th>Fila</th><th>Predicción</th><th>Confianza</th></tr></thead>
-            <tbody>{res.rows.slice(0, 50).map((r) => <tr key={r.row}><td>{r.row + 1}</td><td>{String(r.prediction)}</td><td>{r.confidence ?? "—"}</td></tr>)}</tbody>
+            <thead><tr><th>Fila</th><th>Predicción</th><th>Probabilidad del modelo (no calibrada)</th></tr></thead>
+            <tbody>{res.rows.slice(0, 50).map((r) => <tr key={r.row}><td>{r.row + 1}</td><td>{String(r.prediction)}</td><td>{r.model_probability ?? "—"}</td></tr>)}</tbody>
           </table></div>
         </>
       )}

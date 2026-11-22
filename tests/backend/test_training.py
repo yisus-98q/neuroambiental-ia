@@ -49,7 +49,7 @@ def test_train_evaluate_predict_with_simulated_data(client, analyst_h, admin_h):
     assert met["n_test"] == 50 and met["accuracy"] > 0.8          # la regla es aprendible
     assert len(m["artifact_sha256"]) == 64
     # Nunca se valida con datos simulados.
-    v = client.post(f"/api/neurotraining/models/{mid}/validate", headers=admin_h, json={"evidence": "x" * 60})
+    v = client.post(f"/api/neurotraining/models/{mid}/validate", headers=admin_h, json=_reviewed(m, "x" * 60))
     assert v.status_code == 422 and "simulados" in v.text
     # Predicción: marcada como experimental y simulada.
     new = _upload(client, analyst_h, "nuevos.csv", _csv(n=40, seed=7), "true")
@@ -58,7 +58,8 @@ def test_train_evaluate_predict_with_simulated_data(client, analyst_h, admin_h):
     out = p.json()
     assert out["n"] == 40 and out["is_validated"] is False
     assert "NO validado" in out["uncertainty"] and "SIMULADOS" in out["uncertainty"]
-    assert 0 <= out["rows"][0]["confidence"] <= 1
+    assert 0 <= out["rows"][0]["model_probability"] <= 1 and "NO está calibrada" in out["uncertainty"]
+    assert out["input_simulated"] is True and "ENTRADA son SIMULADOS" in out["uncertainty"]
     # Reentrenar incrementa la versión.
     assert _train(client, analyst_h, mid, ds).json()["version"] == "1.1.0"
 
@@ -72,15 +73,22 @@ def test_regression_metrics(client, analyst_h):
     assert met["r2"] > 0.9 and met["rmse"] >= met["mae"] > 0 and met["mae"] < met["baseline_mae_mean"]
 
 
+def _reviewed(model: dict, evidence: str) -> dict:
+    """Cuerpo de validación: la evidencia más la versión y la huella exactas que se revisaron."""
+    return {"evidence": evidence, "version": model["version"], "artifact_sha256": model["artifact_sha256"]}
+
+
 def test_validation_requires_admin_evidence_and_real_data(client, analyst_h, admin_h):
     ds = _upload(client, analyst_h, "real.csv", _csv(seed=5), "false")
     mid = _model(client, analyst_h, "Modelo con datos declarados reales")
-    assert _train(client, analyst_h, mid, ds).status_code == 200
+    trained = _train(client, analyst_h, mid, ds).json()
     url = f"/api/neurotraining/models/{mid}/validate"
-    assert client.post(url, headers=analyst_h, json={"evidence": "x" * 60}).status_code == 403
-    assert client.post(url, headers=admin_h, json={"evidence": "corta"}).status_code == 422
-    ok = client.post(url, headers=admin_h, json={"evidence": "Evaluado con 120 eventos independientes de 2024, "
-                                                             "F1 0.81, revisado por geólogo."})
+    long_ev = "Evaluado con 120 eventos independientes de 2024, F1 0.81, revisado por geólogo."
+    assert client.post(url, headers=analyst_h, json=_reviewed(trained, long_ev)).status_code == 403
+    assert client.post(url, headers=admin_h, json=_reviewed(trained, "corta")).status_code == 422
+    stale = {**_reviewed(trained, long_ev), "version": "0.9.0"}          # revisó otra versión
+    assert client.post(url, headers=admin_h, json=stale).status_code == 422
+    ok = client.post(url, headers=admin_h, json=_reviewed(trained, long_ev))
     assert ok.status_code == 200 and ok.json()["status"] == "validado"
     assert _train(client, analyst_h, mid, ds).status_code == 422     # un modelo validado no se reentrena sin retirar
 
@@ -94,7 +102,7 @@ def test_model_worse_than_baseline_cannot_be_validated(client, analyst_h, admin_
     r = _train(client, analyst_h, mid, ds, features=["a", "b"])
     assert r.status_code == 200
     if r.json()["metrics"]["accuracy"] <= r.json()["metrics"]["baseline_majority"]:
-        v = client.post(f"/api/neurotraining/models/{mid}/validate", headers=admin_h, json={"evidence": "x" * 60})
+        v = client.post(f"/api/neurotraining/models/{mid}/validate", headers=admin_h, json=_reviewed(r.json(), "x" * 60))
         assert v.status_code == 422 and "línea base" in v.text
     retire = client.post(f"/api/neurotraining/models/{mid}/retire", headers=admin_h)
     assert retire.status_code == 200
@@ -136,3 +144,20 @@ def test_training_respects_busy_lock(client, analyst_h):
         jobs.LOCK.release()
     runs = client.get("/api/neurotraining/runs", headers=analyst_h).json()
     assert any(r["run_type"] == "entrenamiento" and r["status"] == "ok" for r in runs)
+
+
+def test_trainer_cannot_validate_own_model(client, admin_h):
+    ds = _upload(client, admin_h, "propio.csv", _csv(seed=17), "false")
+    mid = _model(client, admin_h, "Entrenado por admin")
+    trained = _train(client, admin_h, mid, ds).json()
+    v = client.post(f"/api/neurotraining/models/{mid}/validate", headers=admin_h,
+                    json=_reviewed(trained, "Evaluado con datos externos independientes por un tercero, F1 0.8."))
+    assert v.status_code == 422 and "otro administrador" in v.text
+
+
+def test_rare_class_is_a_clear_error_not_500(client, analyst_h):
+    rows = ["a,b,clase"] + [f"{i/100:.2f},{i/50:.2f},{'x' if i else 'unica'}" for i in range(80)]
+    ds = _upload(client, analyst_h, "rara.csv", ("\n".join(rows) + "\n").encode(), "true")
+    mid = _model(client, analyst_h, "Clase rara")
+    r = _train(client, analyst_h, mid, ds, features=["a", "b"])
+    assert r.status_code == 422 and "al menos 2 filas" in r.text

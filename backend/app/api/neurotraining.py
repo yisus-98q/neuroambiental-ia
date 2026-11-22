@@ -29,6 +29,9 @@ class TrainIn(BaseModel):
 
 class ValidateIn(BaseModel):
     evidence: str = Field(min_length=1, max_length=5000)
+    # La versión y la huella que el administrador revisó: si el modelo cambió, se rechaza.
+    version: str = Field(min_length=1, max_length=32)
+    artifact_sha256: str = Field(min_length=64, max_length=64)
 
 
 class PredictIn(BaseModel):
@@ -88,7 +91,8 @@ def train(model_id: str, body: TrainIn, user: User = Depends(require_role("anali
 def validate(model_id: str, body: ValidateIn, admin: User = Depends(require_role("admin")),
              db: Session = Depends(get_db)) -> AIModel:
     model = _get(db, model_id)
-    return _handle(lambda: service.validate_model(db, admin, model, body.evidence))
+    return _handle(lambda: service.validate_model(db, admin, model, body.evidence, version=body.version,
+                                                  artifact_sha256=body.artifact_sha256))
 
 
 @router.post("/models/{model_id}/retire", response_model=AIModelOut)

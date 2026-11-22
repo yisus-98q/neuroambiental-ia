@@ -4,6 +4,7 @@ from __future__ import annotations
 from collections import Counter
 from pathlib import Path
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core import jobs
@@ -49,9 +50,13 @@ def train_model(db: Session, user: User, model: AIModel, *, dataset_id: str, tas
         raise ModelStateError(f"No se puede entrenar un modelo en estado «{model.status}».")
     dataset = _csv_record(db, dataset_id)
     with jobs.exclusive():
+        # Con el candado tomado, cualquier entrenamiento «en_proceso» quedó huérfano (servidor detenido).
+        for stale in db.scalars(select(Run).where(Run.run_type == "entrenamiento", Run.status == "en_proceso")):
+            stale.status, stale.finished_at = "error", utcnow()
+            stale.result_summary = {"error": "Interrumpido: el servidor se detuvo durante el entrenamiento."}
         run = Run(run_type="entrenamiento", module_key=model.module_key, model_id=model.id, status="en_proceso",
                   parameters={"dataset": dataset_id, "task": task, "target": target, "features": features,
-                              "algorithm": algorithm})
+                              "algorithm": algorithm, "trained_by": user.id})
         db.add(run)
         db.commit()
         try:
@@ -81,9 +86,21 @@ def train_model(db: Session, user: User, model: AIModel, *, dataset_id: str, tas
             raise
 
 
-def validate_model(db: Session, admin: User, model: AIModel, evidence: str) -> AIModel:
+def _last_trainer(db: Session, model: AIModel) -> str | None:
+    run = db.scalar(select(Run).where(Run.model_id == model.id, Run.run_type == "entrenamiento", Run.status == "ok")
+                    .order_by(Run.started_at.desc()).limit(1))
+    return (run.parameters or {}).get("trained_by") if run else None
+
+
+def validate_model(db: Session, admin: User, model: AIModel, evidence: str, *, version: str, artifact_sha256: str) -> AIModel:
     if model.status != "entrenado":
         raise ModelStateError("Solo un modelo «entrenado» puede validarse.")
+    # La aprobación queda atada a la versión exacta que el administrador revisó.
+    if version != model.version or artifact_sha256 != model.artifact_sha256:
+        raise ModelStateError("El modelo cambió (otra versión o artefacto) desde que lo revisó. Vuelva a revisarlo.")
+    # Separación de funciones: quien entrenó no puede aprobar su propio modelo.
+    if _last_trainer(db, model) == admin.id:
+        raise ModelStateError("Quien entrenó el modelo no puede validarlo: debe hacerlo otro administrador.")
     if model.trained_with_simulated:
         raise ModelStateError("Un modelo entrenado con datos simulados nunca puede marcarse como validado.")
     m = model.metrics or {}
@@ -126,6 +143,10 @@ def predict(db: Session, user: User, model: AIModel, dataset_id: str) -> dict:
                    if validated else NOT_VALIDATED)
     if model.trained_with_simulated:
         uncertainty += " Entrenado con datos SIMULADOS: solo sirve para probar el sistema."
+    if dataset.is_simulated:
+        uncertainty += " Los datos de ENTRADA son SIMULADOS: las predicciones no describen ningún lugar real."
+    if model.task == "clasificacion":
+        uncertainty += " La probabilidad mostrada es la del modelo y NO está calibrada."
     pred = Prediction(model_id=model.id, target=model.target or "", uncertainty=uncertainty, is_validated=validated,
                       value={"dataset": dataset_id, "n": len(rows), "skipped": skipped, "summary": summary,
                              "sample": rows[:100], "input_simulated": dataset.is_simulated})
@@ -134,4 +155,5 @@ def predict(db: Session, user: User, model: AIModel, dataset_id: str) -> dict:
     audit(db, "predecir", user_id=user.id, target_type="prediction", target_id=pred.id, commit=False)
     db.commit()
     return {"prediction_id": pred.id, "model_status": model.status, "n": len(rows), "skipped": skipped,
-            "summary": summary, "rows": rows, "uncertainty": uncertainty, "is_validated": validated}
+            "summary": summary, "rows": rows, "uncertainty": uncertainty, "is_validated": validated,
+            "input_simulated": dataset.is_simulated, "model_trained_with_simulated": model.trained_with_simulated}

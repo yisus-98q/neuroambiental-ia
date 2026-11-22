@@ -49,7 +49,8 @@ export interface AIModel {
 
 export interface PredictResult {
   prediction_id: string; model_status: string; n: number; skipped: number; summary: Record<string, unknown>;
-  rows: { row: number; prediction: string | number; confidence?: number }[]; uncertainty: string; is_validated: boolean;
+  rows: { row: number; prediction: string | number; model_probability?: number }[]; uncertainty: string; is_validated: boolean;
+  input_simulated: boolean; model_trained_with_simulated: boolean;
 }
 
 export interface RasterRecord {

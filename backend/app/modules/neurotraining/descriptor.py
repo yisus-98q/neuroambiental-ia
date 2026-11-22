@@ -6,7 +6,7 @@ DESCRIPTOR = ModuleDescriptor(
     group="nucleo",
     name="NEURAL TRAINING ENGINE (NEUROTRAINING)",
     version="0.3.0",
-    description="Datasets, entrenamiento, evaluación con datos independientes y registro de versiones de modelos.",
+    description="Datasets, entrenamiento, evaluación con filas de prueba reservadas y registro de versiones de modelos.",
     capabilities=[
         cap("registro_modelos", "Registro de modelos con estado honesto (planificado/entrenado/validado/retirado)",
             implemented=True),

@@ -37,7 +37,8 @@ from sklearn.preprocessing import StandardScaler
 from app.neurodata.validators import read_csv_rows
 
 MAX_FEATURES = 30
-MIN_ROWS = 30
+MIN_ROWS = 60          # con 25 % de prueba quedan ≥15 filas para evaluar
+SMALL_TEST_WARNING = 50
 ALGORITHMS = {
     "clasificacion": {
         "random_forest": lambda: RandomForestClassifier(n_estimators=100, max_depth=12, n_jobs=1, random_state=42),
@@ -108,6 +109,12 @@ def load_dataset(raw: bytes, *, target: str, features: list[str], task: str) -> 
             raise TrainingError("La columna objetivo necesita al menos 2 clases.")
         if len(classes) > 20:
             raise TrainingError("Demasiadas clases (>20) para una clasificación ligera.")
+        counts = {c: y.count(c) for c in classes}
+        rare = sorted(c for c, n in counts.items() if n < 2)
+        if rare:
+            raise TrainingError(f"Cada clase necesita al menos 2 filas para separar entrenamiento y prueba: {rare}")
+        if round(len(y) * 0.25) < len(classes):
+            raise TrainingError("Hay demasiadas clases para el número de filas: la prueba no podría incluirlas todas.")
     return Dataset(np.asarray(X, dtype="float64"), np.asarray(y), features, target, dropped, classes)
 
 
@@ -116,13 +123,28 @@ def train(ds: Dataset, *, task: str, algorithm: str, test_size: float = 0.25):
         factory = ALGORITHMS[task][algorithm]
     except KeyError as exc:
         raise TrainingError(f"Combinación no soportada: {task}/{algorithm}") from exc
-    stratify = ds.y if task == "clasificacion" and min(np.unique(ds.y, return_counts=True)[1]) >= 2 else None
+    try:
+        return _train(ds, factory, task, test_size)
+    except (ValueError, IndexError) as exc:  # casos borde de scikit-learn → error claro (422), no 500
+        raise TrainingError(f"No se pudo entrenar/evaluar con estos datos: {exc}") from exc
+
+
+def _train(ds: Dataset, factory, task: str, test_size: float):
+    stratify = ds.y if task == "clasificacion" else None  # load_dataset garantiza ≥2 filas por clase
     X_tr, X_te, y_tr, y_te = train_test_split(ds.X, ds.y, test_size=test_size, random_state=42, stratify=stratify)
     model = factory()
     model.fit(X_tr, y_tr)
     pred = model.predict(X_te)
-    metrics: dict = {"n_train": int(len(y_tr)), "n_test": int(len(y_te)), "dropped_rows": ds.dropped_rows,
-                     "evaluated_on": "datos de prueba separados (25 %)"}
+    metrics: dict = {
+        "n_train": int(len(y_tr)), "n_test": int(len(y_te)), "dropped_rows": ds.dropped_rows,
+        # Honestidad: es un corte aleatorio del MISMO CSV, no un conjunto independiente.
+        "evaluated_on": "25 % de filas reservadas del mismo CSV (corte aleatorio; no es un conjunto independiente)",
+        "warnings": [],
+    }
+    if len(y_te) < SMALL_TEST_WARNING:
+        metrics["warnings"].append(f"Solo {len(y_te)} filas de prueba: las métricas son muy inciertas.")
+    metrics["warnings"].append("Si los datos tienen autocorrelación espacial o temporal, un corte aleatorio "
+                               "sobrestima el rendimiento; la validación requiere datos externos.")
     r4 = lambda v: round(float(v), 4)  # noqa: E731
     if task == "clasificacion":
         labels = list(model.classes_)
@@ -199,6 +221,7 @@ def predict_rows(model, raw: bytes, features: list[str], task: str, limit: int =
     for k, i in enumerate(batch_idx):
         item = {"row": i, "prediction": preds[k].item() if hasattr(preds[k], "item") else preds[k]}
         if proba is not None:
-            item["confidence"] = round(float(proba[k]), 4)
+            # Probabilidad que asigna el modelo a su clase predicha: NO está calibrada.
+            item["model_probability"] = round(float(proba[k]), 4)
         out.append(item)
     return out, skipped
