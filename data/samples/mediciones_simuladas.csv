@@ -1,0 +1,7 @@
+punto,latitud,longitud,variable,valor,unidad,nota
+Lima-centro,-12.0464,-77.0428,temperatura_aire,19.5,C,VALOR SIMULADO PARA PRUEBAS
+Huaraz,-9.5278,-77.5278,temperatura_aire,12.1,C,VALOR SIMULADO PARA PRUEBAS
+Cusco,-13.5320,-71.9675,temperatura_aire,11.4,C,VALOR SIMULADO PARA PRUEBAS
+Arequipa,-16.4090,-71.5375,temperatura_aire,15.8,C,VALOR SIMULADO PARA PRUEBAS
+Iquitos,-3.7437,-73.2516,temperatura_aire,27.3,C,VALOR SIMULADO PARA PRUEBAS
+Puno,-15.8402,-70.0219,temperatura_aire,8.9,C,VALOR SIMULADO PARA PRUEBAS

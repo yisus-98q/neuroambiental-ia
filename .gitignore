@@ -1,0 +1,19 @@
+# Secretos y configuración local
+.env
+
+# Dependencias
+backend/.deps/
+backend/.venv/
+frontend/node_modules/
+
+# Compilados y cachés
+frontend/dist/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Datos locales (la base y las cargas no se versionan)
+data/*.db
+data/*.db-*
+data/uploads/*
+!data/uploads/.gitkeep

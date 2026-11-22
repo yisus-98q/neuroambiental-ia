@@ -1,0 +1,6 @@
+Archivos de MUESTRA para pruebas de NEUROAMBIENTAL IA.
+
+- Todos los valores son SIMULADOS. No son mediciones reales.
+- Las coordenadas de ciudades y lugares son aproximadas y públicas.
+- El polígono "área de estudio" NO es un límite oficial.
+- Al cargarlos con "python -m app.cli load-samples" quedan marcados con is_simulated = true.
