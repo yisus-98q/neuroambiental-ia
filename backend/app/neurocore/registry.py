@@ -11,6 +11,11 @@ from app.modules.construction.descriptor import DESCRIPTOR as CONSTRUCTION
 from app.modules.disasters.descriptor import DESCRIPTOR as DISASTERS
 from app.modules.environmental.descriptor import DESCRIPTOR as ENVIRONMENTAL
 from app.modules.mining.descriptor import DESCRIPTOR as MINING
+from app.modules.neuro3d.descriptor import DESCRIPTOR as NEURO3D
+from app.modules.neurogeo.descriptor import DESCRIPTOR as NEUROGEO
+from app.modules.neuroindustrial.descriptor import DESCRIPTOR as NEUROINDUSTRIAL
+from app.modules.neuroprediction.descriptor import DESCRIPTOR as NEUROPREDICTION
+from app.modules.neurovision.descriptor import DESCRIPTOR as NEUROVISION
 from app.modules.neurotraining.descriptor import DESCRIPTOR as NEUROTRAINING
 from app.modules.neurovoice.descriptor import DESCRIPTOR as NEUROVOICE
 from app.modules.terrain.descriptor import DESCRIPTOR as TERRAIN
@@ -41,8 +46,8 @@ def build_registry() -> ModuleRegistry:
     """El orden importa: un módulo solo puede depender de módulos ya registrados.
     Esto impide dependencias circulares por construcción."""
     reg = ModuleRegistry()
-    for d in (NEURODATA, ALERTS, ENVIRONMENTAL, TERRAIN, BIODIVERSITY, MINING, DISASTERS,
-              CONSTRUCTION, NEUROTRAINING, NEUROVOICE):
+    for d in (NEURODATA, ALERTS, ENVIRONMENTAL, TERRAIN, BIODIVERSITY, NEUROGEO, MINING, DISASTERS,
+              CONSTRUCTION, NEUROTRAINING, NEUROVISION, NEUROINDUSTRIAL, NEURO3D, NEUROPREDICTION, NEUROVOICE):
         reg.register(d)
     return reg
 

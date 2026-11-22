@@ -3,7 +3,7 @@ export type ModuleStatus = "operativo" | "parcial" | "en_desarrollo";
 export interface Capability { key: string; description: string; implemented: boolean }
 
 export interface ModuleInfo {
-  key: string; name: string; version: string; description: string; status: ModuleStatus;
+  key: string; name: string; codename: string | null; group: string; version: string; description: string; status: ModuleStatus;
   capabilities: Capability[]; dependencies: string[]; inputs: string[]; outputs: string[];
   possible_errors: string[]; limitations: string[]; implemented_count: number; api_prefix: string | null;
 }
@@ -43,6 +43,13 @@ export interface Dashboard {
 export interface AIModel {
   id: string; name: string; module_key: string; algorithm: string; version: string; status: string;
   metrics: Record<string, unknown>; dataset_description: string; created_at: string;
+  task: "clasificacion" | "regresion" | null; target: string | null; features: string[]; dataset_record_id: string | null;
+  trained_with_simulated: boolean; artifact_sha256: string | null; trained_at: string | null; validation_evidence: string;
+}
+
+export interface PredictResult {
+  prediction_id: string; model_status: string; n: number; skipped: number; summary: Record<string, unknown>;
+  rows: { row: number; prediction: string | number; confidence?: number }[]; uncertainty: string; is_validated: boolean;
 }
 
 export interface RasterRecord {

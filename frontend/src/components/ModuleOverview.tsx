@@ -10,6 +10,7 @@ export function ModuleOverview({ module }: { module: ModuleInfo }) {
       <div className="card">
         <div className="card-head">
           <div>
+            {module.codename && module.codename !== module.name && <div className="small muted" style={{ letterSpacing: ".06em" }}>{module.codename}</div>}
             <h1>{module.name}</h1>
             <p className="muted" style={{ margin: 0 }}>{module.description}</p>
           </div>

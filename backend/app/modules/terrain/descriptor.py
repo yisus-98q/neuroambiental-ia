@@ -2,6 +2,7 @@ from app.neurocore.base import ModuleDescriptor, cap
 
 DESCRIPTOR = ModuleDescriptor(
     key="terrain",
+    codename="NEUROTERRAIN",
     name="Movimientos Territoriales",
     version="0.0.1",
     description="Desplazamientos, deformaciones, laderas, taludes, suelos, infraestructura y depósitos mineros.",

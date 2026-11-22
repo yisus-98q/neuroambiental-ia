@@ -25,7 +25,16 @@ def test_health(client):
 def test_eight_specialized_modules_plus_core_systems(client):
     keys = {m["key"] for m in client.get("/api/neurocore/modules").json()}
     assert {"environmental", "mining", "biodiversity", "terrain", "disasters", "construction", "alerts",
-            "neurovoice", "neurodata", "neurotraining"} == keys
+            "neurovoice", "neurodata", "neurotraining",
+            # Arquitectura de integración avanzada (contratos, en desarrollo salvo lo implementado)
+            "neurogeo", "neurovision", "neuroindustrial", "neuro3d", "neuroprediction"} == keys
+
+
+def test_new_modules_are_contracts_only():
+    for key in ("neurogeo", "neurovision", "neuroindustrial", "neuro3d"):
+        assert registry.get(key).status == "en_desarrollo", key
+    assert registry.get("neurotraining").status == "parcial"
+    assert registry.get("neuro3d").codename == "NEURO 3D SIMULATION ENGINE"
 
 
 def test_status_is_honest():

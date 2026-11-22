@@ -1,0 +1,204 @@
+"""NEUROTRAINING: entrenamiento ligero con scikit-learn sobre CSV registrados en NEURODATA.
+
+Principios:
+- Solo algoritmos pequeños, n_jobs=1 (equipos de 4 GB).
+- Siempre hay datos de prueba separados; las métricas se calculan solo sobre ellos.
+- Un modelo entrenado con datos simulados queda marcado y NUNCA puede pasar a «validado».
+- Los artefactos se guardan con su SHA-256 y se verifica antes de cargarlos (evita cargar
+  archivos alterados: joblib/pickle puede ejecutar código).
+"""
+from __future__ import annotations
+
+import hashlib
+import math
+from dataclasses import dataclass
+from pathlib import Path
+
+import joblib
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.linear_model import LogisticRegression, Ridge
+from sklearn.metrics import (
+    accuracy_score,
+    brier_score_loss,
+    confusion_matrix,
+    f1_score,
+    mean_absolute_error,
+    mean_squared_error,
+    precision_score,
+    r2_score,
+    recall_score,
+    roc_auc_score,
+)
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+
+from app.neurodata.validators import read_csv_rows
+
+MAX_FEATURES = 30
+MIN_ROWS = 30
+ALGORITHMS = {
+    "clasificacion": {
+        "random_forest": lambda: RandomForestClassifier(n_estimators=100, max_depth=12, n_jobs=1, random_state=42),
+        "regresion_logistica": lambda: make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000)),
+    },
+    "regresion": {
+        "random_forest": lambda: RandomForestRegressor(n_estimators=100, max_depth=12, n_jobs=1, random_state=42),
+        "ridge": lambda: make_pipeline(StandardScaler(), Ridge()),
+    },
+}
+
+
+class TrainingError(ValueError):
+    pass
+
+
+@dataclass
+class Dataset:
+    X: np.ndarray
+    y: np.ndarray
+    features: list[str]
+    target: str
+    dropped_rows: int
+    classes: list[str] | None
+
+
+def _to_float(v) -> float:
+    try:
+        f = float(str(v).strip().replace(",", "."))
+    except (TypeError, ValueError):
+        return math.nan
+    return f if math.isfinite(f) else math.nan
+
+
+def load_dataset(raw: bytes, *, target: str, features: list[str], task: str) -> Dataset:
+    headers, rows = read_csv_rows(raw)
+    if target not in headers:
+        raise TrainingError(f"La columna objetivo '{target}' no existe en el CSV.")
+    missing = [f for f in features if f not in headers]
+    if missing:
+        raise TrainingError(f"Columnas inexistentes: {missing}")
+    if not features or len(features) > MAX_FEATURES:
+        raise TrainingError(f"Indique entre 1 y {MAX_FEATURES} columnas de entrada.")
+    if target in features:
+        raise TrainingError("La columna objetivo no puede ser también una entrada (fuga de datos).")
+    X, y, dropped = [], [], 0
+    for row in rows:
+        xs = [_to_float(row.get(f)) for f in features]
+        t = (row.get(target) or "").strip()
+        if any(math.isnan(v) for v in xs) or t == "":
+            dropped += 1
+            continue
+        if task == "regresion":
+            tv = _to_float(t)
+            if math.isnan(tv):
+                dropped += 1
+                continue
+            y.append(tv)
+        else:
+            y.append(t)
+        X.append(xs)
+    if len(X) < MIN_ROWS:
+        raise TrainingError(f"Se necesitan al menos {MIN_ROWS} filas completas (hay {len(X)}).")
+    classes = None
+    if task == "clasificacion":
+        classes = sorted(set(y))
+        if len(classes) < 2:
+            raise TrainingError("La columna objetivo necesita al menos 2 clases.")
+        if len(classes) > 20:
+            raise TrainingError("Demasiadas clases (>20) para una clasificación ligera.")
+    return Dataset(np.asarray(X, dtype="float64"), np.asarray(y), features, target, dropped, classes)
+
+
+def train(ds: Dataset, *, task: str, algorithm: str, test_size: float = 0.25):
+    try:
+        factory = ALGORITHMS[task][algorithm]
+    except KeyError as exc:
+        raise TrainingError(f"Combinación no soportada: {task}/{algorithm}") from exc
+    stratify = ds.y if task == "clasificacion" and min(np.unique(ds.y, return_counts=True)[1]) >= 2 else None
+    X_tr, X_te, y_tr, y_te = train_test_split(ds.X, ds.y, test_size=test_size, random_state=42, stratify=stratify)
+    model = factory()
+    model.fit(X_tr, y_tr)
+    pred = model.predict(X_te)
+    metrics: dict = {"n_train": int(len(y_tr)), "n_test": int(len(y_te)), "dropped_rows": ds.dropped_rows,
+                     "evaluated_on": "datos de prueba separados (25 %)"}
+    r4 = lambda v: round(float(v), 4)  # noqa: E731
+    if task == "clasificacion":
+        labels = list(model.classes_)
+        metrics["accuracy"] = r4(accuracy_score(y_te, pred))
+        metrics["precision_macro"] = r4(precision_score(y_te, pred, average="macro", zero_division=0))
+        metrics["recall_macro"] = r4(recall_score(y_te, pred, average="macro", zero_division=0))
+        metrics["f1_macro"] = r4(f1_score(y_te, pred, average="macro", zero_division=0))
+        cm = confusion_matrix(y_te, pred, labels=labels)
+        metrics["confusion_matrix"] = {"labels": [str(x) for x in labels], "matrix": cm.tolist()}
+        # Por clase: falsos positivos y falsos negativos (la accuracy sola no basta para riesgos).
+        metrics["per_class"] = {str(lbl): {"false_positives": int(cm[:, i].sum() - cm[i, i]),
+                                           "false_negatives": int(cm[i, :].sum() - cm[i, i]),
+                                           "support": int(cm[i, :].sum())} for i, lbl in enumerate(labels)}
+        _, counts = np.unique(y_te, return_counts=True)
+        metrics["baseline_majority"] = r4(counts.max() / counts.sum())
+        if len(labels) == 2 and hasattr(model, "predict_proba"):
+            proba = model.predict_proba(X_te)[:, 1]
+            positive = labels[1]
+            metrics["positive_class"] = str(positive)
+            metrics["roc_auc"] = r4(roc_auc_score(y_te == positive, proba))
+            metrics["brier_score"] = r4(brier_score_loss(y_te == positive, proba))  # calibración: menor es mejor
+    else:
+        metrics["mae"] = r4(mean_absolute_error(y_te, pred))
+        metrics["rmse"] = r4(math.sqrt(mean_squared_error(y_te, pred)))
+        metrics["r2"] = r4(r2_score(y_te, pred))
+        metrics["baseline_mae_mean"] = r4(np.mean(np.abs(y_te - np.mean(y_tr))))
+    importances = getattr(model, "feature_importances_", None)
+    if importances is not None:
+        metrics["feature_importance"] = {f: round(float(v), 4) for f, v in zip(ds.features, importances)}
+    return model, metrics
+
+
+def save_artifact(model, path: Path) -> str:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    joblib.dump(model, path, compress=3)
+    return sha256_file(path)
+
+
+def sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def load_artifact(path: Path, expected_sha256: str):
+    if not path.is_file():
+        raise TrainingError("El artefacto del modelo no existe.")
+    if sha256_file(path) != expected_sha256:
+        raise TrainingError("El artefacto del modelo fue modificado (SHA-256 distinto). No se carga por seguridad.")
+    return joblib.load(path)
+
+
+def predict_rows(model, raw: bytes, features: list[str], task: str, limit: int = 5000) -> tuple[list[dict], int]:
+    headers, rows = read_csv_rows(raw)
+    missing = [f for f in features if f not in headers]
+    if missing:
+        raise TrainingError(f"El CSV de entrada no tiene las columnas del modelo: {missing}")
+    out, skipped = [], 0
+    batch_idx, batch_X = [], []
+    for i, row in enumerate(rows[:limit]):
+        xs = [_to_float(row.get(f)) for f in features]
+        if any(math.isnan(v) for v in xs):
+            skipped += 1
+            continue
+        batch_idx.append(i)
+        batch_X.append(xs)
+    if not batch_X:
+        return [], skipped
+    X = np.asarray(batch_X, dtype="float64")
+    preds = model.predict(X)
+    proba = model.predict_proba(X).max(axis=1) if task == "clasificacion" and hasattr(model, "predict_proba") else None
+    for k, i in enumerate(batch_idx):
+        item = {"row": i, "prediction": preds[k].item() if hasattr(preds[k], "item") else preds[k]}
+        if proba is not None:
+            item["confidence"] = round(float(proba[k]), 4)
+        out.append(item)
+    return out, skipped

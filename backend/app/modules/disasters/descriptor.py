@@ -2,6 +2,7 @@ from app.neurocore.base import ModuleDescriptor, cap
 
 DESCRIPTOR = ModuleDescriptor(
     key="disasters",
+    codename="NEURODISASTER",
     name="Predicción de Catástrofes",
     version="0.0.1",
     description="Huaycos, inundaciones, deslizamientos, incendios, sequías, sismos, relaves y accidentes industriales.",

@@ -7,7 +7,8 @@ import { LoginPage } from "./pages/LoginPage";
 import { MapPage } from "./pages/MapPage";
 import { ModulePage } from "./pages/ModulePage";
 import { NeurodataPage } from "./pages/NeurodataPage";
-import { NeurocorePage, NeurotrainingPage, NeurovoicePage, ReportsPage, SettingsPage } from "./pages/SystemPages";
+import { NeurocorePage, NeurovoicePage, ReportsPage, SettingsPage } from "./pages/SystemPages";
+import { TrainingCenter } from "./pages/TrainingCenter";
 import { api, session, setUnauthorizedHandler } from "./services/api";
 import { go, useHashRoute } from "./services/router";
 import type { User } from "./services/types";
@@ -20,7 +21,7 @@ function Page({ route }: { route: string }) {
     case "/alertas": return <AlertsPage />;
     case "/neurocore": return <NeurocorePage />;
     case "/neurodata": return <NeurodataPage />;
-    case "/neurotraining": return <NeurotrainingPage />;
+    case "/neurotraining": return <TrainingCenter />;
     case "/neurovoice": return <NeurovoicePage />;
     case "/informes": return <ReportsPage />;
     case "/configuracion": return <SettingsPage />;

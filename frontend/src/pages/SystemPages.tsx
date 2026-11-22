@@ -1,9 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { StatusBadge } from "../components/Badges";
-import { ModuleOverview } from "../components/ModuleOverview";
 import { ErrorText, Loading, Notice } from "../components/Notice";
 import { canWrite, fmtDate, post, session } from "../services/api";
-import type { AIModel, ModuleInfo, ReportItem, User } from "../services/types";
+import type { ModuleInfo, ReportItem, User } from "../services/types";
 import { useApi } from "../services/useApi";
 
 interface CoreInfo { name: string; version: string; status: string; description: string; interpreter: string; modules_registered: number }
@@ -62,51 +61,6 @@ export function NeurocorePage() {
             </ul>
           )}
         </div>
-      </div>
-    </div>
-  );
-}
-
-export function NeurotrainingPage() {
-  const mod = useApi<ModuleInfo>("/api/neurocore/modules/neurotraining");
-  const models = useApi<AIModel[]>("/api/neurotraining/models");
-  const all = useApi<ModuleInfo[]>("/api/neurocore/modules");
-  const user = session.user();
-  const [f, setF] = useState({ name: "", module_key: "environmental", algorithm: "", dataset_description: "" });
-  const [error, setError] = useState<string | null>(null);
-
-  async function submit(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
-    try { await post("/api/neurotraining/models", f); setF({ ...f, name: "", algorithm: "", dataset_description: "" }); models.reload(); }
-    catch (err) { setError((err as Error).message); }
-  }
-
-  return (
-    <div className="stack">
-      {mod.data ? <ModuleOverview module={mod.data} /> : <Loading what="módulo" />}
-      <Notice kind="dev">No hay modelos entrenados. Registrar un modelo solo lo planifica: su estado nace como «planificado» y no puede marcarse como validado sin evidencia.</Notice>
-      <div className="grid grid-2">
-        <div className="card">
-          <h2>Modelos registrados</h2>
-          {models.data?.length === 0 && <p className="muted">Ningún modelo registrado.</p>}
-          <table><tbody>{models.data?.map((m) => (
-            <tr key={m.id}><td><strong>{m.name}</strong><div className="small muted">{m.module_key} · {m.algorithm || "algoritmo por definir"}</div></td><td><span className="badge badge-dev">{m.status}</span></td></tr>
-          ))}</tbody></table>
-        </div>
-        {canWrite(user) && (
-          <form className="card stack" onSubmit={submit}>
-            <h2>Planificar un modelo</h2>
-            <div className="field"><label htmlFor="t-n">Nombre</label><input id="t-n" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} required minLength={2} /></div>
-            <div className="field"><label htmlFor="t-m">Módulo</label>
-              <select id="t-m" value={f.module_key} onChange={(e) => setF({ ...f, module_key: e.target.value })}>
-                {all.data?.map((m) => <option key={m.key} value={m.key}>{m.name}</option>)}</select></div>
-            <div className="field"><label htmlFor="t-a">Algoritmo previsto</label><input id="t-a" value={f.algorithm} onChange={(e) => setF({ ...f, algorithm: e.target.value })} placeholder="p. ej. RandomForest (scikit-learn)" /></div>
-            <div className="field"><label htmlFor="t-d">Datos previstos</label><textarea id="t-d" value={f.dataset_description} onChange={(e) => setF({ ...f, dataset_description: e.target.value })} /></div>
-            <div><button className="btn">Registrar como planificado</button></div>
-            <ErrorText error={error} />
-          </form>
-        )}
       </div>
     </div>
   );

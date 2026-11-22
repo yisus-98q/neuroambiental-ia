@@ -202,6 +202,14 @@ class AIModelOut(BaseModel):
     metrics: dict
     dataset_description: str
     created_at: datetime
+    task: str | None = None
+    target: str | None = None
+    features: list = []
+    dataset_record_id: str | None = None
+    trained_with_simulated: bool = False
+    artifact_sha256: str | None = None
+    trained_at: datetime | None = None
+    validation_evidence: str = ""
 
 
 # ---------- NEUROVOICE ----------

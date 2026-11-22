@@ -2,6 +2,7 @@ from app.neurocore.base import ModuleDescriptor, cap
 
 DESCRIPTOR = ModuleDescriptor(
     key="alerts",
+    codename="NEUROALERTS",
     name="Alertas y Prevención",
     version="0.1.0",
     description="Registro de eventos y alertas EXPERIMENTALES con evidencia, fuente, incertidumbre y validación.",

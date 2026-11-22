@@ -73,6 +73,16 @@ class AIModel(IdMixin, TimestampMixin, Base):
     metrics: Mapped[dict] = mapped_column(JSON, default=dict)
     dataset_description: Mapped[str] = mapped_column(Text, default="")
     artifact_path: Mapped[str | None] = mapped_column(String(512))
+    # Fase 3: entrenamiento real
+    task: Mapped[str | None] = mapped_column(String(16))            # clasificacion, regresion
+    target: Mapped[str | None] = mapped_column(String(128))
+    features: Mapped[list] = mapped_column(JSON, default=list)
+    dataset_record_id: Mapped[str | None] = mapped_column(ForeignKey("data_records.id", ondelete="SET NULL"))
+    trained_with_simulated: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    artifact_sha256: Mapped[str | None] = mapped_column(String(64))
+    trained_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    validation_evidence: Mapped[str] = mapped_column(Text, default="")
+    validated_by: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
 
 
 class Run(IdMixin, Base):

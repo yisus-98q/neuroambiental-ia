@@ -21,6 +21,8 @@ class Capability(BaseModel):
 class ModuleDescriptor(BaseModel):
     key: str
     name: str
+    codename: str | None = None  # nombre de la arquitectura avanzada (p. ej. NEUROTERRAIN)
+    group: str = "especializado"  # nucleo, especializado, simulacion
     version: str
     description: str
     capabilities: list[Capability]

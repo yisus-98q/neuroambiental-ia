@@ -2,6 +2,7 @@ from app.neurocore.base import ModuleDescriptor, cap
 
 DESCRIPTOR = ModuleDescriptor(
     key="environmental",
+    codename="NEUROENVIRONMENT",
     name="Predicción Ambiental Territorial",
     version="0.2.0",
     description="Cambios de vegetación, deforestación, ríos, lagunas, cobertura del suelo, erosión y degradación.",

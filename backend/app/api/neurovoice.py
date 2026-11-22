@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.core.security import get_current_user
 from app.database.session import get_db
 from app.models import Conversation, ConversationMessage, User
+from app.modules.neurovoice.contracts import available_providers
 from app.modules.neurovoice.service import build_reply
 from app.neurocore.registry import registry
 from app.schemas import ChatIn, ChatOut
@@ -38,6 +39,12 @@ def chat(body: ChatIn, user: User = Depends(get_current_user), db: Session = Dep
     db.commit()
     return ChatOut(conversation_id=conv.id, reply=reply, intent=it.intent, module_key=it.module_key,
                    method=it.method)
+
+
+@router.get("/capabilities")
+def capabilities() -> dict:
+    """Qué etapas de voz existen realmente (ASR, TTS, idiomas, herramientas)."""
+    return available_providers()
 
 
 @router.get("/conversations")

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { MENU } from "../modules/menu";
+import { MENU_GROUPS } from "../modules/menu";
 import type { User } from "../services/types";
 
 interface Props { route: string; user: User; onLogout: () => void; children: ReactNode }
@@ -14,19 +14,23 @@ export function Shell({ route, user, onLogout, children }: Props) {
           <div className="brand-sub">Inteligencia ambiental territorial · Perú</div>
         </div>
         <nav>
-          <ul className="nav">
-            {MENU.map((item, i) => (
-              <li key={item.path}>
-                {(i === 2 || i === 9 || i === 13) && <div className="nav-sep" />}
-                <a href={`#${item.path}`} className={route.startsWith(item.path) ? "active" : ""} onClick={() => setOpen(false)}>
-                  <span className="num">{i + 1}</span>{item.label}
-                </a>
-              </li>
-            ))}
-          </ul>
+          {MENU_GROUPS.map((g) => (
+            <div key={g.title}>
+              <div className="nav-group">{g.title}</div>
+              <ul className="nav">
+                {g.items.map((item) => (
+                  <li key={item.path}>
+                    <a href={`#${item.path}`} className={route.startsWith(item.path) ? "active" : ""} onClick={() => setOpen(false)}>
+                      {item.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </nav>
         <div className="small" style={{ marginTop: "auto", padding: 16, color: "#7f93ab" }}>
-          Versión 0.1.0 · Fase 1<br />Software libre · costo 0 USD
+          Versión 0.3.0 · Fase 3<br />Software libre · costo 0 USD
         </div>
       </aside>
       <div className="main">

@@ -8,3 +8,5 @@ python-multipart>=0.0.9
 # Fase 2: procesamiento raster por bloques (autorizado por el usuario).
 numpy>=2.1,<3
 rasterio>=1.4,<2
+# Fase 3: modelos ligeros (autorizado por el usuario).
+scikit-learn>=1.5,<2

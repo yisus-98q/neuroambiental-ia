@@ -2,6 +2,8 @@ from app.neurocore.base import ModuleDescriptor, cap
 
 DESCRIPTOR = ModuleDescriptor(
     key="neurodata",
+    codename="NEURODATA ENGINE",
+    group="nucleo",
     name="NEURODATA ENGINE",
     version="0.1.0",
     description="Recepción, validación, metadatos, procedencia y almacenamiento de datos.",

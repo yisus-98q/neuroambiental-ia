@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import contextlib
 import hashlib
-import threading
 from datetime import datetime
 from pathlib import Path
 
@@ -12,6 +11,7 @@ from rasterio.enums import Resampling
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core import jobs
 from app.core.audit import audit
 from app.core.config import settings
 from app.models import DataRecord, Run, User
@@ -28,11 +28,9 @@ CHANGE_UNCERTAINTY = ("Un cambio de NDVI NO confirma deforestación ni daño amb
                       "estacionalidad, cultivos, nieve, nubes no detectadas o diferencias de iluminación. "
                       "Debe validarse con imágenes de alta resolución o trabajo de campo.")
 
-_LOCK = threading.Lock()
-
-
-class Busy(Exception):
-    pass
+_LOCK = jobs.LOCK
+Busy = jobs.Busy
+_exclusive = jobs.exclusive
 
 
 class ProcessingError(Exception):
@@ -53,16 +51,6 @@ class RemoteBackend:
 
 
 backend = RemoteBackend()
-
-
-@contextlib.contextmanager
-def _exclusive():
-    if not _LOCK.acquire(blocking=False):
-        raise Busy("Ya hay un procesamiento en curso. Espere a que termine (protege la memoria del equipo).")
-    try:
-        yield
-    finally:
-        _LOCK.release()
 
 
 def _paths(record_id: str, suffix: str) -> tuple[Path, Path, str]:

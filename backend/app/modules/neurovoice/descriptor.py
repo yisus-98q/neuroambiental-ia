@@ -2,6 +2,8 @@ from app.neurocore.base import ModuleDescriptor, cap
 
 DESCRIPTOR = ModuleDescriptor(
     key="neurovoice",
+    codename="NEUROVOICE IA",
+    group="nucleo",
     name="NEUROVOICE IA",
     version="0.1.0",
     description="Interacción conversacional. Fase 1: texto en español con intérprete por reglas.",

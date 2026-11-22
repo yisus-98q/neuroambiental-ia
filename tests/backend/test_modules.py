@@ -63,7 +63,7 @@ def test_conversations_are_private(client, analyst_h, admin_h):
 def test_dashboard_counts_come_from_db(client, admin_h):
     d = client.get("/api/dashboard", headers=admin_h).json()
     assert d["records"]["total"] == d["records"]["real"] + d["records"]["simulated"]
-    assert len(d["modules"]) == 10
+    assert len(d["modules"]) == 15
 
 
 def test_territory_geometry_validated(client, analyst_h):
