@@ -82,7 +82,7 @@ class Run(IdMixin, Base):
     run_type: Mapped[str] = mapped_column(String(32), nullable=False)
     module_key: Mapped[str] = mapped_column(String(32), nullable=False)
     model_id: Mapped[str | None] = mapped_column(ForeignKey("ai_models.id", ondelete="SET NULL"))
-    status: Mapped[str] = mapped_column(String(16), default="pendiente")  # pendiente, ok, error
+    status: Mapped[str] = mapped_column(String(16), default="pendiente")  # pendiente, en_proceso, ok, error
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     parameters: Mapped[dict] = mapped_column(JSON, default=dict)

@@ -30,7 +30,7 @@ def test_eight_specialized_modules_plus_core_systems(client):
 
 def test_status_is_honest():
     """Un módulo sin capacidades implementadas nunca aparece como operativo."""
-    assert registry.get("environmental").status == "en_desarrollo"
+    assert registry.get("environmental").status == "parcial"  # Fase 2: NDVI y cambios
     assert registry.get("mining").status == "en_desarrollo"
     assert registry.get("neurodata").status == "operativo"
     assert registry.get("alerts").status == "parcial"

@@ -8,7 +8,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api import alerts, auth, neurocore, neurodata, neurotraining, neurovoice, system, territories
+from app.api import (
+    alerts,
+    auth,
+    environmental,
+    neurocore,
+    neurodata,
+    neurotraining,
+    neurovoice,
+    system,
+    territories,
+)
 from app.core.config import settings
 
 log = logging.getLogger("neuroambiental")
@@ -41,7 +51,7 @@ def create_app() -> FastAPI:
         log.exception("Error no controlado en %s", request.url.path)
         return JSONResponse(status_code=500, content={"detail": "Error interno. Revise los registros del servidor."})
 
-    for module in (system, auth, neurocore, neurodata, alerts, neurotraining, neurovoice, territories):
+    for module in (system, auth, neurocore, neurodata, alerts, environmental, neurotraining, neurovoice, territories):
         app.include_router(module.router)
 
     _mount_frontend(app)

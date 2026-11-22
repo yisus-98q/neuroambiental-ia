@@ -17,3 +17,4 @@ data/*.db
 data/*.db-*
 data/uploads/*
 !data/uploads/.gitkeep
+*.tsbuildinfo

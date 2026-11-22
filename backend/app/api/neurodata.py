@@ -141,6 +141,18 @@ def download(record_id: str, _: User = Depends(get_current_user), db: Session = 
                         filename=r.extra.get("original_name", path.name))
 
 
+@router.get("/records/{record_id}/preview")
+def preview(record_id: str, _: User = Depends(get_current_user), db: Session = Depends(get_db)) -> FileResponse:
+    """Vista previa PNG (RGBA, EPSG:4326, alineada con bbox) de un raster NDVI o de cambio."""
+    r = _get(db, record_id)
+    if not r.data_type.startswith("raster_") or not r.file_path:
+        raise HTTPException(404, "Este registro no tiene vista previa.")
+    path = absolute_path(r).with_suffix(".png")
+    if not path.is_file():
+        raise HTTPException(410, "La vista previa ya no existe en el almacenamiento local.")
+    return FileResponse(path, media_type="image/png")
+
+
 @router.get("/records/{record_id}/geojson")
 def record_geojson(record_id: str, _: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
     return {"type": "FeatureCollection", "features": record_features(_get(db, record_id))}

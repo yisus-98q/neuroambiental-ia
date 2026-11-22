@@ -69,6 +69,14 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   return body as T;
 }
 
+/** Descarga un binario autenticado (p. ej. vista previa PNG) y devuelve una URL local blob:. */
+export async function apiBlobUrl(path: string): Promise<string> {
+  const token = session.token();
+  const res = await fetch(path, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  if (!res.ok) throw new ApiError(res.status, `No se pudo descargar ${path}`);
+  return URL.createObjectURL(await res.blob());
+}
+
 export const post = <T,>(path: string, data?: unknown) =>
   api<T>(path, { method: "POST", body: data instanceof FormData ? data : JSON.stringify(data ?? {}) });
 

@@ -5,11 +5,20 @@
 | Fuente | Qué es | Notas |
 |---|---|---|
 | Muestras de prueba (`data/samples`) | `mediciones_simuladas.csv` (6 puntos de ciudades con temperatura **inventada**) y `area_estudio_simulada.geojson` (polígono y punto de referencia aproximados en la Cordillera Blanca) | **Todos los valores son simulados.** Se cargan con `scripts\cargar-muestras.bat` y quedan marcados `is_simulated = true`, fuente «Muestras de prueba NEUROAMBIENTAL», licencia «CC0 (creado para pruebas)». El polígono no es un límite oficial. |
+| **Copernicus Sentinel-2 L2A** (COG en AWS Open Data, catálogo STAC Earth Search de Element 84) | **Única fuente real integrada.** Catálogo: <https://earth-search.aws.element84.com/v1>; datos: <https://registry.opendata.aws/sentinel-2-l2a-cogs/>. Se leen solo recortes (bandas B04 rojo, B08 infrarrojo cercano y máscara SCL) del área pedida, bajo demanda (módulo Predicción ambiental). Área por defecto: Huaraz / Cordillera Blanca, bbox [-77.60, -9.60, -77.30, -9.35] | Gratis, sin cuenta ni claves. **Atribución obligatoria:** «Contiene datos modificados de Copernicus Sentinel [año]» (va en la procedencia del NDVI y en el mapa). Los términos deben ser re-verificados por el usuario. Se registra en `sources` con licencia «Copernicus: uso libre con atribución». Datos procesados: reproyectados a EPSG:4326 y **reducidos a ~33 m**; no son la imagen original. Solo hosts permitidos: `earth-search.aws.element84.com` y `sentinel-cogs.s3.us-west-2.amazonaws.com` |
 | Natural Earth 1:110m (admin-0, países) | Mapa base **local** por defecto: `frontend/public/basemap/paises.geojson` (~190 KB, propiedades nombre e iso, coordenadas a 3 decimales; Perú resaltado) | Dominio público (<https://www.naturalearthdata.com/>). Funciona sin Internet. Es un fondo de referencia, no un límite oficial. |
 | OpenStreetMap | Capa **opcional**, desactivada por defecto (casilla «Detalle OpenStreetMap» en el Mapa; teselas `tile.openstreetmap.org`) | Atribución obligatoria. Uso moderado según su política; sus servidores pueden rechazar teselas (respondieron 403 «Access blocked» durante las pruebas). |
 | Cargas de los usuarios | Archivos CSV, GeoJSON, PNG/JPG, PDF o registros manuales | Cada carga exige fuente, licencia (opcional, «desconocida» por defecto), procedencia y la marca real/simulado. La responsabilidad de que el dato sea legítimo es de quien lo carga. |
 
-**No hay ninguna fuente pública integrada**: el sistema no descarga datos de ningún servicio externo (salvo las teselas de OpenStreetMap, y solo si el usuario activa esa capa opcional).
+**Solo Sentinel-2 está integrado como fuente pública de datos**, y solo descarga recortes cuando un analista lo pide. Aparte de eso, el sistema no descarga nada de servicios externos (salvo las teselas de OpenStreetMap, si el usuario activa esa capa opcional). Ninguna fuente peruana (SENAMHI, INGEMMET, MINAM, IGP, INEI) está integrada.
+
+### Notas técnicas sobre Sentinel-2
+
+- **Escala y desplazamiento radiométrico.** Los metadatos de Earth Search declaran un desplazamiento de -0,1 (línea base de procesamiento 04.00 o posterior). Con datos reales de Huaraz, aplicarlo dejaba la vegetación con reflectancia roja negativa (≈ -0,026) y el NDVI se saturaba en 1,0. El sistema decide con los datos: si al aplicar el desplazamiento más del 20 % de los píxeles de superficie (SCL 4, 5 y 6) quedan con reflectancia ≤ 0, concluye que los COG ya vienen corregidos y **no lo aplica**. La decisión queda en `stats.radiometric_offset` y en la procedencia. Es una heurística: debe revisarse si cambian los metadatos de la fuente.
+- **Máscara SCL.** Se consideran válidos: 4 vegetación, 5 suelo desnudo, 6 agua, 7 sin clasificar y 11 nieve/hielo. Se excluyen 0 sin datos, 1 saturado, 2 áreas oscuras, 3 sombras de nubes, 8 y 9 nubes, 10 cirros. También se excluyen píxeles con reflectancia ≤ 0.
+- **Verificación con datos reales** (Huaraz, 2019-08-02 y 2025-07-16): el desplazamiento no se aplicó en ninguna de las dos escenas; con él, el 44 % y el 62 % de la superficie quedaba con reflectancia ≤ 0.
+- **Nieve.** Se mantiene como válida; en zonas andinas altera el NDVI (el porcentaje de nieve se informa en las estadísticas).
+- **Salidas.** `data/uploads/rasters/AAAA/MM/<id>_ndvi.tif` (int16, NDVI x 10000, sin dato = -32768), `<id>_cambio.tif` (clases 1 disminución, 2 aumento, 0 sin cambio, 255 sin dato) y un PNG RGBA de vista previa con el mismo nombre. Se registran como `data_records` de tipo `raster_ndvi` y `raster_cambio`.
 
 ## Fuentes públicas candidatas (NO integradas)
 
@@ -17,7 +26,7 @@ La licencia y los términos de uso **deben revisarse antes de usar cualquiera**;
 
 | Fuente | Posible uso | Licencia / términos |
 |---|---|---|
-| Copernicus Sentinel (Sentinel-1/2) | Imágenes para NDVI, cambios de cobertura, InSAR | Política de datos abierta de Copernicus; verificar condiciones y atribución exigidas |
+| Copernicus Sentinel-1 (radar) | InSAR y detección de cambios con radar | Política de datos abierta de Copernicus; verificar condiciones y atribución. (Sentinel-2 ya está integrado, ver arriba) |
 | SENAMHI | Estaciones, precipitación, temperatura | Por verificar (acceso y reutilización) |
 | INGEMMET (GEOCATMIN) | Geología, concesiones, peligros geológicos | Por verificar |
 | MINAM (GEOBOSQUES) | Deforestación y cobertura de bosque | Por verificar |

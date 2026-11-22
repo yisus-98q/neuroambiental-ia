@@ -47,6 +47,7 @@ Códigos habituales: 401 sin sesión o sesión expirada; 403 rol insuficiente; 4
 | GET | `/api/neurodata/records` | lector | Lista de registros; filtros `data_type`, `is_simulated`, `limit` (máx. 500), `offset`. |
 | GET | `/api/neurodata/records/{id}` | lector | Metadatos de un registro. |
 | GET | `/api/neurodata/records/{id}/file` | lector | Descarga el archivo original (404 sin archivo; 410 si ya no existe en disco). |
+| GET | `/api/neurodata/records/{id}/preview` | lector | Vista previa PNG (RGBA, EPSG:4326, alineada con el `bbox` del registro) de un ráster NDVI o de cambio. 404 si el registro no es un ráster; 410 si el PNG ya no existe. |
 | GET | `/api/neurodata/records/{id}/geojson` | lector | Elementos georreferenciados del registro como GeoJSON. |
 | GET | `/api/neurodata/layers?include_simulated=` | lector | Capas para el mapa (hasta 50 registros válidos georreferenciados, 5000 elementos por capa). |
 | GET | `/api/neurodata/sources` | lector | Fuentes registradas. |
@@ -67,13 +68,28 @@ Extensiones permitidas: `.csv`, `.geojson`, `.json`, `.png`, `.jpg`, `.jpeg`, `.
 | POST | `/api/alerts/{id}/followups` | analista | Agrega nota; opcionalmente cambia el estado de validación. |
 | POST | `/api/alerts/{id}/report` | analista | Genera y guarda un informe Markdown de la alerta. |
 
+## Predicción ambiental (Fase 2)
+
+Requiere Internet para buscar escenas y calcular NDVI (servicios públicos de Sentinel-2). Un solo procesamiento a la vez.
+
+| Método | Ruta | Rol | Descripción |
+|---|---|---|---|
+| GET | `/api/environmental/defaults` | público | Área por defecto (Huaraz / Cordillera Blanca, `[-77.60, -9.60, -77.30, -9.35]`), resolución (0,0003°), lado máximo (0,5°), fuente y URL. |
+| POST | `/api/environmental/scenes/search` | analista | Busca escenas Sentinel-2 L2A: `bbox`, `date_from`, `date_to` (no futura), `max_cloud` (0-100, 20 por defecto). Devuelve hasta 20, ordenadas por nubosidad. |
+| POST | `/api/environmental/ndvi` | analista | Calcula el NDVI de una escena (`item_id`, `bbox`, `resolution_deg` 0,0001 a 0,005). Responde 201 con el registro `raster_ndvi`. Tarda de segundos a pocos minutos. |
+| POST | `/api/environmental/change` | analista | Detecta cambios entre dos NDVI (`before_id`, `after_id`, `threshold` 0,05 a 0,8; 0,2 por defecto). Los ordena por fecha. 201 con el registro `raster_cambio` (sin validar). |
+| GET | `/api/environmental/rasters` | lector | Últimos 100 registros `raster_ndvi` y `raster_cambio` (con estadísticas, incertidumbre y procedencia en `extra`). |
+| GET | `/api/environmental/analyses` | lector | Últimos 50 análisis (tabla `runs` del módulo) con parámetros y resumen. |
+
+Errores propios: 409 si ya hay un procesamiento en curso; 422 por área o malla inválida, escena que no cubre el área, sin píxeles válidos o NDVI incompatibles (distinta área/resolución); 502 si el servicio de imágenes no responde. El `bbox` debe ser `[minLon, minLat, maxLon, maxLat]` con lados de máximo 0,5°.
+
 ## NEUROTRAINING
 
 | Método | Ruta | Rol | Descripción |
 |---|---|---|---|
 | GET | `/api/neurotraining/models` | lector | Modelos registrados. |
 | POST | `/api/neurotraining/models` | analista | Registra un modelo; siempre queda `planificado`. No hay endpoint para entrenar ni para cambiar su estado. |
-| GET | `/api/neurotraining/runs` | lector | Últimas 100 ejecuciones (hoy no hay ninguna que las cree). |
+| GET | `/api/neurotraining/runs` | lector | Últimas 100 ejecuciones. Hoy solo las crea el módulo ambiental (NDVI y detección de cambios); NEUROTRAINING no entrena nada. |
 
 ## Informes
 

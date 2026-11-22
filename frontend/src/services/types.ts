@@ -45,4 +45,21 @@ export interface AIModel {
   metrics: Record<string, unknown>; dataset_description: string; created_at: string;
 }
 
+export interface RasterRecord {
+  id: string; data_type: "raster_ndvi" | "raster_cambio"; title: string; bbox: number[]; observed_at: string | null;
+  received_at: string; is_simulated: boolean; provenance: string; source: string;
+  extra: { kind: "ndvi" | "cambio"; stats: Record<string, unknown>; uncertainty: string; scene_id?: string;
+    cloud_cover?: number; before?: string; after?: string; validated?: boolean; download?: { bytes: number; requests: number } };
+}
+
+export interface Scene { id: string; datetime: string; cloud_cover: number; mgrs_tile: string; platform: string; bbox: number[] }
+
+export interface Analysis {
+  id: string; run_type: string; status: string; started_at: string; finished_at: string | null;
+  parameters: Record<string, unknown>; result_summary: Record<string, unknown>;
+}
+
+/** Capa raster lista para el mapa: la imagen ya descargada como URL local (blob:). */
+export interface RasterOverlay { id: string; title: string; kind: "ndvi" | "cambio"; bbox: number[]; url: string; is_simulated: boolean }
+
 export interface ReportItem { id: string; title: string; module_key: string; created_at: string; content_md: string }

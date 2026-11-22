@@ -5,7 +5,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 // MapLibre 6 procesa los datos en un web worker que vive en un archivo aparte:
 // Vite lo copia a dist/assets y nos da su URL.
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
-import type { Layer } from "../services/types";
+import type { Layer, RasterOverlay } from "../services/types";
 import { ALERT_COLORS, PALETTE } from "./colors";
 
 // Mapa base LOCAL: países de Natural Earth 1:110m (dominio público), servido por la propia app.
@@ -53,6 +53,8 @@ interface Props {
   markerMode?: boolean;
   focusBbox?: number[] | null;
   osmBase?: boolean;
+  rasters?: RasterOverlay[];
+  visibleRasters?: Set<string>;
   onSelect?: (props: Record<string, unknown> | null) => void;
 }
 
@@ -70,7 +72,7 @@ function popupNode(props: Record<string, unknown>): HTMLElement {
   return box;
 }
 
-export default function TerritorialMap({ layers, visible, alerts, showAlerts = true, compact, markerMode, focusBbox, osmBase = false, onSelect }: Props) {
+export default function TerritorialMap({ layers, visible, alerts, showAlerts = true, compact, markerMode, focusBbox, osmBase = false, rasters = [], visibleRasters, onSelect }: Props) {
   const box = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const markerModeRef = useRef(markerMode);
@@ -142,6 +144,28 @@ export default function TerritorialMap({ layers, visible, alerts, showAlerts = t
     }
     interactive.current = ids;
   }, [layers, visible, alerts, showAlerts, ready]);
+
+  // Capas raster (NDVI / cambios): imágenes PNG ubicadas por su bbox, siempre debajo de puntos y polígonos.
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !ready) return;
+    const below = m.getStyle().layers.find((l) => l.id.startsWith("rec-") || l.id === "alerts-pt")?.id;
+    const wanted = new Set(rasters.map((r) => `ras-${r.id}`));
+    for (const l of m.getStyle().layers) {
+      if (l.id.startsWith("ras-") && !wanted.has(l.id)) { m.removeLayer(l.id); m.removeSource(l.id); }
+    }
+    for (const r of rasters) {
+      const id = `ras-${r.id}`;
+      const [minx, miny, maxx, maxy] = r.bbox;
+      const coordinates: [[number, number], [number, number], [number, number], [number, number]] =
+        [[minx, maxy], [maxx, maxy], [maxx, miny], [minx, miny]];
+      if (!m.getSource(id)) {
+        m.addSource(id, { type: "image", url: r.url, coordinates });
+        m.addLayer({ id, type: "raster", source: id, paint: { "raster-opacity": 0.85, "raster-resampling": "nearest" } }, below);
+      }
+      m.setLayoutProperty(id, "visibility", !visibleRasters || visibleRasters.has(r.id) ? "visible" : "none");
+    }
+  }, [rasters, visibleRasters, ready]);
 
   useEffect(() => {
     const m = map.current;

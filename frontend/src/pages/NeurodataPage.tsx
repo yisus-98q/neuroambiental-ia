@@ -33,7 +33,7 @@ export function NeurodataPage() {
         <div className="card-head"><h2>Datos recibidos</h2>
           <select value={filter} onChange={(e) => setFilter(e.target.value)} style={{ width: "auto" }} aria-label="Filtrar por tipo">
             <option value="">Todos los tipos</option>
-            {["csv", "geojson", "imagen", "documento", "medicion_manual"].map((t) => <option key={t} value={t}>{t}</option>)}
+            {["csv", "geojson", "imagen", "documento", "medicion_manual", "raster_ndvi", "raster_cambio"].map((t) => <option key={t} value={t}>{t}</option>)}
           </select></div>
         <ErrorText error={records.error} />
         {records.loading && <Loading />}

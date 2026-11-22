@@ -2,8 +2,9 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { SimBadge } from "../components/Badges";
 import { ErrorText, Loading } from "../components/Notice";
 import { ALERT_COLORS, PALETTE } from "../maps/colors";
-import type { Layer } from "../services/types";
+import type { Layer, RasterRecord } from "../services/types";
 import { useApi } from "../services/useApi";
+import { useRasterOverlays } from "../services/useRasterOverlays";
 
 const TerritorialMap = lazy(() => import("../maps/TerritorialMap"));
 
@@ -16,10 +17,24 @@ export function MapPage() {
   const [osmBase, setOsmBase] = useState(false);
   const [focus, setFocus] = useState<number[] | null>(null);
   const [selected, setSelected] = useState<Record<string, unknown> | null>(null);
+  const rasters = useApi<RasterRecord[]>("/api/environmental/rasters");
+  const overlays = useRasterOverlays(rasters.data);
+  const [visibleRasters, setVisibleRasters] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (layers.data) setVisible(new Set(layers.data.map((l) => l.record_id)));
   }, [layers.data]);
+
+  // Por defecto solo se muestra el raster más reciente (apilar varios confunde la lectura).
+  useEffect(() => {
+    if (rasters.data?.length) setVisibleRasters(new Set([rasters.data[0].id]));
+  }, [rasters.data]);
+
+  const toggleRaster = (id: string) => setVisibleRasters((prev) => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
 
   const toggle = (id: string) => setVisible((prev) => {
     const next = new Set(prev);
@@ -50,7 +65,8 @@ export function MapPage() {
       <div className="map-layout">
         <Suspense fallback={<Loading what="mapa" />}>
           <TerritorialMap layers={layers.data ?? []} visible={visible} alerts={alerts.data} showAlerts={showAlerts}
-            markerMode={markerMode} focusBbox={focus} osmBase={osmBase} onSelect={setSelected} />
+            markerMode={markerMode} focusBbox={focus} osmBase={osmBase} rasters={overlays}
+            visibleRasters={visibleRasters} onSelect={setSelected} />
         </Suspense>
         <div className="stack">
           <div className="card">
@@ -75,9 +91,30 @@ export function MapPage() {
               </label>
             </div>
           </div>
+          {(rasters.data?.length ?? 0) > 0 && (
+            <div className="card">
+              <h2>Rásters Sentinel-2</h2>
+              <div className="stack">
+                {rasters.data?.map((r) => (
+                  <div key={r.id} className="row" style={{ justifyContent: "space-between" }}>
+                    <label className="row" style={{ fontWeight: 400, flex: 1, margin: 0 }}>
+                      <input type="checkbox" checked={visibleRasters.has(r.id)} onChange={() => toggleRaster(r.id)} />
+                      <span className="small">{r.title}</span>
+                    </label>
+                    <SimBadge simulated={r.is_simulated} />
+                    <button className="btn btn-ghost small" style={{ padding: "2px 8px" }} onClick={() => setFocus(r.bbox)}>Ir</button>
+                  </div>
+                ))}
+              </div>
+              <p className="small muted" style={{ marginBottom: 0 }}>Contiene datos modificados de Copernicus Sentinel.</p>
+            </div>
+          )}
           <div className="card">
             <h2>Leyenda</h2>
             <div className="stack small">
+              <div className="row"><span className="legend-swatch" style={{ background: "linear-gradient(90deg,#5a6e8c,#a57850,#d7c85a,#6eaf46,#146428)", width: 70 }} /> NDVI: agua/nieve → suelo → vegetación densa</div>
+              <div className="row"><span className="legend-swatch" style={{ background: "#c83232" }} /> Disminución de NDVI (no confirma daño)</div>
+              <div className="row"><span className="legend-swatch" style={{ background: "#28965a" }} /> Aumento de NDVI</div>
               {Object.entries(ALERT_COLORS).map(([k, c]) => (
                 <div key={k} className="row"><span className="legend-swatch" style={{ background: c, borderRadius: "50%" }} /> Alerta nivel {k}</div>
               ))}

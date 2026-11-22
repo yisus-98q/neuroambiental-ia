@@ -14,6 +14,7 @@ Pensada para **uso local** (`127.0.0.1`). No ha tenido auditoría externa.
 - **Cabeceras:** `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`. Nota: al activar la capa opcional de OpenStreetMap, el navegador contacta a sus servidores y les envía como referencia solo el origen (`http://127.0.0.1:8000`) más su IP.
 - **CORS:** restringido a `http://localhost:5173` y `http://127.0.0.1:5173` (configurable), sin credenciales, solo GET y POST.
 - **XSS en el mapa:** los popups se construyen con `textContent`, sin inyectar HTML de los datos.
+- **Acceso remoto de la Fase 2 (SSRF y TLS):** el módulo ambiental solo contacta `earth-search.aws.element84.com` y `sentinel-cogs.s3.us-west-2.amazonaws.com` por HTTPS; cualquier otro host se rechaza. El identificador de escena se valida con una expresión regular estricta. **No se desactiva la verificación TLS**: GDAL/curl fallaba con «schannel: the certificate chain is incomplete» por la inspección HTTPS del antivirus, y se resolvió leyendo por rangos desde Python (`urllib`) con el almacén de certificados de Windows. Límites contra abuso de recursos: área máx. 0,5° x 0,5°, malla máx. 1600 x 1600 px, un solo procesamiento a la vez (409), y solo rol analista puede lanzar descargas.
 - **Errores internos:** respuesta genérica al usuario; el detalle va al registro del servidor.
 - **Secretos:** en `.env` (en `.gitignore`, nunca versionado); `.env.example` no contiene secretos. La contraseña del administrador se pide oculta y no se guarda en historial.
 
@@ -27,4 +28,7 @@ Pensada para **uso local** (`127.0.0.1`). No ha tenido auditoría externa.
 - `scripts\detener.bat` detiene cualquier proceso que escuche en los puertos 8000 y 5173, aunque no sea de este proyecto.
 - Cualquier usuario con sesión (incluido lector) puede descargar los archivos y ver todos los informes.
 - Los datos de la base y los archivos no están cifrados en disco.
+- El candado de «un procesamiento a la vez» está en memoria del proceso; si el servidor se cae durante un análisis, su fila en `runs` puede quedar en `en_proceso`.
+- Cada análisis NDVI consume ancho de banda y tiempo de CPU en el equipo; un analista con sesión puede lanzar descargas repetidas (no hay límite por usuario ni por tiempo, solo el candado).
+- Confianza en servicios de terceros (Element 84, AWS): si cambian sus metadatos o respuestas, el procesamiento puede fallar o dar resultados distintos.
 - Sin pruebas automáticas de seguridad del frontend.

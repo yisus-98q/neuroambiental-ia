@@ -8,8 +8,9 @@
 |---|---|
 | NEUROCORE (intérprete) | Reglas: normaliza el texto y cuenta palabras clave por módulo. No aprende ni entiende contexto. |
 | NEUROVOICE | Usa ese intérprete y responde con conteos reales de la base y el contrato del módulo. Solo texto en español. Sin voz, sin modelo de lenguaje, sin otros idiomas. Puede no entender frases complejas. |
-| NEUROTRAINING | Solo **registra** modelos con nombre, módulo, algoritmo previsto y descripción de datos. Todo modelo nace `planificado` y la API no permite cambiar su estado ni entrenar. No hay ejecuciones. |
-| Predicción ambiental, catástrofes, minería, biodiversidad, terreno | Sin análisis ni modelos: solo el contrato del módulo. |
+| NEUROTRAINING | Solo **registra** modelos con nombre, módulo, algoritmo previsto y descripción de datos. Todo modelo nace `planificado` y la API no permite cambiar su estado ni entrenar. No registra ejecuciones propias (las únicas filas de `runs` son los análisis NDVI del módulo ambiental). |
+| Predicción ambiental (Fase 2) | **Cálculos determinísticos, no IA ni aprendizaje automático:** NDVI = (NIR - Rojo) / (NIR + Rojo) con máscara de nubes (SCL) y detección de cambios por umbral sobre la diferencia de NDVI. No hay parámetros aprendidos de datos, ni entrenamiento, ni métricas de exactitud. Los cambios detectados quedan «sin validar» y **no confirman** deforestación ni daño. |
+| Catástrofes, minería, biodiversidad, terreno | Sin análisis ni modelos: solo el contrato del módulo. |
 | Alertas | Las crea una persona. No hay alertas automáticas. |
 
 ## Estados de un modelo

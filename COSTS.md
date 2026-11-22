@@ -16,11 +16,18 @@
 | React / React DOM | Interfaz | MIT | 0 |
 | Vite | Compilación del frontend | MIT | 0 |
 | TypeScript | Tipado | Apache-2.0 | 0 |
+| numpy | Cálculo con arreglos (Fase 2) | BSD-3-Clause | 0 |
+| rasterio (incluye GDAL) | Lectura/escritura de rásters (Fase 2) | BSD-3-Clause (rasterio); GDAL con licencia tipo MIT/X | 0 |
+| Sentinel-2 L2A COG en AWS Open Data + catálogo STAC Earth Search (Element 84) | Imágenes satelitales (Fase 2) | Datos Copernicus: uso libre con atribución obligatoria; servicios gratuitos, sin cuenta ni claves | 0 |
 | MapLibre GL JS | Mapa | BSD-3-Clause | 0 |
 | Natural Earth 1:110m países (mapa base local, `frontend/public/basemap/paises.geojson`) | Fondo del mapa por defecto; funciona sin Internet | Dominio público | 0 |
 | OpenStreetMap (teselas, capa opcional desactivada por defecto) | Detalle adicional del mapa | Datos ODbL; teselas gratuitas bajo su política de uso | 0, con condiciones |
 
 Condiciones de OpenStreetMap: atribución obligatoria y **uso moderado**. Su servidor público de teselas no está pensado para tráfico intensivo y puede rechazar peticiones: durante las pruebas respondió 403 «Access blocked» a la aplicación local. Por eso el mapa base por defecto es local; OpenStreetMap solo se usa si el usuario marca «Detalle OpenStreetMap». Si se necesita detalle fiable, habría que cambiar de proveedor (ver abajo).
+
+Sentinel-2: la atribución «Contiene datos modificados de Copernicus Sentinel [año]» es obligatoria y el sistema la incluye en la procedencia de cada NDVI y en el mapa. Los términos de uso de Copernicus y de los servicios de Element 84 / AWS Open Data **deben ser re-verificados por el usuario**; la gratuidad actual no está garantizada a futuro (los servicios podrían limitar o cobrar).
+
+Espacio en disco: `backend\.deps` pasó de 47 MB a 192 MB al agregar rasterio/GDAL. Cada NDVI descarga ~17 MB (medido, área por defecto) y guarda un GeoTIFF y un PNG pequeños en `data/uploads/rasters/` (el tamaño en disco por registro aún no está medido).
 
 Las licencias indicadas son las habituales de cada proyecto; conviene confirmarlas al actualizar versiones.
 
@@ -33,7 +40,7 @@ Ninguno está contratado ni es necesario hoy.
 | Hosting / servidor | Si se quiere acceso desde otros equipos o Internet (hoy solo `127.0.0.1`) | Ejecutar en un equipo propio dentro de la red local |
 | Dominio y certificado HTTPS | Al publicar en Internet | Let's Encrypt (certificados gratuitos); acceso solo por red local |
 | PostgreSQL/PostGIS gestionado | Muchos usuarios o análisis espaciales pesados | PostgreSQL/PostGIS autoalojado, o seguir con SQLite |
-| Almacenamiento de imágenes satelitales | Al integrar Sentinel-2 (cada escena pesa cientos de MB) | Descargar solo recortes y bandas necesarias; disco local; purgar originales |
+| Almacenamiento y ancho de banda de imágenes satelitales | Hoy solo se descargan recortes (~15-20 MB por fecha, sin guardar las escenas originales). Crecería con series largas o áreas mayores | Mantener recortes pequeños; purgar rásters antiguos; disco local |
 | GPU para entrenamiento | Modelos de visión profunda | scikit-learn en CPU para modelos ligeros; cuotas gratuitas de notebooks con límites |
 | Servidor de teselas propio | Si el uso supera la política de OSM | Teselas autoalojadas con datos OSM/Natural Earth; proveedores con plan gratuito (revisar límites) |
 | Servicios de voz | Reconocimiento y síntesis de voz | Vosk (reconocimiento) y Piper (síntesis), libres y locales; verificar calidad en español |
