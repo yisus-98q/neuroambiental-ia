@@ -32,6 +32,7 @@ SCENARIO_UNCERTAINTY = ("La trayectoria depende de la resolución del DEM (≈10
                         "vegetación, suelo, agua y obstáculos, y los errores verticales del DEM (varios metros) "
                         "pueden desviar el camino. No indica probabilidad ni alcance real de ningún evento.")
 
+HEAVY_RUNS = ("dem", "escenario_susceptibilidad", "escenario_inundacion")
 Busy = jobs.Busy
 _exclusive = jobs.exclusive
 
@@ -79,7 +80,7 @@ def _sha256(path: Path) -> str:
 
 
 def _start_run(db: Session, run_type: str, params: dict) -> Run:
-    for stale in db.scalars(select(Run).where(Run.module_key == "neuro3d", Run.run_type == "dem",
+    for stale in db.scalars(select(Run).where(Run.module_key == "neuro3d", Run.run_type.in_(HEAVY_RUNS),
                                               Run.status == "en_proceso")):
         stale.status, stale.finished_at = "error", utcnow()
         stale.result_summary = {"error": "Interrumpido: el servidor se detuvo durante el proceso."}

@@ -41,3 +41,22 @@ export const SLOPE_LUT: Float32Array = (() => {
   }
   return lut;
 })();
+
+/** Capa «Escenario» (SIMULACIÓN): clases de susceptibilidad heurística (1 bajo, 2 medio, 3 alto). */
+export const SUSC_CLASSES: { value: number; color: string; label: string }[] = [
+  { value: 1, color: "#43a047", label: "Bajo" },
+  { value: 2, color: "#fdd835", label: "Medio" },
+  { value: 3, color: "#d32f2f", label: "Alto" },
+];
+export const SUSC_RGB: Record<number, [number, number, number]> =
+  Object.fromEntries(SUSC_CLASSES.map((c) => [c.value, hexToRgb(c.color)]));
+
+/** Profundidad de inundación hipotética: celeste (somera) → azul oscuro (profunda). 256 pasos. */
+export const FLOOD_STOPS: [number, string][] = [[0, "#81d4fa"], [1, "#0d2f7a"]];
+export const FLOOD_LUT: Float32Array = (() => {
+  const lut = new Float32Array(256 * 3);
+  const a = hexToRgb(FLOOD_STOPS[0][1]);
+  const b = hexToRgb(FLOOD_STOPS[1][1]);
+  for (let i = 0; i < 256; i++) for (let k = 0; k < 3; k++) lut[i * 3 + k] = a[k] + (b[k] - a[k]) * (i / 255);
+  return lut;
+})();

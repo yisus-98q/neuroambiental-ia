@@ -15,9 +15,11 @@ from app.api import (
     neuro3d,
     neurocore,
     neurodata,
+    neuroprediction,
     neurotraining,
     neurovision,
     neurovoice,
+    simulation,
     system,
     territories,
 )
@@ -53,8 +55,8 @@ def create_app() -> FastAPI:
         log.exception("Error no controlado en %s", request.url.path)
         return JSONResponse(status_code=500, content={"detail": "Error interno. Revise los registros del servidor."})
 
-    for module in (system, auth, neurocore, neurodata, alerts, environmental, neurotraining, neurovision, neuro3d,
-                   neurovoice, territories):
+    for module in (system, auth, neurocore, neurodata, alerts, environmental, neurotraining, neuroprediction, neurovision,
+                   neuro3d, simulation, neurovoice, territories):
         app.include_router(module.router)
 
     _mount_frontend(app)

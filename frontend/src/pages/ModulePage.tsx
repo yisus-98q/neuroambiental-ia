@@ -8,6 +8,7 @@ import { useApi } from "../services/useApi";
 import { EnvironmentalPanel } from "./EnvironmentalPanel";
 import { Neuro3DLab } from "./Neuro3DLab";
 import { NeurovisionPanel } from "./NeurovisionPanel";
+import { PredictionPanel } from "./PredictionPanel";
 
 /** Página genérica para los módulos especializados. */
 export function ModulePage({ moduleKey }: { moduleKey: string }) {
@@ -20,6 +21,7 @@ export function ModulePage({ moduleKey }: { moduleKey: string }) {
       {moduleKey === "environmental" && <EnvironmentalPanel />}
       {moduleKey === "neurovision" && <NeurovisionPanel />}
       {moduleKey === "neuro3d" && <Neuro3DLab />}
+      {moduleKey === "neuroprediction" && <PredictionPanel />}
       {moduleKey === "construction" && <ConstructionDocs />}
       {moduleKey === "disasters" && (
         <Notice kind="danger">

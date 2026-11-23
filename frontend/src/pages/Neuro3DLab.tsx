@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { ErrorText, Loading, Notice } from "../components/Notice";
-import type { Layer, MeshData, PathPoint } from "../maps/Terrain3D";
-import { HYPSO_STOPS, NO_DATA_COLOR, SLOPE_CLASSES } from "../maps/terrainPalette";
+import type { Layer, MeshData, PathPoint, ScenarioGrid } from "../maps/Terrain3D";
+import { FLOOD_STOPS, HYPSO_STOPS, NO_DATA_COLOR, SLOPE_CLASSES, SUSC_CLASSES } from "../maps/terrainPalette";
 import { api, canWrite, post, session } from "../services/api";
 import { useApi } from "../services/useApi";
 
@@ -25,6 +25,7 @@ interface Scenario {
 const END_TEXT: Record<string, string> = {
   minimo_local: "mínimo local (depresión)", borde: "borde del DEM", max_pasos: "límite de 2000 pasos",
 };
+const BANNER = "SIMULACIÓN — escenario hipotético, no es una predicción";
 const mb = (b?: number) => (b ? `${(b / 1048576).toFixed(1)} MB` : "—");
 
 /** NEURO 3D LAB: terreno real (Copernicus GLO-30) en 3D y un escenario demostrativo simplificado. */
@@ -41,6 +42,7 @@ export function Neuro3DLab() {
   const [lon, setLon] = useState("");
   const [lat, setLat] = useState("");
   const [scenario, setScenario] = useState<Scenario | null>(null);
+  const [grid, setGrid] = useState<ScenarioGrid | null>(null);
 
   const list = terrains.data ?? [];
   const sel = list.find((t) => t.id === selId) ?? null;
@@ -48,7 +50,7 @@ export function Neuro3DLab() {
   useEffect(() => { if (!selId && list.length) setSelId(list[0].id); }, [list, selId]);
 
   useEffect(() => {
-    setMesh(null); setScenario(null);
+    setMesh(null); setScenario(null); setGrid(null);
     if (!selId) return;
     let alive = true;
     api<Mesh>(`/api/neuro3d/terrains/${selId}/mesh?max_size=256`)
@@ -129,10 +131,11 @@ export function Neuro3DLab() {
         <div className="grid grid-2" style={{ alignItems: "start" }}>
           <div className="card stack">
             <h2>2. Visor 3D</h2>
+            {layer === "scenario" && grid && <div className="notice notice-dev" role="note"><strong>{BANNER}</strong></div>}
             {!mesh && <Loading what="malla 3D" />}
             {mesh && (
               <Suspense fallback={<Loading what="visor 3D" />}>
-                <Terrain3D mesh={mesh} exaggeration={exag} layer={layer} path={scenario?.path ?? null} />
+                <Terrain3D mesh={mesh} exaggeration={exag} layer={layer} path={scenario?.path ?? null} scenario={grid} />
               </Suspense>
             )}
             <p className="small muted" style={{ margin: 0 }}>Arrastre para rotar, rueda para acercar, clic derecho para desplazar. Se dibuja solo cuando usted mueve la vista.</p>
@@ -141,9 +144,10 @@ export function Neuro3DLab() {
                 <input id="t3ex" type="range" min={1} max={5} step={0.5} value={exag} onChange={(e) => setExag(Number(e.target.value))} /></div>
               <div className="field"><label htmlFor="t3ly">Capa</label>
                 <select id="t3ly" value={layer} onChange={(e) => setLayer(e.target.value as Layer)}>
-                  <option value="elevation">Elevación (hipsométrica)</option><option value="slope">Pendiente</option></select></div>
+                  <option value="elevation">Elevación (hipsométrica)</option><option value="slope">Pendiente</option>
+                  <option value="scenario" disabled={!grid}>Escenario (SIMULACIÓN){grid ? "" : " — calcule uno primero"}</option></select></div>
             </div>
-            <Legend layer={layer} min={elev?.min} max={elev?.max} />
+            <Legend layer={layer} min={elev?.min} max={elev?.max} grid={grid} />
             <p className="small muted" style={{ margin: 0 }}>{sel.extra.attribution}</p>
           </div>
 
@@ -182,6 +186,8 @@ export function Neuro3DLab() {
               )}
               <a href="#/mapa" className="small">Ver en el mapa 2D</a>
             </div>
+            <SimulationPanel dem={sel} bbox={mesh?.bbox ?? sel.bbox} lon={lon} lat={lat} writable={writable}
+              onGrid={(g) => { setGrid(g); if (g) setLayer("scenario"); else setLayer((l) => (l === "scenario" ? "elevation" : l)); }} />
           </div>
         </div>
       )}
@@ -189,7 +195,27 @@ export function Neuro3DLab() {
   );
 }
 
-function Legend({ layer, min, max }: { layer: Layer; min?: number; max?: number }) {
+function Swatch({ color, label }: { color: string; label: string }) {
+  return <span><span style={{ display: "inline-block", width: 12, height: 12, background: color, marginRight: 4, verticalAlign: "middle" }} />{label}</span>;
+}
+
+function Legend({ layer, min, max, grid }: { layer: Layer; min?: number; max?: number; grid?: ScenarioGrid | null }) {
+  if (layer === "scenario" && grid) {
+    if (grid.kind === "susceptibilidad") {
+      return (
+        <div className="row small" style={{ flexWrap: "wrap", gap: 12 }} aria-label="Leyenda de susceptibilidad (simulación)">
+          {SUSC_CLASSES.map((c) => <Swatch key={c.value} color={c.color} label={`${c.label} (índice heurístico)`} />)}
+          <Swatch color={NO_DATA_COLOR} label="sin dato" />
+        </div>
+      );
+    }
+    return (
+      <div aria-label="Leyenda de profundidad de inundación (simulación)">
+        <div style={{ height: 12, background: `linear-gradient(to right, ${FLOOD_STOPS[0][1]}, ${FLOOD_STOPS[1][1]})`, borderRadius: 4 }} />
+        <div className="row small" style={{ justifyContent: "space-between" }}><span>0 m (somera)</span><span>fuera del agua: color de elevación · gris = sin dato</span><span>{grid.max_depth_m ?? "—"} m</span></div>
+      </div>
+    );
+  }
   if (layer === "slope") {
     return (
       <div className="row small" style={{ flexWrap: "wrap", gap: 12 }} aria-label="Leyenda de pendiente">
@@ -205,6 +231,170 @@ function Legend({ layer, min, max }: { layer: Layer; min?: number; max?: number 
     <div aria-label="Leyenda de elevación">
       <div style={{ height: 12, background: grad, borderRadius: 4 }} />
       <div className="row small" style={{ justifyContent: "space-between" }}><span>{min ?? "—"} m</span><span>gris = sin dato</span><span>{max ?? "—"} m</span></div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- Escenarios simplificados (SIMULACIÓN)
+interface RasterLite { id: string; data_type: string; title: string; bbox: number[] | null }
+interface ScenarioRecord { id: string; title: string; extra: { kind: string; stats: Record<string, unknown>; disclaimer: string; params: Record<string, unknown> } }
+interface ClassStat { class: number; label: string; km2: number; pct: number }
+interface Metrics { classes?: ClassStat[]; valid_km2?: number; flooded_km2?: number; volume_m3?: number; max_depth_m?: number; touches_dem_border?: boolean }
+interface CompareOut {
+  banner: string; saved: boolean;
+  observed: { label: string; area_km2: number; elevation: { min: number; max: number; mean: number }; slope_stats: { mean_deg: number | null } };
+  scenarios: { label: string; kind: string; params: Record<string, number>; metrics: Metrics; disclaimer: string }[];
+}
+type SimKind = "susceptibilidad" | "inundacion_demostrativa";
+const SUSC_TXT = "Índice heurístico NO calibrado ni validado con inventarios de eventos; no predice deslizamientos ni fechas.";
+const FLOOD_TXT = "Modelo de bañera simplificado: ignora caudal, cauce, rugosidad, tiempo y drenaje; no es una simulación hidráulica.";
+const overlaps = (a: number[] | null, b: number[]) => !!a && a.length === 4 && a[2] > b[0] && a[0] < b[2] && a[3] > b[1] && a[1] < b[3];
+
+function SimulationPanel({ dem, bbox, lon, lat, writable, onGrid }: {
+  dem: TerrainRecord; bbox: number[]; lon: string; lat: string; writable: boolean; onGrid: (g: ScenarioGrid | null) => void;
+}) {
+  const [kind, setKind] = useState<SimKind>("susceptibilidad");
+  const [wSlope, setWSlope] = useState(0.6);
+  const [tMid, setTMid] = useState("0.33");
+  const [tHigh, setTHigh] = useState("0.66");
+  const [ndviId, setNdviId] = useState("");
+  const [rise, setRise] = useState(5);
+  const [variants, setVariants] = useState("0.5, 0.66, 0.8");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [current, setCurrent] = useState<ScenarioRecord | null>(null);
+  const [cmp, setCmp] = useState<CompareOut | null>(null);
+  const rasters = useApi<RasterLite[]>("/api/environmental/rasters");
+  const saved = useApi<ScenarioRecord[]>(`/api/simulation/scenarios?dem_id=${dem.id}`);
+  const ndvis = (rasters.data ?? []).filter((r) => r.data_type === "raster_ndvi" && overlaps(r.bbox, bbox));
+  const susc = kind === "susceptibilidad";
+
+  useEffect(() => { setCurrent(null); setCmp(null); onGrid(null); }, [dem.id]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  const suscParams = () => ({ w_pendiente: wSlope, w_vegetacion: Number((1 - wSlope).toFixed(4)), umbral_medio: Number(tMid), umbral_alto: Number(tHigh) });
+
+  async function showGrid(id: string) {
+    onGrid(await api<ScenarioGrid>(`/api/simulation/scenarios/${id}/grid?max_size=256`));
+  }
+
+  async function calculate() {
+    setBusy(true); setError(null); setCmp(null);
+    try {
+      const rec = susc
+        ? await post<ScenarioRecord>("/api/simulation/susceptibility", { dem_id: dem.id, ndvi_id: ndviId || null, ...suscParams() })
+        : await post<ScenarioRecord>("/api/simulation/flood", { dem_id: dem.id, lon: Number(lon), lat: Number(lat), rise_m: rise });
+      setCurrent(rec);
+      await showGrid(rec.id);
+      saved.reload();
+    } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
+  }
+
+  async function compare() {
+    setBusy(true); setError(null);
+    try {
+      const vals = variants.split(",").map((v) => Number(v.trim())).filter((v) => Number.isFinite(v));
+      const configs = susc
+        ? vals.map((v) => ({ kind, label: `Umbral alto ${v}`, ...suscParams(), umbral_alto: v }))
+        : vals.map((v) => ({ kind, label: `Subida +${v} m`, lon: Number(lon), lat: Number(lat), rise_m: v }));
+      setCmp(await post<CompareOut>("/api/simulation/compare", { dem_id: dem.id, ndvi_id: susc ? ndviId || null : null, configs }));
+    } catch (e) { setError((e as Error).message); setCmp(null); } finally { setBusy(false); }
+  }
+
+  const st = current?.extra.stats as Metrics | undefined;
+  const pct = (m: Metrics, k: number) => m.classes?.find((c) => c.class === k);
+  return (
+    <div className="card stack">
+      <h2>4. Escenarios simulados</h2>
+      <Notice kind="dev"><strong>{BANNER}</strong></Notice>
+      {!writable && <p className="small muted">Solo analistas pueden calcular escenarios; puede ver los guardados.</p>}
+      {writable && (
+        <>
+          <div className="field"><label htmlFor="simk">Tipo de escenario</label>
+            <select id="simk" value={kind} onChange={(e) => { setKind(e.target.value as SimKind); setVariants(e.target.value === "susceptibilidad" ? "0.5, 0.66, 0.8" : "2, 5, 10"); setCmp(null); }}>
+              <option value="susceptibilidad">Susceptibilidad heurística a deslizamientos</option>
+              <option value="inundacion_demostrativa">Inundación por subida de nivel (bañera)</option></select></div>
+          {susc ? (
+            <div className="stack">
+              <div className="field"><label htmlFor="simw">Peso de la pendiente: {wSlope.toFixed(2)} · peso de la vegetación (1 − NDVI): {(1 - wSlope).toFixed(2)}{!ndviId && " (sin NDVI se usa solo la pendiente)"}</label>
+                <input id="simw" type="range" min={0} max={1} step={0.05} value={wSlope} onChange={(e) => setWSlope(Number(e.target.value))} /></div>
+              <div className="row" style={{ flexWrap: "wrap", gap: 12 }}>
+                <div className="field"><label htmlFor="simtm">Umbral medio</label><input id="simtm" type="number" min={0.01} max={0.98} step={0.01} value={tMid} onChange={(e) => setTMid(e.target.value)} /></div>
+                <div className="field"><label htmlFor="simth">Umbral alto</label><input id="simth" type="number" min={0.02} max={0.99} step={0.01} value={tHigh} onChange={(e) => setTHigh(e.target.value)} /></div>
+                <div className="field"><label htmlFor="simnd">NDVI (opcional)</label>
+                  <select id="simnd" value={ndviId} onChange={(e) => setNdviId(e.target.value)}>
+                    <option value="">Sin NDVI</option>
+                    {ndvis.map((r) => <option key={r.id} value={r.id}>{r.title}</option>)}</select></div>
+              </div>
+              {ndvis.length === 0 && <p className="small muted" style={{ margin: 0 }}>No hay NDVI que se superponga a este terreno (se calcula en Predicción Ambiental).</p>}
+            </div>
+          ) : (
+            <div className="stack">
+              <p className="small muted" style={{ margin: 0 }}>Punto de partida del agua: longitud {lon}, latitud {lat} (los campos del escenario 3).</p>
+              <div className="field"><label htmlFor="simr">Subida de nivel: {rise} m</label>
+                <input id="simr" type="range" min={0.5} max={50} step={0.5} value={rise} onChange={(e) => setRise(Number(e.target.value))} /></div>
+            </div>
+          )}
+          <div className="row" style={{ flexWrap: "wrap", gap: 12 }}>
+            <button className="btn" disabled={busy} onClick={calculate}>{busy ? "Calculando…" : "Calcular escenario"}</button>
+            <div className="field"><label htmlFor="simv">Comparar {susc ? "umbrales altos" : "subidas (m)"} (2 a 4, separados por coma)</label>
+              <input id="simv" value={variants} onChange={(e) => setVariants(e.target.value)} /></div>
+            <button className="btn" disabled={busy} onClick={compare}>Comparar escenarios</button>
+          </div>
+        </>
+      )}
+      <ErrorText error={error} />
+
+      {current && st && (
+        <div className="stack">
+          <p className="small" style={{ margin: 0 }}><strong>{current.title}</strong></p>
+          {current.extra.kind === "susceptibilidad" ? (
+            <div className="table-wrap"><table>
+              <thead><tr><th>Clase (simulada)</th><th>Área km²</th><th>% del área con dato</th></tr></thead>
+              <tbody>{st.classes?.map((c) => <tr key={c.class}><td>{c.label}</td><td>{c.km2}</td><td>{c.pct}</td></tr>)}</tbody>
+            </table></div>
+          ) : (
+            <p className="small" style={{ margin: 0 }}>Área inundada hipotética <strong>{st.flooded_km2} km²</strong> · volumen aprox. <strong>{Number(st.volume_m3).toLocaleString("es-PE")} m³</strong> · profundidad máx. <strong>{st.max_depth_m} m</strong>
+              {st.touches_dem_border && " · el agua llega al borde del DEM: el resultado está truncado"}.</p>
+          )}
+          <Notice kind="info"><strong>Limitación:</strong> {current.extra.disclaimer}</Notice>
+        </div>
+      )}
+
+      {cmp && (
+        <div className="stack">
+          <h3 style={{ margin: 0 }}>Comparación (no se guarda)</h3>
+          <div className="table-wrap"><table>
+            {cmp.scenarios[0]?.kind === "susceptibilidad" ? (
+              <thead><tr><th>Escenario</th><th>Bajo km²</th><th>Medio km²</th><th>Alto km²</th><th>Alto %</th></tr></thead>
+            ) : (
+              <thead><tr><th>Escenario</th><th>Área inundada km²</th><th>Volumen m³</th><th>Prof. máx. m</th><th>Borde DEM</th></tr></thead>
+            )}
+            <tbody>
+              <tr><td><strong>Estado actual (observado)</strong></td>
+                <td colSpan={4} className="small">Dato real: elevación {cmp.observed.elevation.min}–{cmp.observed.elevation.max} m · pendiente media {cmp.observed.slope_stats.mean_deg}° · {cmp.observed.area_km2} km².</td></tr>
+              {cmp.scenarios.map((r) => r.kind === "susceptibilidad" ? (
+                <tr key={r.label}><td>{r.label} <span className="badge badge-sim">SIMULACIÓN</span></td>
+                  <td>{pct(r.metrics, 1)?.km2}</td><td>{pct(r.metrics, 2)?.km2}</td><td>{pct(r.metrics, 3)?.km2}</td><td>{pct(r.metrics, 3)?.pct}</td></tr>
+              ) : (
+                <tr key={r.label}><td>{r.label} <span className="badge badge-sim">SIMULACIÓN</span></td>
+                  <td>{r.metrics.flooded_km2}</td><td>{Number(r.metrics.volume_m3).toLocaleString("es-PE")}</td>
+                  <td>{r.metrics.max_depth_m}</td><td>{r.metrics.touches_dem_border ? "sí (truncado)" : "no"}</td></tr>
+              ))}
+            </tbody>
+          </table></div>
+          <p className="small muted" style={{ margin: 0 }}>{cmp.scenarios[0]?.kind === "susceptibilidad" ? SUSC_TXT : FLOOD_TXT}</p>
+        </div>
+      )}
+
+      {(saved.data?.length ?? 0) > 0 && (
+        <div>
+          <h3>Escenarios guardados para este terreno</h3>
+          <div className="table-wrap"><table><tbody>{saved.data!.map((r) => (
+            <tr key={r.id}><td className="small">{r.title}</td>
+              <td><button className="btn" onClick={() => showGrid(r.id).catch((e: Error) => setError(e.message))}>Ver en el visor</button></td></tr>
+          ))}</tbody></table></div>
+        </div>
+      )}
     </div>
   );
 }

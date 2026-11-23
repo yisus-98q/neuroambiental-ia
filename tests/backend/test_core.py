@@ -34,8 +34,10 @@ def test_new_modules_are_contracts_only():
     for key in ("neurogeo", "neuroindustrial"):
         assert registry.get(key).status == "en_desarrollo", key
     # Integración avanzada: OpenCV y terreno 3D ya tienen capacidades reales, pero no todas.
-    for key in ("neurovision", "neuro3d"):
-        assert registry.get(key).status == "parcial", key
+    assert registry.get("neurovision").status == "parcial"
+    # Fase 6: el laboratorio 3D tiene todas sus capacidades declaradas (escenarios SIEMPRE rotulados como simulación).
+    assert registry.get("neuro3d").status == "operativo"
+    assert registry.get("neuroprediction").status == "parcial"   # sin probabilidad calibrada ni horizonte
     assert registry.get("neurotraining").status == "parcial"
     assert registry.get("neuro3d").codename == "NEURO 3D SIMULATION ENGINE"
 

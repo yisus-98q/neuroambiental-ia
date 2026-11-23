@@ -90,15 +90,20 @@ def write_dem(path: Path, dem: np.ndarray, grid: raster.Grid) -> None:
         dst.write(out, 1)
 
 
+def target_shape(height: int, width: int, max_size: int | None) -> tuple[int, int]:
+    """Forma de la malla remuestreada (compartida por el terreno y las capas de escenario: celdas alineadas)."""
+    if max_size and max(height, width) > max_size:
+        k = max_size / max(height, width)
+        return max(2, round(height * k)), max(2, round(width * k))
+    return height, width
+
+
 def read_dem(path: Path, max_size: int | None = None) -> tuple[np.ndarray, tuple[float, float, float, float]]:
     """Lee el DEM (opcionalmente remuestreado con promedio a <= max_size). NaN donde no hay dato."""
     with rasterio.open(path) as src:
         t = src.transform
         bbox = (t.c, t.f - src.height * abs(t.e), t.c + src.width * t.a, t.f)
-        shape = (src.height, src.width)
-        if max_size and max(shape) > max_size:
-            k = max_size / max(shape)
-            shape = (max(2, round(src.height * k)), max(2, round(src.width * k)))
+        shape = target_shape(src.height, src.width, max_size)
         data = src.read(1, out_shape=shape, resampling=Resampling.average)
     arr = data.astype("float32")
     arr[arr <= DEM_NODATA + 1] = np.nan

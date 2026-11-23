@@ -12,6 +12,7 @@ export const MENU_GROUPS: MenuGroup[] = [
     { path: "/neurocore", label: "NEUROCORE IA" },
     { path: "/neurodata", label: "NEURODATA ENGINE", moduleKey: "neurodata" },
     { path: "/neurotraining", label: "NEURAL TRAINING CENTER", moduleKey: "neurotraining" },
+    { path: "/modulo/neuroprediction", label: "NEURO PREDICTION ENGINE", moduleKey: "neuroprediction" },
     { path: "/neurovoice", label: "NEUROVOICE IA", moduleKey: "neurovoice" },
   ] },
   { title: "Modelos especializados", items: [

@@ -192,6 +192,6 @@ def test_validation_permissions_and_lock(client, analyst_h, reader_h, plane_back
 def test_descriptor_honest():
     from app.modules.neuro3d.descriptor import DESCRIPTOR
     caps = {c.key: c.implemented for c in DESCRIPTOR.capabilities}
-    assert caps == {"terreno_dem": True, "visor_threejs": True, "capas_3d": False,
-                    "escenarios_simplificados": True, "comparador_escenarios": False}
+    assert caps == {"terreno_dem": True, "visor_threejs": True, "capas_3d": True,
+                    "escenarios_simplificados": True, "comparador_escenarios": True}
     assert DESCRIPTOR.version == "0.1.0" and DESCRIPTOR.api_prefix == "/api/neuro3d"

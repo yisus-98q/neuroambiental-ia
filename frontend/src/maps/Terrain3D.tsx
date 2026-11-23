@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { HYPSO_LUT, NO_DATA_COLOR, SLOPE_LUT, hexToRgb } from "./terrainPalette";
+import { FLOOD_LUT, HYPSO_LUT, NO_DATA_COLOR, SLOPE_LUT, SUSC_RGB, hexToRgb } from "./terrainPalette";
 
 /** Visor 3D del terreno. Render SOLO bajo demanda (el equipo dibuja por software): nada de bucle continuo. */
 export interface MeshData {
@@ -17,7 +17,15 @@ export interface MeshData {
   valid_pct?: number;
 }
 export type PathPoint = [number, number, number]; // lon, lat, elevación
-export type Layer = "elevation" | "slope";
+export type Layer = "elevation" | "slope" | "scenario";
+/** Capa de escenario (SIMULACIÓN) alineada celda a celda con la malla 3D. */
+export interface ScenarioGrid {
+  kind: string;               // "susceptibilidad" | "inundacion_demostrativa"
+  width: number;
+  height: number;
+  values: number[];           // susceptibilidad: 0 sin dato, 1-3 clases; inundación: -1 sin dato, 0 seco, >0 profundidad (m)
+  max_depth_m?: number | null;
+}
 
 const SIZE = 100;  // unidades de escena del lado mayor
 const NO_DATA = hexToRgb(NO_DATA_COLOR);
@@ -27,6 +35,7 @@ interface Props {
   exaggeration: number;
   layer: Layer;
   path?: PathPoint[] | null;
+  scenario?: ScenarioGrid | null;
 }
 
 interface Scene3D {
@@ -49,7 +58,7 @@ function disposeObject(o: THREE.Object3D | undefined) {
   o?.parent?.remove(o);
 }
 
-export default function Terrain3D({ mesh, exaggeration, layer, path }: Props) {
+export default function Terrain3D({ mesh, exaggeration, layer, path, scenario }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const s = useRef<Scene3D | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -141,16 +150,32 @@ export default function Terrain3D({ mesh, exaggeration, layer, path }: Props) {
     const pos = geo.getAttribute("position") as THREE.BufferAttribute;
     const col = geo.getAttribute("color") as THREE.BufferAttribute;
     const range = Math.max(1, mesh.max - mesh.min);
+    // Solo se pinta la capa si coincide exactamente con la malla (misma forma); si no, se ignora.
+    const sc = scenario && scenario.width === mesh.width && scenario.height === mesh.height ? scenario : null;
     for (let i = 0; i < mesh.heights.length; i++) {
       pos.setY(i, (mesh.heights[i] - mesh.min) * vs);
       if (mesh.valid && !mesh.valid[i]) {
         col.setXYZ(i, NO_DATA[0], NO_DATA[1], NO_DATA[2]);
         continue;
       }
-      const j = layer === "elevation"
+      if (layer === "scenario" && sc) {
+        const v = sc.values[i];
+        if (sc.kind === "susceptibilidad") {
+          const c = SUSC_RGB[v] ?? NO_DATA;
+          col.setXYZ(i, c[0], c[1], c[2]);
+          continue;
+        }
+        if (v < 0) { col.setXYZ(i, NO_DATA[0], NO_DATA[1], NO_DATA[2]); continue; }
+        if (v > 0) {
+          const k = Math.round(Math.min(1, v / Math.max(0.1, sc.max_depth_m ?? 1)) * 255) * 3;
+          col.setXYZ(i, FLOOD_LUT[k], FLOOD_LUT[k + 1], FLOOD_LUT[k + 2]);
+          continue;
+        }
+      }
+      const j = layer !== "slope"
         ? Math.round(Math.min(1, Math.max(0, (mesh.heights[i] - mesh.min) / range)) * 255) * 3
         : Math.min(90, Math.max(0, mesh.slopes[i])) * 3;
-      const lut = layer === "elevation" ? HYPSO_LUT : SLOPE_LUT;
+      const lut = layer === "slope" ? SLOPE_LUT : HYPSO_LUT;
       col.setXYZ(i, lut[j], lut[j + 1], lut[j + 2]);
     }
     pos.needsUpdate = true;
@@ -179,7 +204,7 @@ export default function Terrain3D({ mesh, exaggeration, layer, path }: Props) {
       st.overlay = g;
     }
     st.render();
-  }, [mesh, exaggeration, layer, path]);
+  }, [mesh, exaggeration, layer, path, scenario]);
 
   if (error) return <div className="notice notice-danger" role="alert">{error}</div>;
   return <div ref={host} style={{ width: "100%", height: 460, borderRadius: 8, overflow: "hidden", touchAction: "none" }}
