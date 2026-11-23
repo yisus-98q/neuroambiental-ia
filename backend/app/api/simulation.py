@@ -120,3 +120,11 @@ def grid(record_id: str, max_size: int = Query(256, ge=16, le=512), _: User = De
 @router.get("/scenarios/{record_id}/preview")
 def preview(record_id: str, _: User = Depends(get_current_user), db: Session = Depends(get_db)):
     return FileResponse(_handle(lambda: scenarios.preview_path(db, record_id)), media_type="image/png")
+
+
+@router.get("/overlay")
+def overlay(dem_id: str = Query(min_length=32, max_length=32), record_id: str = Query(min_length=32, max_length=32),
+            max_size: int = Query(256, ge=16, le=512), _: User = Depends(get_current_user),
+            db: Session = Depends(get_db)) -> dict:
+    """Raster NDVI o de cambio (Fase 2) remuestreado a la malla 3D del DEM, alineado celda a celda."""
+    return _handle(lambda: scenarios.overlay_grid(db, dem_id, record_id, max_size))

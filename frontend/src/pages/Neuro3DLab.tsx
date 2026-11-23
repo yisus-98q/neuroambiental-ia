@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { ErrorText, Loading, Notice } from "../components/Notice";
 import type { Layer, MeshData, PathPoint, ScenarioGrid } from "../maps/Terrain3D";
-import { FLOOD_STOPS, HYPSO_STOPS, NO_DATA_COLOR, SLOPE_CLASSES, SUSC_CLASSES } from "../maps/terrainPalette";
+import { CHANGE_CLASSES, FLOOD_STOPS, HYPSO_STOPS, NDVI_STOPS, NO_DATA_COLOR, SLOPE_CLASSES, SUSC_CLASSES } from "../maps/terrainPalette";
 import { api, canWrite, post, session } from "../services/api";
 import { useApi } from "../services/useApi";
 
@@ -43,6 +43,7 @@ export function Neuro3DLab() {
   const [lat, setLat] = useState("");
   const [scenario, setScenario] = useState<Scenario | null>(null);
   const [grid, setGrid] = useState<ScenarioGrid | null>(null);
+  const [ov, setOv] = useState<OverlayGrid | null>(null);
 
   const list = terrains.data ?? [];
   const sel = list.find((t) => t.id === selId) ?? null;
@@ -50,7 +51,7 @@ export function Neuro3DLab() {
   useEffect(() => { if (!selId && list.length) setSelId(list[0].id); }, [list, selId]);
 
   useEffect(() => {
-    setMesh(null); setScenario(null); setGrid(null);
+    setMesh(null); setScenario(null); setGrid(null); setOv(null);
     if (!selId) return;
     let alive = true;
     api<Mesh>(`/api/neuro3d/terrains/${selId}/mesh?max_size=256`)
@@ -132,10 +133,11 @@ export function Neuro3DLab() {
           <div className="card stack">
             <h2>2. Visor 3D</h2>
             {layer === "scenario" && grid && <div className="notice notice-dev" role="note"><strong>{BANNER}</strong></div>}
+            {layer === "overlay" && ov && <div className="notice notice-info" role="note">{ov.note}</div>}
             {!mesh && <Loading what="malla 3D" />}
             {mesh && (
               <Suspense fallback={<Loading what="visor 3D" />}>
-                <Terrain3D mesh={mesh} exaggeration={exag} layer={layer} path={scenario?.path ?? null} scenario={grid} />
+                <Terrain3D mesh={mesh} exaggeration={exag} layer={layer} path={scenario?.path ?? null} scenario={grid} overlay={ov} />
               </Suspense>
             )}
             <p className="small muted" style={{ margin: 0 }}>Arrastre para rotar, rueda para acercar, clic derecho para desplazar. Se dibuja solo cuando usted mueve la vista.</p>
@@ -145,9 +147,11 @@ export function Neuro3DLab() {
               <div className="field"><label htmlFor="t3ly">Capa</label>
                 <select id="t3ly" value={layer} onChange={(e) => setLayer(e.target.value as Layer)}>
                   <option value="elevation">Elevación (hipsométrica)</option><option value="slope">Pendiente</option>
+                  <option value="overlay" disabled={!ov}>NDVI / cambio (observado){ov ? "" : " — elija un raster abajo"}</option>
                   <option value="scenario" disabled={!grid}>Escenario (SIMULACIÓN){grid ? "" : " — calcule uno primero"}</option></select></div>
             </div>
-            <Legend layer={layer} min={elev?.min} max={elev?.max} grid={grid} />
+            <Legend layer={layer} min={elev?.min} max={elev?.max} grid={grid} ov={ov} />
+            {mesh && <OverlayPicker dem={sel} bbox={mesh.bbox} onOverlay={(g) => { setOv(g); if (g) setLayer("overlay"); else setLayer((l) => (l === "overlay" ? "elevation" : l)); }} />}
             <p className="small muted" style={{ margin: 0 }}>{sel.extra.attribution}</p>
           </div>
 
@@ -199,7 +203,23 @@ function Swatch({ color, label }: { color: string; label: string }) {
   return <span><span style={{ display: "inline-block", width: 12, height: 12, background: color, marginRight: 4, verticalAlign: "middle" }} />{label}</span>;
 }
 
-function Legend({ layer, min, max, grid }: { layer: Layer; min?: number; max?: number; grid?: ScenarioGrid | null }) {
+function Legend({ layer, min, max, grid, ov }: { layer: Layer; min?: number; max?: number; grid?: ScenarioGrid | null; ov?: OverlayGrid | null }) {
+  if (layer === "overlay" && ov) {
+    if (ov.kind === "ndvi") {
+      return (
+        <div aria-label="Leyenda de NDVI">
+          <div style={{ height: 12, background: `linear-gradient(to right, ${NDVI_STOPS.map(([t, c]) => `${c} ${((t + 1) / 2) * 100}%`).join(", ")})`, borderRadius: 4 }} />
+          <div className="row small" style={{ justifyContent: "space-between" }}><span>-1</span><span>gris = sin dato · cobertura {ov.coverage_pct} %</span><span>1</span></div>
+        </div>
+      );
+    }
+    return (
+      <div className="row small" style={{ flexWrap: "wrap", gap: 12 }} aria-label="Leyenda de cambio de NDVI">
+        {CHANGE_CLASSES.map((c) => <Swatch key={c.value} color={c.color} label={c.label} />)}
+        <Swatch color={NO_DATA_COLOR} label={`sin dato · cobertura ${ov.coverage_pct} %`} />
+      </div>
+    );
+  }
   if (layer === "scenario" && grid) {
     if (grid.kind === "susceptibilidad") {
       return (
@@ -395,6 +415,37 @@ function SimulationPanel({ dem, bbox, lon, lat, writable, onGrid }: {
           ))}</tbody></table></div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- Capas NDVI / cambio (observadas) sobre el terreno
+interface OverlayGrid extends ScenarioGrid { note: string; coverage_pct: number; title: string }
+
+function OverlayPicker({ dem, bbox, onOverlay }: { dem: TerrainRecord; bbox: number[]; onOverlay: (g: OverlayGrid | null) => void }) {
+  const rasters = useApi<RasterLite[]>("/api/environmental/rasters");
+  const [recId, setRecId] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const options = (rasters.data ?? []).filter((r) => overlaps(r.bbox, bbox));
+  useEffect(() => { setRecId(""); }, [dem.id]);
+
+  async function draw() {
+    if (!recId) return;
+    setBusy(true); setError(null);
+    try { onOverlay(await api<OverlayGrid>(`/api/simulation/overlay?dem_id=${dem.id}&record_id=${recId}&max_size=256`)); }
+    catch (e) { setError((e as Error).message); onOverlay(null); } finally { setBusy(false); }
+  }
+  return (
+    <div className="stack">
+      <div className="row" style={{ flexWrap: "wrap", gap: 12, alignItems: "end" }}>
+        <div className="field"><label htmlFor="ovsel">Capa observada (NDVI o cambio de NDVI)</label>
+          <select id="ovsel" value={recId} onChange={(e) => setRecId(e.target.value)}>
+            <option value="">{options.length ? "Elija un raster" : "No hay rasters que se superpongan"}</option>
+            {options.map((r) => <option key={r.id} value={r.id}>{r.data_type === "raster_cambio" ? "Cambio · " : "NDVI · "}{r.title}</option>)}</select></div>
+        <button className="btn" disabled={!recId || busy} onClick={draw}>{busy ? "Preparando…" : "Dibujar sobre el terreno"}</button>
+      </div>
+      <ErrorText error={error} />
     </div>
   );
 }

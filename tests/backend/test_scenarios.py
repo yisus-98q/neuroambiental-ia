@@ -219,3 +219,60 @@ def test_descriptor_capabilities():
     from app.modules.neuro3d.descriptor import DESCRIPTOR
     caps = {c.key: c.implemented for c in DESCRIPTOR.capabilities}
     assert caps["capas_3d"] and caps["comparador_escenarios"] and caps["escenarios_simplificados"]
+
+
+# ---------------------------------------------------------------- capas NDVI / cambio sobre el terreno
+def make_cambio(bbox, res=0.002) -> str:
+    grid = raster.make_grid(bbox, res)
+    cls = np.zeros((grid.height, grid.width), "uint8")
+    cls[: grid.height // 2] = 1          # mitad norte: disminución de NDVI
+    cls[grid.height // 2:, : grid.width // 2] = 2   # cuadrante sur-oeste: aumento
+    cls[grid.height // 2:, grid.width // 2:] = raster.CHANGE_NODATA
+    rid = new_id()
+    rel = Path("rasters") / "test" / f"{rid}_cambio.tif"
+    raster.write_classes(settings.uploads_dir / rel, cls, grid)
+    with SessionLocal() as db:
+        src = get_or_create_source(db, "Cambio sintético de prueba", "simulacion", "prueba", "")
+        db.add(DataRecord(id=rid, source_id=src.id, data_type="raster_cambio", title="Cambio sintético",
+                          bbox=list(grid.bbox), is_simulated=False, file_path=rel.as_posix(), extra={}))
+        db.commit()
+    return rid
+
+
+def _overlay(client, h, dem_id, rec_id, max_size=64):
+    return client.get(f"/api/simulation/overlay?dem_id={dem_id}&record_id={rec_id}&max_size={max_size}", headers=h)
+
+
+def test_overlay_ndvi_aligned_with_mesh(client, reader_h, slopes_dem):
+    ndvi = make_ndvi(0.5, [-77.4, -9.4, -77.0, -9.0])
+    r = _overlay(client, reader_h, slopes_dem, ndvi)
+    assert r.status_code == 200, r.text
+    g = r.json()
+    mesh = client.get(f"/api/neuro3d/terrains/{slopes_dem}/mesh?max_size=64", headers=reader_h).json()
+    assert (g["width"], g["height"]) == (mesh["width"], mesh["height"]) and len(g["values"]) == g["width"] * g["height"]
+    assert g["kind"] == "ndvi" and g["coverage_pct"] == 100 and "no biomasa" in g["note"]
+    assert set(np.round(g["values"], 2)) == {0.5}
+
+
+def test_overlay_partial_coverage_marks_no_data(client, reader_h, slopes_dem):
+    half = make_ndvi(0.8, [-77.4, -9.4, -77.2, -9.0])        # cubre solo la mitad oeste del DEM
+    g = _overlay(client, reader_h, slopes_dem, half).json()
+    vals = np.array(g["values"])
+    assert 40 < g["coverage_pct"] < 60 and (vals == scenarios.OVERLAY_NDVI_NODATA).any() and (vals > 0.7).any()
+
+
+def test_overlay_change_classes(client, reader_h, slopes_dem):
+    g = _overlay(client, reader_h, slopes_dem, make_cambio([-77.4, -9.4, -77.0, -9.0])).json()
+    assert g["kind"] == "cambio" and "NO confirma" in g["note"]
+    assert set(g["values"]) <= {0, 1, 2, raster.CHANGE_NODATA}
+    assert {1, 2, raster.CHANGE_NODATA} <= set(g["values"])
+
+
+def test_overlay_errors(client, reader_h, slopes_dem):
+    far = make_ndvi(0.5, [-70.0, -5.0, -69.0, -4.0])
+    r = _overlay(client, reader_h, slopes_dem, far)
+    assert r.status_code == 422 and "no se superpone" in r.json()["detail"]
+    assert _overlay(client, reader_h, slopes_dem, "0" * 32).status_code == 404
+    assert _overlay(client, reader_h, "0" * 32, far).status_code == 404
+    assert _overlay(client, reader_h, slopes_dem, slopes_dem).status_code == 404     # un DEM no es NDVI/cambio
+    assert client.get(f"/api/simulation/overlay?dem_id={slopes_dem}&record_id={far}").status_code in (401, 403)

@@ -1,4 +1,5 @@
 """Importa todos los modelos para que Alembic y SQLAlchemy los registren."""
+from app.models.biodiversity import Observation, Species  # noqa: F401
 from app.models.data import DataRecord, Document, Measurement, Sensor
 from app.models.identity import AuditLog, Role, User, UserSession
 from app.models.operations import (

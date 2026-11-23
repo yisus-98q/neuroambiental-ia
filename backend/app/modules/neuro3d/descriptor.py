@@ -13,7 +13,7 @@ DESCRIPTOR = ModuleDescriptor(
         cap("terreno_dem", "Malla 3D del terreno desde un DEM real (Copernicus DEM GLO-30) con pendiente y estadísticas", True),
         cap("visor_threejs", "Visor 3D ligero con Three.js (render bajo demanda, exageración vertical, capas de elevación y pendiente)", True),
         cap("capas_3d", "Capa «Escenario» sobre el terreno 3D: clases de susceptibilidad heurística (con NDVI opcional) y profundidad de inundación demostrativa", True),
-        cap("capas_ndvi_cambios", "Dibujar los rasters NDVI y de cambios de la Fase 2 sobre el terreno 3D"),
+        cap("capas_ndvi_cambios", "Capas NDVI y de cambio de NDVI (Fase 2) reproyectadas a la malla del DEM y dibujadas sobre el terreno 3D", True),
         cap("escenarios_simplificados", "Escenario demostrativo de trayectoria de máxima pendiente (D8), rotulado como simulación", True),
         cap("comparador_escenarios", "Comparar 2-4 configuraciones de escenario lado a lado frente al estado actual observado (cálculo en memoria, sin guardar)", True),
     ],
@@ -26,7 +26,7 @@ DESCRIPTOR = ModuleDescriptor(
         "El DEM tiene ~100 m de resolución por defecto y errores verticales de varios metros; no sustituye un levantamiento.",
         "La susceptibilidad es un índice heurístico (pendiente/45° y 1−NDVI) NO calibrado ni validado con inventarios de eventos; no predice deslizamientos ni fechas.",
         "La inundación es un modelo de bañera: ignora caudal, cauce, rugosidad, tiempo y drenaje; no es una simulación hidráulica y se trunca en el borde del DEM.",
-        "Los escenarios son hipotéticos y se rotulan SIMULACIÓN; el comparador no guarda resultados. No se dibujan capas de cambios de NDVI.",
+        "Los escenarios son hipotéticos y se rotulan SIMULACIÓN; el comparador no guarda resultados. Las capas de NDVI/cambio se remuestrean a la malla del DEM (≈100 m) y no confirman deforestación ni daño.",
         "La trayectoria D8 no rellena depresiones: un pozo de ruido del DEM puede detenerla; si se detiene junto "
         "a celdas sin dato se informa «sin_dato».",
     ],

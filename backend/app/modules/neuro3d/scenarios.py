@@ -344,3 +344,47 @@ def preview_path(db: Session, record_id: str) -> Path:
     if not p.is_file():
         raise service.NotFound("Vista previa no disponible.")
     return p
+
+
+# ---------------------------------------------------------------- capas NDVI / cambios sobre el terreno
+OVERLAY_NDVI_NODATA = -2.0
+CHANGE_NODATA = raster.CHANGE_NODATA
+OVERLAY_NOTES = {
+    "ndvi": "NDVI observado (índice, no biomasa). Nubes, sombras, nieve y época del año pueden alterarlo.",
+    "cambio": "Diferencia de NDVI entre dos fechas: NO confirma deforestación ni daño; requiere validación.",
+}
+
+
+def overlay_grid(db: Session, dem_id: str, record_id: str, max_size: int) -> dict:
+    """Valores de un raster NDVI o de cambio (Fase 2) reproyectados a la malla 3D del DEM, para dibujarlos encima."""
+    dem_rec = service._dem_record(db, dem_id)  # noqa: SLF001
+    rec = db.get(DataRecord, record_id)
+    if rec is None or rec.data_type not in ("raster_ndvi", "raster_cambio") or not absolute_path(rec).is_file():
+        raise service.NotFound("Raster NDVI/cambio no encontrado.")
+    with rasterio.open(absolute_path(dem_rec)) as d:
+        t = d.transform
+        bbox = (t.c, t.f - d.height * abs(t.e), t.c + d.width * t.a, t.f)
+        shape = demlib.target_shape(d.height, d.width, max_size)
+    b = rec.bbox or []
+    if len(b) != 4 or b[2] <= bbox[0] or b[0] >= bbox[2] or b[3] <= bbox[1] or b[1] >= bbox[3]:
+        raise DemError("El raster elegido no se superpone al área del DEM.")
+    dst_t = rasterio.transform.from_bounds(*bbox, shape[1], shape[0])
+    with rasterio.open(absolute_path(rec)) as src:
+        if rec.data_type == "raster_ndvi":
+            kind, out = "ndvi", np.full(shape, np.nan, dtype="float32")
+            reproject(rasterio.band(src, 1), out, dst_transform=dst_t, dst_crs=raster.WGS84, src_nodata=NDVI_NODATA,
+                      dst_nodata=float("nan"), resampling=Resampling.average)
+            ok = np.isfinite(out)
+            values = np.where(ok, np.round(out / raster.NDVI_SCALE, 3), OVERLAY_NDVI_NODATA).astype("float32")
+        else:
+            kind, out = "cambio", np.full(shape, CHANGE_NODATA, dtype="uint8")
+            reproject(rasterio.band(src, 1), out, dst_transform=dst_t, dst_crs=raster.WGS84, src_nodata=CHANGE_NODATA,
+                      dst_nodata=CHANGE_NODATA, resampling=Resampling.nearest)
+            ok = out != CHANGE_NODATA
+            values = out
+    if not ok.any():
+        raise DemError("El raster elegido no tiene celdas con dato dentro del área del DEM.")
+    return {"id": rec.id, "dem_id": dem_rec.id, "kind": kind, "width": shape[1], "height": shape[0],
+            "values": values.ravel().tolist(), "coverage_pct": round(100 * float(ok.mean()), 1),
+            "title": rec.title, "is_simulated": rec.is_simulated, "note": OVERLAY_NOTES[kind],
+            "observed_at": rec.observed_at.isoformat() if rec.observed_at else None}

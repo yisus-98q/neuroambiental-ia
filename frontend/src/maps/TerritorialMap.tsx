@@ -122,7 +122,7 @@ export default function TerritorialMap({ layers, visible, alerts, showAlerts = t
         m.addSource(src, { type: "geojson", data: layer.geojson });
         m.addLayer({ id: `${src}-fill`, type: "fill", source: src, filter: ["==", ["geometry-type"], "Polygon"], paint: { "fill-color": color, "fill-opacity": 0.22 } });
         m.addLayer({ id: `${src}-line`, type: "line", source: src, filter: ["in", ["geometry-type"], ["literal", ["Polygon", "LineString"]]], paint: { "line-color": color, "line-width": 2, ...(layer.is_simulated ? { "line-dasharray": [2, 2] } : {}) } });
-        m.addLayer({ id: `${src}-pt`, type: "circle", source: src, filter: ["==", ["geometry-type"], "Point"], paint: { "circle-color": color, "circle-radius": 6, "circle-stroke-width": 2, "circle-stroke-color": layer.is_simulated ? "#8e44ad" : "#ffffff" } });
+        m.addLayer({ id: `${src}-pt`, type: "circle", source: src, filter: ["==", ["geometry-type"], "Point"], paint: { "circle-color": color, "circle-radius": 6, "circle-stroke-width": 2, "circle-stroke-color": ["case", ["==", ["get", "is_simulated"], true], "#8e44ad", layer.is_simulated ? "#8e44ad" : "#ffffff"] } });
       } else {
         (m.getSource(src) as GeoJSONSource).setData(layer.geojson);
       }

@@ -11,6 +11,8 @@ from fastapi.staticfiles import StaticFiles
 from app.api import (
     alerts,
     auth,
+    biodiversity,
+    construction,
     environmental,
     neuro3d,
     neurocore,
@@ -21,6 +23,7 @@ from app.api import (
     neurovoice,
     simulation,
     system,
+    terrain,
     territories,
 )
 from app.core.config import settings
@@ -55,8 +58,9 @@ def create_app() -> FastAPI:
         log.exception("Error no controlado en %s", request.url.path)
         return JSONResponse(status_code=500, content={"detail": "Error interno. Revise los registros del servidor."})
 
-    for module in (system, auth, neurocore, neurodata, alerts, environmental, neurotraining, neuroprediction, neurovision,
-                   neuro3d, simulation, neurovoice, territories):
+    for module in (system, auth, neurocore, neurodata, alerts, biodiversity, environmental, neurotraining, neuroprediction, neurovision,
+                   neuro3d, simulation, terrain, construction,
+                   neurovoice, territories):
         app.include_router(module.router)
 
     _mount_frontend(app)

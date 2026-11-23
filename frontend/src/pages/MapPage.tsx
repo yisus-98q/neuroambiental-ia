@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { SimBadge } from "../components/Badges";
 import { ErrorText, Loading } from "../components/Notice";
 import { ALERT_COLORS, PALETTE } from "../maps/colors";
@@ -9,7 +9,15 @@ import { useRasterOverlays } from "../services/useRasterOverlays";
 const TerritorialMap = lazy(() => import("../maps/TerritorialMap"));
 
 export function MapPage() {
-  const layers = useApi<Layer[]>("/api/neurodata/layers");
+  const recordLayers = useApi<Layer[]>("/api/neurodata/layers");
+  const bio = useApi<GeoJSON.FeatureCollection>("/api/biodiversity/observations/geojson");
+  // Las observaciones de biodiversidad se muestran como una capa más; cada punto lleva su propio is_simulated.
+  const combined = useMemo(() => (recordLayers.data ? [...recordLayers.data, ...(bio.data?.features.length ? [{
+    record_id: "biodiversidad", title: "Observaciones de biodiversidad", data_type: "observaciones_biodiversidad",
+    is_simulated: bio.data.features.every((f) => f.properties?.is_simulated === true), source: "Biodiversidad",
+    geojson: bio.data,
+  } as Layer] : [])] : null), [recordLayers.data, bio.data]);  // dependencias = datos (estables), no el objeto de useApi
+  const layers = { data: combined, error: recordLayers.error, loading: recordLayers.loading };
   const alerts = useApi<GeoJSON.FeatureCollection>("/api/alerts/geojson");
   const [visible, setVisible] = useState<Set<string>>(new Set());
   const [showAlerts, setShowAlerts] = useState(true);

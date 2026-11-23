@@ -5,10 +5,13 @@ import { SimBadge } from "../components/Badges";
 import { canWrite, fmtDate, session } from "../services/api";
 import type { DataRecord, ModuleInfo } from "../services/types";
 import { useApi } from "../services/useApi";
+import { BiodiversityPanel } from "./BiodiversityPanel";
+import { ConstructionPanel } from "./ConstructionPanel";
 import { EnvironmentalPanel } from "./EnvironmentalPanel";
 import { Neuro3DLab } from "./Neuro3DLab";
 import { NeurovisionPanel } from "./NeurovisionPanel";
 import { PredictionPanel } from "./PredictionPanel";
+import { TerrainPanel } from "./TerrainPanel";
 
 /** Página genérica para los módulos especializados. */
 export function ModulePage({ moduleKey }: { moduleKey: string }) {
@@ -19,6 +22,9 @@ export function ModulePage({ moduleKey }: { moduleKey: string }) {
     <div className="stack">
       <ModuleOverview module={mod.data} />
       {moduleKey === "environmental" && <EnvironmentalPanel />}
+      {moduleKey === "biodiversity" && <BiodiversityPanel />}
+      {moduleKey === "terrain" && <TerrainPanel />}
+      {moduleKey === "construction" && <ConstructionPanel />}
       {moduleKey === "neurovision" && <NeurovisionPanel />}
       {moduleKey === "neuro3d" && <Neuro3DLab />}
       {moduleKey === "neuroprediction" && <PredictionPanel />}

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { FLOOD_LUT, HYPSO_LUT, NO_DATA_COLOR, SLOPE_LUT, SUSC_RGB, hexToRgb } from "./terrainPalette";
+import { CHANGE_RGB, FLOOD_LUT, HYPSO_LUT, NDVI_LUT, NDVI_NODATA, NO_DATA_COLOR, SLOPE_LUT, SUSC_RGB, hexToRgb } from "./terrainPalette";
 
 /** Visor 3D del terreno. Render SOLO bajo demanda (el equipo dibuja por software): nada de bucle continuo. */
 export interface MeshData {
@@ -17,7 +17,7 @@ export interface MeshData {
   valid_pct?: number;
 }
 export type PathPoint = [number, number, number]; // lon, lat, elevación
-export type Layer = "elevation" | "slope" | "scenario";
+export type Layer = "elevation" | "slope" | "scenario" | "overlay";
 /** Capa de escenario (SIMULACIÓN) alineada celda a celda con la malla 3D. */
 export interface ScenarioGrid {
   kind: string;               // "susceptibilidad" | "inundacion_demostrativa"
@@ -36,6 +36,7 @@ interface Props {
   layer: Layer;
   path?: PathPoint[] | null;
   scenario?: ScenarioGrid | null;
+  overlay?: ScenarioGrid | null;   // NDVI observado o cambio de NDVI (kind "ndvi" | "cambio")
 }
 
 interface Scene3D {
@@ -58,7 +59,7 @@ function disposeObject(o: THREE.Object3D | undefined) {
   o?.parent?.remove(o);
 }
 
-export default function Terrain3D({ mesh, exaggeration, layer, path, scenario }: Props) {
+export default function Terrain3D({ mesh, exaggeration, layer, path, scenario, overlay }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const s = useRef<Scene3D | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -151,11 +152,24 @@ export default function Terrain3D({ mesh, exaggeration, layer, path, scenario }:
     const col = geo.getAttribute("color") as THREE.BufferAttribute;
     const range = Math.max(1, mesh.max - mesh.min);
     // Solo se pinta la capa si coincide exactamente con la malla (misma forma); si no, se ignora.
+    const ov = overlay && overlay.width === mesh.width && overlay.height === mesh.height ? overlay : null;
     const sc = scenario && scenario.width === mesh.width && scenario.height === mesh.height ? scenario : null;
     for (let i = 0; i < mesh.heights.length; i++) {
       pos.setY(i, (mesh.heights[i] - mesh.min) * vs);
       if (mesh.valid && !mesh.valid[i]) {
         col.setXYZ(i, NO_DATA[0], NO_DATA[1], NO_DATA[2]);
+        continue;
+      }
+      if (layer === "overlay" && ov) {
+        const v = ov.values[i];
+        if (ov.kind === "ndvi") {
+          if (v <= NDVI_NODATA) { col.setXYZ(i, NO_DATA[0], NO_DATA[1], NO_DATA[2]); continue; }
+          const k = Math.round(((Math.min(1, Math.max(-1, v)) + 1) / 2) * 255) * 3;
+          col.setXYZ(i, NDVI_LUT[k], NDVI_LUT[k + 1], NDVI_LUT[k + 2]);
+        } else {
+          const c = CHANGE_RGB[v] ?? NO_DATA;
+          col.setXYZ(i, c[0], c[1], c[2]);
+        }
         continue;
       }
       if (layer === "scenario" && sc) {
@@ -204,7 +218,7 @@ export default function Terrain3D({ mesh, exaggeration, layer, path, scenario }:
       st.overlay = g;
     }
     st.render();
-  }, [mesh, exaggeration, layer, path, scenario]);
+  }, [mesh, exaggeration, layer, path, scenario, overlay]);
 
   if (error) return <div className="notice notice-danger" role="alert">{error}</div>;
   return <div ref={host} style={{ width: "100%", height: 460, borderRadius: 8, overflow: "hidden", touchAction: "none" }}
