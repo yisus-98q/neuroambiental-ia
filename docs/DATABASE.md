@@ -30,6 +30,13 @@ Convenciones: los `id` son UUID hexadecimal de 32 caracteres (texto); casi todas
 | `measurements` | `sensor_id`, `data_record_id`, `variable`, `value`, `unit`, `observed_at`, `is_simulated` |
 | `documents` | `data_record_id`, `category`, `module_key`, `notes` |
 
+## Biodiversidad (`models/biodiversity.py`; migración 3)
+
+| Tabla | Columnas principales |
+|---|---|
+| `species` | `nombre_cientifico` (único), `nombre_comun`, `reino`, `clase`, `orden`, `familia`, `categoria_conservacion` (tipo UICN: EX, EW, CR, EN, VU, NT, LC, DD, NE; no evaluada por el sistema), `fuente_taxonomica` (obligatoria), `notas`, `created_by`. **Empieza vacía** |
+| `observations` | `species_id` (nulo = «no identificada»; FK con SET NULL), `latitude`, `longitude`, `fecha_observacion`, `observador`, `cantidad` (≥ 1), `metodo` (avistamiento, camara_trampa, huella, audio, muestra, otro), `photo_record_id` (FK a `data_records`), `confianza_identificacion` (baja, media, alta; declarada por el observador), `estado_validacion` (no_validada, validada, descartada), `validation_note`, `validated_by`, `validated_at`, **`is_simulated`** (obligatorio), `territory_id`, `created_by`. Índices por especie, fecha y estado |
+
 ## Operaciones (`models/operations.py`)
 
 | Tabla | Columnas principales |
@@ -44,12 +51,13 @@ Convenciones: los `id` son UUID hexadecimal de 32 caracteres (texto); casi todas
 | `conversations` | `user_id`, `language` (es), `title` |
 | `conversation_messages` | `conversation_id`, `role` (usuario, asistente), `content`, `meta` (JSON) |
 
-Estado de uso: la API escribe en `users`, `user_sessions`, `audit_logs`, `sources`, `data_records`, `documents`, `measurements` (solo con registro manual que incluya variable y valor), `events`, `alerts`, `alert_followups`, `territories`, `ai_models`, `reports`, `conversations`, `conversation_messages` y, desde la Fase 2, `runs` (un registro por NDVI o detección de cambios, con parámetros y resumen). Desde la Fase 3 también escribe en `predictions` (una fila por llamada a `/predict`) y en `runs` (entrenamientos, con `run_type = entrenamiento`). **Ninguna ruta escribe todavía** en `coordinates` ni `sensors`. La Fase 2 no agregó tablas ni migraciones (los rásters son filas de `data_records`).
+Estado de uso: la API escribe en `users`, `user_sessions`, `audit_logs`, `sources`, `data_records`, `documents`, `measurements` (solo con registro manual que incluya variable y valor), `events`, `alerts`, `alert_followups`, `territories`, `ai_models`, `reports`, `conversations`, `conversation_messages` y, desde la Fase 2, `runs` (un registro por NDVI o detección de cambios, con parámetros y resumen). Desde la Fase 3 también escribe en `predictions` (una fila por llamada a `/predict`) y en `runs` (entrenamientos, con `run_type = entrenamiento`). Desde la Fase 9 también escribe en `sensors` y `measurements` (NEUROTERRAIN, importación de CSV a series), en `species` y `observations` (biodiversidad) y en `alerts` (alertas experimentales de sensores, solo a petición); los análisis de sitio de NEUROCONSTRUCTION se guardan como `data_records` y `runs`. **Ninguna ruta escribe todavía** en `coordinates`. La Fase 2 no agregó tablas ni migraciones (los rásters son filas de `data_records`).
 
 ### Migraciones
 
 1. `79e40e3a19e0_esquema_inicial`: 20 tablas y roles semilla.
 2. `efe6f2f7b71a_fase_3_entrenamiento_de_modelos` (depende de la anterior): agrega las columnas nuevas de `ai_models` (modo batch de SQLite) con valores por defecto que cubren los modelos ya registrados. Tiene `downgrade`.
+3. `f9ca7def1c5e_biodiversidad` (depende de la anterior): crea las tablas `species` y `observations` con sus claves foráneas, índices y la restricción `cantidad >= 1`.
 
 Artefactos de modelos: `data/uploads/models/<id_modelo>/v<versión>.joblib`; `ai_models.artifact_path` es relativo a la carpeta de cargas y `artifact_sha256` guarda su hash.
 

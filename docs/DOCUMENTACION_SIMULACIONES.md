@@ -58,7 +58,11 @@ Sobre 913 km²: bajo 28,9 %, medio 45,4 %, alto 25,7 %; cálculo en ~0,1 s. Es l
 4. **Incertidumbre explícita** y horizonte temporal (capacidad `horizonte_temporal` pendiente).
 5. Presentación como «escenario», nunca como pronóstico de fecha.
 
-Pendiente: escenarios de fugas/incendio industrial (NEUROINDUSTRIAL), modelos hidráulicos o geotécnicos, capas de cambios de NDVI sobre el terreno, guardar los resultados del comparador.
+NEUROCONSTRUCTION reutiliza estos mismos escenarios (susceptibilidad solo con pendiente e inundación opcional) en su análisis preliminar de sitio, con las mismas limitaciones; ver [API.md](API.md).
+
+Nota sobre el catálogo: las observaciones de biodiversidad aún **no se reflejan** en el catálogo de tipos (para ellas se propone: simuladas → simulación; reales no descartadas → observación real; descartadas → excluir).
+
+Pendiente: escenarios de fugas/incendio industrial (NEUROINDUSTRIAL), modelos hidráulicos o geotécnicos, guardar los resultados del comparador. (Las capas de NDVI y de cambio sobre el terreno ya están, como capa observada, desde la Fase 9.)
 
 ## Reglas innegociables
 

@@ -188,3 +188,11 @@ def test_descriptor_flags():
     assert caps == {"registro_especies": True, "registro_observaciones": True, "analisis_fotografias": False,
                     "reconocimiento_especies": False, "cambio_habitat": False, "fragmentacion": False}
     assert any("no se verifica" in x for x in DESCRIPTOR.limitations)
+
+
+def test_admin_cannot_validate_own_observation(client, admin_h):
+    """Separación de funciones: quien registra una observación no puede validarla."""
+    obs = _obs(client, admin_h).json()
+    r = client.post(f"{B}/observations/{obs['id']}/validate", json={"estado": "validada", "nota": "Revisada"},
+                    headers=admin_h)
+    assert r.status_code == 422 and "otro administrador" in r.text

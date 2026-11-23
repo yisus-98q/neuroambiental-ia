@@ -136,6 +136,43 @@ Solo lectura; sin tablas nuevas. Clasifica los resultados por reglas ([DOCUMENTA
 | GET | `/api/neuroprediction/catalog?tipo=&limit=&offset=` | lector | Elementos unificados (`limit` 1 a 200) más `totales_por_tipo`. Cada elemento trae ubicación, fechas, datos usados, modelo, versión, incertidumbre, evidencias, limitaciones y `simulated`. `horizonte_temporal` siempre `null`. 422 si el tipo no existe. |
 | GET | `/api/neuroprediction/catalog/{tipo}/{id}` | lector | Detalle de un elemento (404 si no pertenece a ese tipo). |
 
+## NEUROTERRAIN (`/api/terrain`)
+
+Series de desplazamiento de sensores **importadas por CSV** de NEURODATA (no hay conexión con equipos). Todo es un **indicador experimental por umbrales de ejemplo configurables**, no una predicción de falla ni criterio geotécnico.
+
+| Método | Ruta | Rol | Descripción |
+|---|---|---|---|
+| POST | `/api/terrain/sensors` | analista | Crea un sensor: `name`, `kind` (gps, inclinometro, etc.), `latitude`/`longitude` juntas o ninguna, `territory_id` opcional. |
+| GET | `/api/terrain/sensors` | lector | Sensores (hasta 500) con variables y rango de fechas. |
+| GET | `/api/terrain/sensors/{id}` | lector | Un sensor. |
+| POST | `/api/terrain/sensors/{id}/import` | analista | Importa mediciones desde un CSV registrado en NEURODATA: `data_record_id`, `format` (`largo` o `ancho`), columnas de fecha/variable/valor/unidad (o `value_columns` en formato ancho), `units`, `normalize` (ordena y descarta duplicados idénticos; los conflictivos se rechazan). 201. No se importa dos veces el mismo CSV al mismo sensor. |
+| GET | `/api/terrain/sensors/{id}/series` | lector | Análisis de la serie: acumulado, velocidad por regresión, saltos (`k_mad` 2 a 50), aceleración por comparación de ventanas (`window_days`, `vel_threshold`, `acc_ratio`) y clasificación experimental; `max_points` 10 a 2000. |
+| POST | `/api/terrain/sensors/{id}/alert` | analista | Crea una alerta **experimental** solo a petición explícita (nunca automática), con `level` opcional y `notes`. |
+
+## Fauna, Flora y Biodiversidad (`/api/biodiversity`)
+
+El catálogo de especies **empieza vacío**. La identificación la declara el observador y no se verifica; no hay modelo de reconocimiento.
+
+| Método | Ruta | Rol | Descripción |
+|---|---|---|---|
+| POST | `/api/biodiversity/species` | analista | Registra una especie: `nombre_cientifico` (único), `nombre_comun`, taxonomía, `categoria_conservacion` (tipo UICN, mostrada «según la fuente»; el sistema no la evalúa), `fuente_taxonomica` obligatoria. |
+| GET | `/api/biodiversity/species` | lector | Lista; `q`, `limit` (máx. 500), `offset`. |
+| POST | `/api/biodiversity/observations` | analista | Registra una observación georreferenciada: especie (o «no identificada»), `fecha_observacion` (no futura), `observador`, `cantidad` ≥ 1, `metodo`, `confianza_identificacion`, foto ya cargada en NEURODATA (solo se enlaza), `is_simulated` obligatorio. Nace `no_validada`. |
+| GET | `/api/biodiversity/observations` | lector | Lista con filtros. |
+| GET | `/api/biodiversity/observations/geojson` | lector | Capa GeoJSON para el mapa (`incluir_descartadas` opcional, `bbox`); cada elemento lleva `is_simulated`. |
+| GET | `/api/biodiversity/observations/{id}` | lector | Una observación. |
+| POST | `/api/biodiversity/observations/{id}/validate` | **admin** | Cambia el estado (`no_validada`, `validada`, `descartada`) con una nota (≥ 3 caracteres); queda auditado. No impide que el mismo admin valide una observación que él cargó. |
+| GET | `/api/biodiversity/summary?is_simulated=` | lector | Resumen por especie, mes y estado. La riqueza de especies depende del esfuerzo de muestreo: no es un índice de biodiversidad. |
+
+## NEUROCONSTRUCTION (`/api/construction`)
+
+Análisis preliminar de sitio sobre un DEM ya obtenido. **No reemplaza evaluaciones profesionales ni autorizaciones oficiales**; susceptibilidad e inundación son escenarios simplificados no calibrados.
+
+| Método | Ruta | Rol | Descripción |
+|---|---|---|---|
+| POST | `/api/construction/site-analysis` | analista | `dem_id` y **un** punto (`point`: `lon`, `lat`) **o** un polígono GeoJSON (máx. ~200 KB), `buffer_m` (0 a 5000; 500 por defecto), `flood` opcional (`lon`, `lat`, `rise_m` 0,5 a 50) y `name`. Devuelve elevación, pendiente, entorno, susceptibilidad heurística (solo pendiente), inundación demostrativa si se pide y observaciones por reglas fijas. 201; 409 si hay otro proceso pesado; 422 si el sitio cae fuera del DEM. |
+| GET | `/api/construction/analyses` | lector | Análisis guardados (con `notice`). |
+
 ## NEUROTRAINING
 
 | Método | Ruta | Rol | Descripción |

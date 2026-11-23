@@ -15,16 +15,16 @@ El orden impide dependencias circulares: un módulo solo puede depender de los y
 | 1 | `neurodata` | NEURODATA ENGINE | núcleo | 7/7 | **operativo** | — |
 | 2 | `alerts` | NEUROALERTS | especializado | 5/6 | parcial | neurodata |
 | 3 | `environmental` | NEUROENVIRONMENT | especializado | 5/9 | parcial | neurodata |
-| 4 | `terrain` | NEUROTERRAIN | especializado | 0/5 | en desarrollo | neurodata |
-| 5 | `biodiversity` | (sin codename) | especializado | 0/6 | en desarrollo | neurodata, environmental |
+| 4 | `terrain` | NEUROTERRAIN | especializado | 4/5 | parcial (series por CSV, indicador experimental; sin InSAR) | neurodata |
+| 5 | `biodiversity` | (sin codename) | especializado | 2/6 | parcial (especies y observaciones; sin reconocimiento ni análisis de fotos) | neurodata, environmental |
 | 6 | `neurogeo` | NEUROGEO | especializado | 0/5 | en desarrollo | neurodata |
 | 7 | `mining` | NEUROMINING | especializado | 0/5 | en desarrollo | neurodata, environmental, terrain |
 | 8 | `disasters` | NEURODISASTER | especializado | 0/5 | en desarrollo | neurodata, environmental, terrain, alerts |
-| 9 | `construction` | NEUROCONSTRUCTION | especializado | 1/6 | parcial | neurodata, disasters, terrain |
+| 9 | `construction` | NEUROCONSTRUCTION | especializado | 4/7 | parcial (análisis preliminar de sitio; sin proximidad a ríos ni compatibilidad territorial) | neurodata, disasters, terrain |
 | 10 | `neurotraining` | NEURAL TRAINING ENGINE | núcleo | 7/10 | parcial | neurodata |
 | 11 | `neurovision` | NEUROVISION | especializado | 3/6 | parcial | neurodata, neurotraining |
 | 12 | `neuroindustrial` | NEUROINDUSTRIAL | especializado | 0/3 | en desarrollo | neurodata, neurovision |
-| 13 | `neuro3d` | NEURO 3D SIMULATION ENGINE | simulación | 5/6 | parcial (nueva capacidad pendiente `capas_ndvi_cambios`: no se dibujan NDVI/cambios sobre el terreno; los escenarios son demostrativos, no calibrados ni validados) | neurodata, terrain |
+| 13 | `neuro3d` | NEURO 3D SIMULATION ENGINE | simulación | 6/6 | **operativo** (incluye las capas NDVI/cambio; los escenarios son demostrativos, no calibrados ni validados) | neurodata, terrain |
 | 14 | `neuroprediction` | NEURO PREDICTION ENGINE | núcleo | 2/4 | parcial (catálogo de tipos implementado; sin probabilidad calibrada ni horizonte temporal) | neurodata, neurotraining |
 | 15 | `neurovoice` | NEUROVOICE IA | núcleo | 5/8 | parcial (texto y voz en el navegador; sin modelo de lenguaje, otros idiomas ni acciones por voz) | neurocore |
 
@@ -36,13 +36,15 @@ Nota: `mining` (NEUROMINING) ya no incluye geología: pasó a `neurogeo`. `neuro
 
 | Mecanismo | Realidad |
 |---|---|
-| API HTTP por módulo | Sí: `/api/neurodata`, `/api/alerts`, `/api/environmental`, `/api/neurotraining`, `/api/neurovision`, `/api/neuro3d`, `/api/simulation`, `/api/neuroprediction`, `/api/neurovoice`, `/api/neurocore` ([API.md](API.md)) |
+| API HTTP por módulo | Sí: `/api/neurodata`, `/api/alerts`, `/api/environmental`, `/api/neurotraining`, `/api/neurovision`, `/api/neuro3d`, `/api/simulation`, `/api/terrain`, `/api/biodiversity`, `/api/construction`, `/api/neuroprediction`, `/api/neurovoice`, `/api/neurocore` ([API.md](API.md)) |
 | Datos compartidos | Sí: todo pasa por NEURODATA (`data_records`) y la base SQLite; el módulo ambiental produce rásters como registros; NEUROTRAINING consume CSV |
 | Un proceso pesado a la vez | Sí: `core/jobs.py` (raster y entrenamiento) |
 | Auditoría | Sí: `audit_logs` y `runs` |
 | Llamadas entre módulos orquestadas por NEUROCORE | **No** |
 | Cola/eventos entre módulos | **No** |
-| Alertas automáticas desde modelos | **No** (capacidad pendiente) |
+| Alertas automáticas desde modelos | **No** (capacidad pendiente). NEUROTERRAIN solo crea una alerta experimental **a petición explícita** de un analista |
+| Observaciones de biodiversidad en el catálogo de NEURO PREDICTION | **No todavía** (propuesta: simuladas → simulación; reales no descartadas → observación real; descartadas → excluir) |
+| NEUROCONSTRUCTION usa escenarios de NEURO 3D LAB | Sí: reutiliza susceptibilidad e inundación demostrativa sobre un DEM ya obtenido |
 | NEUROVOICE → datos de otros módulos | Sí, **solo lectura**: consulta alertas, datos, terreno y escenarios, NDVI, modelos y catálogo; no ejecuta acciones |
 | Arranque con carga diferida de librerías pesadas | Sí (`core/lazy.py`: scikit-learn, OpenCV, scipy, rasterio se importan al primer uso) |
 | Prueba de integración entre módulos | Sí (`test_integration.py`): flujo NEURODATA → NEUROCORE → NEUROVOICE → catálogo y mapa; todas las rutas no públicas exigen sesión; el lector no puede escribir salvo `POST /api/auth/logout`, `/api/neurovoice/chat` y `/api/neurocore/interpret` |

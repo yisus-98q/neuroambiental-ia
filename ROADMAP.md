@@ -12,7 +12,7 @@ Las Fases 1, 2 y 3 describen lo ya construido (con lo pendiente de cada una); lo
 - NEUROTRAINING: registro de modelos (siempre «planificado») y consulta de ejecuciones.
 - NEUROVOICE: chat de texto en español con intérprete por reglas e historial por usuario (en la Fase 7 se agregó la voz en el navegador).
 - Interfaz React con 15 secciones de menú, mapa territorial (MapLibre con mapa base local Natural Earth; OpenStreetMap opcional), panel de inicio con cifras reales.
-- Scripts `.bat` de instalación, arranque, desarrollo, parada y verificación; pruebas de backend (hoy 113 en total, incluidas las de las Fases 2, 3, 6, 7 y 8 y las de NEUROVISION y NEURO 3D LAB).
+- Scripts `.bat` de instalación, arranque, desarrollo, parada y verificación; pruebas de backend (hoy 146 en total, incluidas las de las Fases 2, 3, 6, 7, 8 y 9 y las de NEUROVISION y NEURO 3D LAB).
 - Muestras simuladas en `data/samples`.
 
 Pendiente dentro de lo ya construido: alertas automáticas, recuperación de contraseña, HTTPS, pruebas automáticas del frontend, informes más allá de alertas.
@@ -49,7 +49,7 @@ Hecho (detalle en [docs/ARQUITECTURA_NEURAL_TRAINING.md](docs/ARQUITECTURA_NEURA
 - Entrenamiento y evaluación de modelos ligeros de scikit-learn (random forest, regresión logística, ridge) sobre CSV de NEURODATA, `n_jobs=1`; métricas solo sobre datos de prueba con línea base; artefactos `.joblib` con SHA-256 verificado antes de cargar.
 - Ciclo de vida planificado → entrenado (experimental) → validado (solo admin, con evidencia, nunca con datos simulados) → retirado; versiones; predicción experimental sobre CSV nuevos.
 - Candado común de un proceso pesado a la vez (raster y entrenamiento).
-- Interfaz NEURAL TRAINING CENTER; migración 2 de la base (columnas nuevas de `ai_models`); la validación de un modelo exige superar la línea base, un administrador distinto de quien entrenó y que coincidan versión y hash; mínimo 60 filas y evaluación sobre filas reservadas del mismo CSV (no independiente); 113 pruebas de backend en total (cifra actual).
+- Interfaz NEURAL TRAINING CENTER; migración 2 de la base (columnas nuevas de `ai_models`); la validación de un modelo exige superar la línea base, un administrador distinto de quien entrenó y que coincidan versión y hash; mínimo 60 filas y evaluación sobre filas reservadas del mismo CSV (no independiente); 146 pruebas de backend en total (cifra actual).
 - NEUROVISION (OpenCV, parcial 3/6) y NEURO 3D LAB (Three.js, escenarios simplificados): ver el mapa de fases abajo.
 - Arquitectura de integración: 15 módulos registrados con `codename` y grupo; menú agrupado; contratos de NEUROVOICE y `GET /api/neurovoice/capabilities`.
 
@@ -65,14 +65,26 @@ El usuario definió su propio plan de 8 fases. Estado real (no es lo mismo que l
 | 2. Datasets + OpenCV | **Parcial** | Datasets = CSV de NEURODATA (sin Dataset Manager ni imágenes anotadas). OpenCV instalado: procesamiento determinista y comparación de fotos (3/6); sin clasificación ni detección. Panel sin probar en navegador ([docs/DOCUMENTACION_OPENCV.md](docs/DOCUMENTACION_OPENCV.md), [docs/DOCUMENTACION_DATASETS.md](docs/DOCUMENTACION_DATASETS.md)) |
 | 3. Entrenamiento inicial | **Hecha para modelos ligeros** | Mecanismo probado; sin modelos reales entrenados; sin redes neuronales profundas (PyTorch requiere autorización y no es viable a gran escala en 4 GB) |
 | 4. Modelos especializados | **Pendiente** | Solo contratos; ningún modelo especializado. Faltan datos reales para entrenarlos ([docs/CATALOGO_MODELOS_IA.md](docs/CATALOGO_MODELOS_IA.md)) |
-| 5. Simulación 3D con Three.js | **Parcial (5/6)** | Terreno real desde Copernicus DEM GLO-30, visor Three.js, trayectoria D8 y capa «Escenario»; **pendiente `capas_ndvi_cambios`** (NDVI/cambios sobre el terreno); visor y paneles sin probar en navegador ([docs/ARQUITECTURA_NEURO_3D.md](docs/ARQUITECTURA_NEURO_3D.md)) |
+| 5. Simulación 3D con Three.js | **Hecha en lo implementado (6/6 declaradas)** | Terreno real desde Copernicus DEM GLO-30, visor Three.js, trayectoria D8, capa «Escenario» y, desde la Fase 9, capas de NDVI y de cambio de NDVI sobre el terreno (remuestreadas a ~100 m; no confirman deforestación); visor y paneles sin probar en navegador ([docs/ARQUITECTURA_NEURO_3D.md](docs/ARQUITECTURA_NEURO_3D.md)) |
 | 6. Simulación y predicción | **Hecha en lo implementado (escenarios demostrativos)** | Susceptibilidad heurística, inundación de lámina local y comparador de 2 a 4 escenarios, siempre rotulados «SIMULACIÓN»; catálogo de 8 categorías que separa observación, procesamiento, estimación, simulación, predicción validada y alertas (NEURO PREDICTION ENGINE 2/4). **Pendiente:** probabilidad calibrada, horizonte temporal, modelos hidráulicos/geotécnicos, calibración y validación con eventos reales; ningún escenario predice nada ([docs/DOCUMENTACION_SIMULACIONES.md](docs/DOCUMENTACION_SIMULACIONES.md)) |
 | 7. NEUROVOICE (voz) | **Hecha en lo implementado (parcial 5/8)** | Voz **en el navegador**: reconocimiento con Web Speech API de Chrome/Edge solo tras consentimiento explícito (**el audio se envía a Google**; el usuario eligió esta opción frente a Vosk local) y síntesis con las voces del navegador (local, interrumpible); memoria de sesión; explica escenarios (rotulados SIMULACIÓN), catálogo de predicciones, NDVI/cambios y modelos con cifras reales. **Pendiente:** el micrófono no se probó (solo la carga de la página, el botón deshabilitado sin consentimiento y que no hay errores de consola); sin modelo de lenguaje, sin quechua/aimara ni otros idiomas, sin acciones por voz; reconocimiento local (Vosk/Whisper) ([docs/ARQUITECTURA_NEUROVOICE.md](docs/ARQUITECTURA_NEUROVOICE.md)) |
-| 8. Integración general | **Parcial** | **Hecho:** carga diferida de librerías pesadas (memoria en reposo 212 → 77 MB, arranque 19 → 5 s); pruebas de integración (todas las rutas no públicas exigen sesión con lista pública explícita, el lector no puede escribir salvo 3 rutas, arranque sin librerías pesadas, flujo NEURODATA → NEUROCORE → NEUROVOICE → catálogo y mapa); un solo worker documentado. **Pendiente:** orquestación real entre módulos, alertas automáticas, informes multimódulo, capas NDVI/cambios sobre el terreno 3D, pruebas automáticas del frontend; validación con datos reales según [docs/PLAN_DE_VALIDACION.md](docs/PLAN_DE_VALIDACION.md) |
+| 8. Integración general | **Parcial** | **Hecho:** carga diferida de librerías pesadas (memoria en reposo 212 → 77 MB, arranque 19 → 5 s); pruebas de integración (todas las rutas no públicas exigen sesión con lista pública explícita, el lector no puede escribir salvo 3 rutas, arranque sin librerías pesadas, flujo NEURODATA → NEUROCORE → NEUROVOICE → catálogo y mapa); un solo worker documentado. **Pendiente:** orquestación real entre módulos, alertas automáticas, informes multimódulo, pruebas automáticas del frontend; validación con datos reales según [docs/PLAN_DE_VALIDACION.md](docs/PLAN_DE_VALIDACION.md) |
 
 **Lo que sigue pendiente de todo el plan:** modelos especializados entrenados con datos reales (fase 4; faltan inventarios de eventos con licencia confirmada), clasificación y detección de imágenes (faltan imágenes anotadas), validación de cualquier modelo o escenario con eventos reales, redes neuronales (PyTorch), orquestación entre módulos y acciones sensibles por voz.
 
 OpenCV y Three.js ya fueron autorizados e instalados. Siguen requiriendo autorización expresa del usuario antes de empezar: PyTorch, cualquier reconocedor de voz local o servicio adicional, y la descarga de nuevas fuentes de datos.
+
+## Fase 9 (hecha en lo implementado): módulos especializados básicos
+
+Tres módulos pasaron de contrato a funciones reales y básicas; ninguno usa modelos entrenados ni datos reales validados.
+
+| Módulo | Estado | Qué hace | Pendiente |
+|---|---|---|---|
+| NEUROTERRAIN (`/api/terrain`) | Parcial 4/5 | Sensores y series de desplazamiento importadas por CSV (formato largo o ancho): acumulado, velocidad por regresión, saltos (MAD), aceleración por ventanas, clasificación experimental y alerta experimental a petición | InSAR (Sentinel-1); conexión en vivo con equipos; compensación de temperatura y calibración; umbrales validados con el sitio (los actuales son de ejemplo) |
+| Biodiversidad (`/api/biodiversity`; migración 3) | Parcial 2/6 | Catálogo de especies (vacío al inicio) y observaciones georreferenciadas con validación por un administrador; capa en el mapa; resumen por especie, mes y estado | Reconocimiento de especies, análisis de fotografías, cambio de hábitat y fragmentación; integración de las observaciones al catálogo de NEURO PREDICTION |
+| NEUROCONSTRUCTION (`/api/construction`) | Parcial 4/7 | Análisis de sitio (punto o polígono) sobre un DEM: elevación, pendiente, entorno, susceptibilidad heurística, inundación demostrativa opcional y observaciones por reglas fijas | Proximidad a ríos (falta una capa de ríos), compatibilidad territorial, CAD/BIM |
+
+Además: NEURO 3D LAB queda 6/6 declaradas (capas NDVI/cambio sobre el terreno) y el mapa decide el contorno «simulado» **por punto** (propiedad `is_simulated` de cada elemento). Detalle en [docs/API.md](docs/API.md), [docs/DATABASE.md](docs/DATABASE.md) y [docs/INTEGRACION_NEUROCORE.md](docs/INTEGRACION_NEUROCORE.md). 146 pruebas de backend en total.
 
 ## Fase 4 (propuesta): escala y voz
 

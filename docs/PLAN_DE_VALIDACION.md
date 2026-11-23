@@ -10,7 +10,7 @@ Regla del proyecto: **no afirmar como operativo nada que no esté implementado y
 python scripts\comprobar.py
 ```
 
-Desde la carpeta del proyecto. Ejecuta pytest (**113 pruebas de backend**) y `npm run build` (tipos de TypeScript + compilación de Vite). Archivos de prueba en `tests/backend/`:
+Desde la carpeta del proyecto. Ejecuta pytest (**146 pruebas de backend**) y `npm run build` (tipos de TypeScript + compilación de Vite). Archivos de prueba en `tests/backend/`:
 
 | Archivo | Cubre |
 |---|---|
@@ -25,9 +25,12 @@ Desde la carpeta del proyecto. Ejecuta pytest (**113 pruebas de backend**) y `np
 | `test_scenarios.py` | Susceptibilidad, inundación de lámina local, comparador y sus validaciones (DEM sintético, sin red) |
 | `test_neuroprediction.py` | Catálogo de tipos: reglas disjuntas, un elemento simulado nunca es observación/predicción/alerta verificada |
 | `test_neurovoice.py` | Respuestas con cifras reales (predicciones, modelos), escenarios siempre rotulados como simulación, memoria de sesión, `GET /capabilities` honesto |
+| `test_terrain.py` | NEUROTERRAIN: importación de series por CSV (largo/ancho, duplicados, fechas), velocidad, saltos, aceleración, clasificación experimental y alerta a petición |
+| `test_biodiversity.py` | Especies y observaciones: validaciones, estado de validación (solo admin), capa GeoJSON, regla `is_simulated`, resumen |
+| `test_construction.py` | Análisis de sitio sobre un DEM sintético: punto y polígono, entorno, observaciones por reglas fijas, errores |
 | `test_integration.py` | **Todas las rutas `/api/...` no públicas exigen sesión** (lista pública explícita); el lector no puede escribir salvo `POST /api/auth/logout`, `/api/neurovoice/chat` y `/api/neurocore/interpret`; el servidor arranca sin importar las librerías pesadas; flujo NEURODATA → NEUROCORE → NEUROVOICE → catálogo y mapa |
 
-Limitaciones: no hay pruebas automáticas del frontend; **el panel NEUROVISION, el visor 3D y el micrófono de NEUROVOICE no se probaron** (el Chrome del equipo dibuja por software y no permite capturas; el micrófono exige hablar y enviar audio a Google) (el Chrome del equipo dibuja por software y no permite capturas); las pruebas ambientales no usan la red ni escenas reales (la verificación con Sentinel-2 real fue manual); las pruebas de entrenamiento usan datos sintéticos.
+Limitaciones: no hay pruebas automáticas del frontend; **el panel NEUROVISION, el visor 3D y el micrófono de NEUROVOICE no se probaron** (el Chrome del equipo dibuja por software y no permite capturas; el micrófono exige hablar y enviar audio a Google); **tampoco se probaron en navegador los paneles de NEUROTERRAIN, biodiversidad y NEUROCONSTRUCTION ni la capa de observaciones del mapa** (no confirmado); las pruebas ambientales no usan la red ni escenas reales (la verificación con Sentinel-2 real fue manual); las pruebas de entrenamiento usan datos sintéticos.
 
 ## 2. Validación de resultados científicos (política)
 

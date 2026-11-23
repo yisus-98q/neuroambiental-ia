@@ -249,6 +249,9 @@ def validate_observation(observation_id: str, body: ValidateIn, user: User = Dep
     obs = db.get(Observation, observation_id)
     if obs is None:
         raise HTTPException(404, "Observación no encontrada.")
+    # Separación de funciones (igual que en los modelos de IA): quien registró no valida su propia observación.
+    if obs.created_by == user.id:
+        raise HTTPException(422, "Quien registró la observación no puede validarla: debe hacerlo otro administrador.")
     previous = obs.estado_validacion
     obs.estado_validacion = body.estado
     obs.validation_note = body.nota.strip()

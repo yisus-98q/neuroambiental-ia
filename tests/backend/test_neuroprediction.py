@@ -92,7 +92,8 @@ def seeded(client, analyst_h, admin_h):
     with SessionLocal() as db:
         src = db.query(Source).first()
         for key, dtype, sim in (("ndvi", "raster_ndvi", False), ("ndvi_sim", "raster_ndvi", True),
-                                ("escenario", "raster_escenario", False), ("dem", "raster_dem", False)):
+                                ("escenario", "raster_escenario", False), ("dem", "raster_dem", False),
+                                ("sitio", "analisis_sitio", False)):
             rec = DataRecord(source_id=src.id, data_type=dtype, title=f"Prueba {dtype}", is_simulated=sim,
                              bbox=[-77.1, -9.1, -77.0, -9.0])
             db.add(rec)
@@ -195,3 +196,9 @@ def test_descriptor_declares_separation_but_not_calibration():
     assert caps["separacion_tipos"] is True
     assert caps["probabilidad_calibrada"] is False and caps["horizonte_temporal"] is False
     assert DESCRIPTOR.api_prefix == "/api/neuroprediction"
+
+
+def test_site_analysis_is_processing_not_observation(client, analyst_h, seeded):
+    """Regresión: un análisis de sitio (NEUROCONSTRUCTION) es un cálculo, no una observación real."""
+    assert _find(client, analyst_h, "resultado_procesamiento", seeded["sitio"]) is not None
+    assert _find(client, analyst_h, "observacion_real", seeded["sitio"]) is None

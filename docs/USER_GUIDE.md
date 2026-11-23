@@ -24,7 +24,8 @@ Muestra sobre un mapa base local de países (Natural Earth, con Perú resaltado 
 - Marque o desmarque capas; «Ir» acerca el mapa a una capa.
 - Haga clic en un elemento para ver su información en el recuadro «Selección».
 - Si se calcularon NDVI o cambios (Predicción ambiental), aparecen en «Rásters Sentinel-2» con casilla para mostrarlos y botón «Ir». La leyenda explica los colores (NDVI de marrón a verde oscuro; rojo = disminución, verde = aumento; el rojo **no confirma** daño).
-- Los datos simulados se distinguen por contorno/borde especial y la etiqueta «simulado».
+- Las observaciones de fauna y flora aparecen como una capa propia (con casilla). Las descartadas no se muestran por defecto.
+- Los datos simulados se distinguen **punto por punto** (cada elemento trae su propia marca de simulado) por un contorno/borde especial y la etiqueta «simulado»; en una misma capa pueden convivir puntos reales y simulados.
 - «Modo marcador»: permite hacer clic en el mapa para marcar un punto.
 - Casilla «Detalle OpenStreetMap» (desactivada por defecto): agrega el mapa detallado de OpenStreetMap. Requiere Internet y sus servidores pueden rechazar la carga según su política de uso; si no aparece, el mapa local sigue funcionando.
 - El mapa base local funciona sin Internet. **Funciona.**
@@ -33,8 +34,10 @@ Muestra sobre un mapa base local de países (Natural Earth, con Perú resaltado 
 Predicción ambiental, Inteligencia minera, Fauna y flora, Movimientos territoriales, Catástrofes y Construcción. Cada página muestra una **ficha**: descripción, capacidades (Implementada / Pendiente), entradas, salidas, dependencias, errores posibles y limitaciones.
 
 - **Predicción ambiental:** **parcial** (5 de 9 capacidades). Es el único módulo que analiza imágenes satelitales reales. Ver la sección «Predicción ambiental» más abajo.
-- **Minería, fauna y flora, movimientos territoriales, catástrofes:** **en desarrollo**. No analizan nada ni muestran resultados; solo describen lo previsto. Catástrofes advierte que no se puede predecir la fecha exacta de sismos ni explosiones.
-- **Construcción:** **parcial**. Permite cargar planos o documentos (PDF, PNG, JPG, GeoJSON, CSV) y ver la lista de documentos cargados. El análisis del proyecto (pendientes, ríos, riesgos) **aún no existe**; no reemplaza una evaluación profesional.
+- **Minería, geología, catástrofes e industrial:** **en desarrollo**. No analizan nada ni muestran resultados; solo describen lo previsto. Catástrofes advierte que no se puede predecir la fecha exacta de sismos ni explosiones.
+- **Movimientos territoriales (NEUROTERRAIN):** **parcial**. Un analista crea un sensor e importa una serie desde un CSV ya cargado en NEURODATA (formato largo o ancho). Se muestran el desplazamiento acumulado, la velocidad, los saltos y si la serie parece estable, en movimiento o acelerando. Es un **indicador experimental con umbrales de ejemplo** que usted puede ajustar: **no predice fallas** ni sustituye al criterio geotécnico. No se conecta a equipos en vivo y no hay InSAR. La alerta solo se crea si un analista la pide.
+- **Fauna y flora:** **parcial**. Un analista registra especies (el catálogo empieza vacío) y observaciones con ubicación, fecha, observador, método y confianza; un **administrador** las valida o descarta. Aparecen como capa en el Mapa. **El sistema no reconoce especies**: la identificación la declara quien observa. No se analizan fotos, hábitat ni fragmentación, y el número de especies distintas depende de cuánto se muestreó: no es un índice de biodiversidad.
+- **Construcción (NEUROCONSTRUCTION):** **parcial**. Permite cargar planos o documentos (PDF, PNG, JPG, GeoJSON, CSV) y un **análisis preliminar de sitio**: con un terreno (DEM) ya obtenido en NEURO 3D LAB, un analista indica un punto o un polígono y obtiene elevación, pendiente, entorno, un índice de susceptibilidad heurístico, una inundación demostrativa opcional y observaciones automáticas por reglas fijas sobre esos números. **No mide cercanía a ríos** (no hay capa de ríos), no evalúa compatibilidad territorial y el DEM tiene ~100 m. **No reemplaza una evaluación profesional ni autorizaciones oficiales.**
 
 ### Predicción ambiental: NDVI y cambios con Sentinel-2
 Usa imágenes **reales** del satélite Sentinel-2 (programa Copernicus), gratis y sin cuenta. **Necesita Internet.** Solo se descarga el recorte del área (unos 17 MB por fecha en las pruebas); cada cálculo tarda unos 2 minutos (medido) y se procesa **uno a la vez**. Los lectores solo ven los resultados; los analistas pueden ejecutar los pasos:

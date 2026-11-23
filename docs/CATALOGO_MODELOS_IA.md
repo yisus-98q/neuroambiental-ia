@@ -35,11 +35,11 @@ Ninguno de estos modelos existe. Son líneas de trabajo posibles, con lo que fal
 |---|---|---|---|
 | NEUROENVIRONMENT (`environmental`) | Cambio de vegetación (hoy: NDVI y umbral determinísticos, **no es un modelo entrenado**); clasificación de cobertura | Datos etiquetados con verdad de campo | Parcial 5/9 (cálculos, no IA) |
 | NEURODISASTER (`disasters`) | Susceptibilidad a huaycos/deslizamientos | Inventario de eventos (INGEMMET/SIGRID), DEM, lluvia; sin ellos no se puede validar | En desarrollo 0/5 |
-| NEUROTERRAIN (`terrain`) | Anomalías de desplazamiento (GPS/inclinómetros/InSAR) | Series de sensores reales | En desarrollo 0/5 |
+| NEUROTERRAIN (`terrain`) | Anomalías de desplazamiento (GPS/inclinómetros/InSAR) | Series de sensores reales (hoy: análisis estadístico por umbrales de ejemplo, **no es un modelo entrenado**) | Parcial 4/5; sin modelos entrenados |
 | NEUROVISION (`neurovision`) | Clasificación/segmentación/detección en imágenes | Imágenes anotadas por expertos (no existen). Hoy solo hay procesamiento determinista con OpenCV (Canny, CLAHE, Otsu, ExG, comparación ORB+RANSAC), que **no es un modelo entrenado** | Parcial 3/6; sin modelos entrenados |
 | NEUROGEO / NEUROMINING | Prospectividad (indicios, nunca reservas) | Datos geológicos y geoquímicos reales | En desarrollo |
 | NEUROINDUSTRIAL | Anomalías de sensores; inspección visual | Series y fotos etiquetadas | En desarrollo 0/3 |
-| Fauna y flora (`biodiversity`) | Reconocimiento de especies | Imágenes etiquetadas; GBIF (licencias por verificar) | En desarrollo 0/6 |
+| Fauna y flora (`biodiversity`) | Reconocimiento de especies | Imágenes etiquetadas; GBIF (licencias por verificar). Hoy solo hay registro y validación manual de observaciones (el catálogo de especies empieza vacío) | Parcial 2/6; sin modelos entrenados |
 
 ## Ficha mínima exigida a todo modelo antes de usarse
 

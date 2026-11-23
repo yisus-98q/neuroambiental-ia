@@ -13,7 +13,10 @@
 | Predicción ambiental (Fase 2) | **Cálculos determinísticos, no IA ni aprendizaje automático:** NDVI = (NIR - Rojo) / (NIR + Rojo) con máscara de nubes (SCL) y detección de cambios por umbral sobre la diferencia de NDVI. No hay parámetros aprendidos de datos, ni entrenamiento, ni métricas de exactitud. Los cambios detectados quedan «sin validar» y **no confirman** deforestación ni daño. |
 | NEUROVISION | Procesamiento **determinista** con OpenCV (Canny, CLAHE, Otsu, ExG, comparación de fotos ORB+RANSAC): no es aprendizaje ni un modelo; `confidence = null`. Parcial 3/6; sin clasificación ni detección ([DOCUMENTACION_OPENCV.md](DOCUMENTACION_OPENCV.md)). |
 | NEURO 3D LAB | Terreno desde DEM real, trayectoria D8, susceptibilidad heurística e inundación de lámina local: cálculos con reglas fijas, no IA ni simulación física validada. Parcial 5/6 ([ARQUITECTURA_NEURO_3D.md](ARQUITECTURA_NEURO_3D.md)). |
-| Catástrofes, minería, geología, biodiversidad, terreno, industrial | Sin análisis ni modelos entrenados: solo el contrato del módulo. |
+| NEUROTERRAIN | Series de desplazamiento por CSV con regresión lineal, MAD y umbrales de ejemplo: estadística básica, **no IA ni modelo entrenado**; indicador experimental. |
+| Biodiversidad | Registro y validación manual de observaciones: **sin modelo de reconocimiento de especies**. |
+| NEUROCONSTRUCTION | Análisis de sitio con números del DEM y reglas fijas (los escenarios de NEURO 3D LAB): no IA. |
+| Catástrofes, minería, geología, industrial | Sin análisis ni modelos entrenados: solo el contrato del módulo. |
 | Alertas | Las crea una persona. No hay alertas automáticas. |
 
 ## Estados de un modelo

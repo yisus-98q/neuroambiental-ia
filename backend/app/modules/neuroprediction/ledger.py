@@ -4,7 +4,8 @@ estimación, simulación, predicción y alerta. SIN tablas nuevas: todo se deriv
 REGLAS DE CLASIFICACIÓN (cada elemento cae en EXACTAMENTE un tipo; las condiciones son disjuntas):
 
 DataRecord (data_records)
-  * data_type en {raster_ndvi, raster_cambio, imagen_procesada}  -> resultado_procesamiento
+  * data_type en {raster_ndvi, raster_cambio, imagen_procesada,
+    analisis_sitio}                                                -> resultado_procesamiento
   * data_type == raster_escenario                                  -> simulacion
   * is_simulated=True (cualquier otro tipo)                        -> simulacion (dato de prueba)
   * is_simulated=False (csv, geojson, imagen, documento,
@@ -39,7 +40,7 @@ from app.models import AIModel, Alert, DataRecord, Event, Prediction, Run
 
 MAX_LIMIT = 200
 PRED_CAP = 2000  # las predicciones se clasifican en Python (el estado depende de JSON y de otra tabla)
-PROCESSING = ("raster_ndvi", "raster_cambio", "imagen_procesada")
+PROCESSING = ("raster_ndvi", "raster_cambio", "imagen_procesada", "analisis_sitio")
 SCENARIO_TYPES = ("raster_escenario",)
 NEVER_SIMULATED = ("observacion_real", "dato_historico", "prediccion", "alerta_verificada")
 
@@ -64,7 +65,7 @@ KINDS: dict[str, dict[str, Any]] = {
     "resultado_procesamiento": {
         "etiqueta": "Resultado de procesamiento", "verificado": False,
         "definicion": "Producto determinista calculado a partir de datos (NDVI, cambio, imagen procesada); no es un modelo.",
-        "regla": "DataRecord con data_type raster_ndvi, raster_cambio o imagen_procesada.",
+        "regla": "DataRecord con data_type raster_ndvi, raster_cambio, imagen_procesada o analisis_sitio.",
         "incertidumbre": "Hereda la de los datos de entrada y de las correcciones aplicadas (atmosféricas, nubes).",
         "limitaciones": ["Es un cálculo, no una interpretación: requiere criterio experto para atribuir causas."],
         "verificacion": "Comprobar con trabajo de campo o con una fuente independiente de la misma fecha.",
