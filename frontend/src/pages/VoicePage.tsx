@@ -52,7 +52,7 @@ export function VoicePage() {
   const [interim, setInterim] = useState("");
   const [speak, setSpeak] = useState(true);
   const [speaking, setSpeaking] = useState(false);
-  const [consent, setConsent] = useState(() => { try { return localStorage.getItem(CONSENT_KEY) === "si"; } catch { return false; } });
+  const [consent, setConsent] = useState(() => { try { return sessionStorage.getItem(CONSENT_KEY) === "si"; } catch { return false; } });
   const recRef = useRef<Recognition | null>(null);
   const Ctor = getRecognition();
   const ttsAvailable = typeof window !== "undefined" && "speechSynthesis" in window;
@@ -124,7 +124,7 @@ export function VoicePage() {
 
   function acceptConsent(v: boolean) {
     setConsent(v);
-    try { localStorage.setItem(CONSENT_KEY, v ? "si" : "no"); } catch { /* sin almacenamiento: se pide de nuevo */ }
+    try { sessionStorage.setItem(CONSENT_KEY, v ? "si" : "no"); } catch { /* sin almacenamiento: se pide de nuevo */ }  // solo esta sesión: se vuelve a pedir al reabrir el navegador
   }
 
   return (

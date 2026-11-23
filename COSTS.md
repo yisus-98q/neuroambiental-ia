@@ -19,8 +19,9 @@
 | numpy | Cálculo con arreglos (Fase 2) | BSD-3-Clause | 0 |
 | rasterio (incluye GDAL) | Lectura/escritura de rásters (Fase 2) | BSD-3-Clause (rasterio); GDAL con licencia tipo MIT/X | 0 |
 | scikit-learn (con scipy y joblib) | Modelos ligeros (Fase 3) | BSD-3-Clause | 0 |
-| opencv-python-headless | Visión por computador (autorizado; implementación en curso) | Apache-2.0 (OpenCV 4.5+; verificar) | 0 |
-| Three.js | Visor 3D (autorizado; implementación en curso) | MIT | 0 |
+| opencv-python-headless | Visión por computador (autorizado) | Apache-2.0 (OpenCV 4.5+; verificar) | 0 |
+| Three.js | Visor 3D | MIT | 0 |
+| Web Speech API de Chrome/Edge (reconocimiento) y `speechSynthesis` (síntesis) | Voz de NEUROVOICE, **en el navegador** | Funciones del navegador, sin instalación ni clave; el reconocimiento de Chrome usa servidores de Google (el audio sale del equipo; sin garantía de disponibilidad ni de gratuidad futura) | 0 hoy |
 | Sentinel-2 L2A COG en AWS Open Data + catálogo STAC Earth Search (Element 84) | Imágenes satelitales (Fase 2) | Datos Copernicus: uso libre con atribución obligatoria; servicios gratuitos, sin cuenta ni claves | 0 |
 | MapLibre GL JS | Mapa | BSD-3-Clause | 0 |
 | Natural Earth 1:110m países (mapa base local, `frontend/public/basemap/paises.geojson`) | Fondo del mapa por defecto; funciona sin Internet | Dominio público | 0 |
@@ -46,7 +47,7 @@ Ninguno está contratado ni es necesario hoy.
 | Almacenamiento y ancho de banda de imágenes satelitales | Hoy solo se descargan recortes (~15-20 MB por fecha, sin guardar las escenas originales). Crecería con series largas o áreas mayores | Mantener recortes pequeños; purgar rásters antiguos; disco local |
 | GPU para entrenamiento | Modelos de visión profunda | scikit-learn en CPU para modelos ligeros; cuotas gratuitas de notebooks con límites |
 | Servidor de teselas propio | Si el uso supera la política de OSM | Teselas autoalojadas con datos OSM/Natural Earth; proveedores con plan gratuito (revisar límites) |
-| Servicios de voz | Reconocimiento y síntesis de voz | Vosk (reconocimiento) y Piper (síntesis), libres y locales; verificar calidad en español |
+| Servicios de voz propios | Si Google cambia o limita el reconocimiento de Chrome, o se quiere voz sin enviar audio a terceros | Vosk o Whisper local (reconocimiento) y Piper (síntesis), libres; verificar calidad en español y memoria en 4 GB; requiere autorización |
 | Servicios de IA en la nube | Modelo de lenguaje para NEUROVOICE | Reglas actuales; modelos abiertos locales si el equipo lo permite |
 
 ## Regla

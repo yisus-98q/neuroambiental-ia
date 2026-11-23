@@ -76,7 +76,7 @@ Las herramientas sensibles deberán exigir permiso por rol y confirmación human
 ## Limitaciones y riesgos
 
 - **Solo Chrome/Edge** para reconocer voz; otros navegadores solo texto. **Sin Internet no hay reconocimiento** (la síntesis sí funciona sin conexión si hay voces instaladas).
-- El consentimiento se guarda en `localStorage` del navegador (`neurovoice_asr_consent`): persiste hasta que la persona lo desmarque o borre los datos del sitio; no se pide de nuevo en cada sesión.
+- El consentimiento se guarda en `sessionStorage` del navegador (`neurovoice_asr_consent`): vale solo para la sesión actual y se vuelve a pedir al reabrir el navegador.
 - El texto transcrito se guarda como mensaje de la conversación (historial del usuario); el audio no se guarda en este servidor, pero sí lo recibe Google.
 - No usar la voz para información sensible o confidencial.
 - No está probado el micrófono ni la precisión en español peruano.
