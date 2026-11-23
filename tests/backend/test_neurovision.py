@@ -79,8 +79,9 @@ def _analyze(client, h, rid, op, params=None):
     return client.post("/api/neurovision/analyze", headers=h, json={"record_id": rid, "operation": op, "params": params})
 
 
-def test_operations_public(client):
-    r = client.get("/api/neurovision/operations")
+def test_operations_require_session(client, reader_h):
+    assert client.get("/api/neurovision/operations").status_code == 401   # no expone la versión de OpenCV
+    r = client.get("/api/neurovision/operations", headers=reader_h)
     assert r.status_code == 200
     keys = {o["key"] for o in r.json()["operations"]}
     assert keys == {"canny", "clahe", "segmentacion", "verdor_exg", "caracteristicas"}

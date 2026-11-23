@@ -14,6 +14,8 @@ MAX_SIDE = 2048
 MAX_PIXELS = 25_000_000
 MAX_REGIONS = 200
 MIN_MATCHES = 10
+MIN_INLIER_RATIO = 0.25     # fracción mínima de correspondencias consistentes tras RANSAC
+MAX_PERSPECTIVE = 0.002     # |H[2,0]|, |H[2,1]| máximos: fotos casi frontales de la misma escena
 CHANGE_MIN_DIFF = 25  # diferencia mínima (0-255) para considerar un cambio, aunque Otsu pida menos
 OPENCV_VERSION = cv2.__version__
 
@@ -323,6 +325,12 @@ def align(a_gray: np.ndarray, b_img: np.ndarray, b_gray: np.ndarray) -> tuple[np
     if H is None or n_inl < MIN_MATCHES:
         raise AlignError(f"No se pudieron alinear las imágenes: solo {n_inl} correspondencias consistentes "
                          f"tras RANSAC (mínimo {MIN_MATCHES}).")
+    # Plausibilidad: una homografía degenerada produciría «cambios» que son artefactos de la deformación.
+    ratio = n_inl / len(good)
+    scale = abs(float(np.linalg.det(H[:2, :2])))
+    if ratio < MIN_INLIER_RATIO or not (0.5 <= scale <= 2.0) or max(abs(H[2, 0]), abs(H[2, 1])) > MAX_PERSPECTIVE:
+        raise AlignError(f"La alineación no es plausible (inliers {ratio:.0%}, escala {scale:.2f}): "
+                         "las imágenes no parecen tomas comparables de la misma escena.")
     h, w = a_gray.shape
     warped = cv2.warpPerspective(b_img, H, (w, h), flags=cv2.INTER_LINEAR)
     valid = cv2.warpPerspective(np.full(b_gray.shape, 255, np.uint8), H, (w, h), flags=cv2.INTER_NEAREST)

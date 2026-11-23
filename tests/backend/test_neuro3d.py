@@ -133,9 +133,18 @@ def test_terrain_end_to_end(client, analyst_h, reader_h, plane_backend):
     assert len(mesh["heights"]) == mesh["width"] * mesh["height"] == len(mesh["slopes"])
     assert mesh["min"] <= min(mesh["heights"]) and max(mesh["heights"]) <= mesh["max"]
     assert mesh["attribution"] and mesh["extent_m"][0] > 0 and mesh["slope_stats"]["classes"]
+    assert len(mesh["valid"]) == len(mesh["heights"]) and mesh["valid_pct"] > 99   # máscara de validez
     full = client.get(f"/api/neuro3d/terrains/{rec['id']}/mesh", headers=reader_h).json()
     assert max(full["width"], full["height"]) <= 256
     assert client.get("/api/neuro3d/terrains/inexistente/mesh", headers=reader_h).status_code == 404
+
+
+def test_flow_path_stopped_by_missing_data_is_not_a_minimum():
+    """Si el camino se detiene junto a celdas sin dato, el motivo es «sin_dato», no «minimo_local»."""
+    z = np.tile(np.linspace(100, 10, 20, dtype="float32"), (20, 1))  # desciende hacia el este
+    z[:, 10:] = np.nan                                                # hueco de datos a mitad de camino
+    out = dem.flow_path(z, (-77.0, -9.02, -76.98, -9.0), lon=-76.9975, lat=-9.0105)  # columna 2, fila 10
+    assert out["end_reason"] == "sin_dato" and out["steps"] > 0
 
 
 def test_flow_path_descends_to_minimum(client, analyst_h, reader_h, bowl_backend):

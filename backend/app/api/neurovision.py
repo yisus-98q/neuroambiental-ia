@@ -46,7 +46,7 @@ def _handle(fn):
 
 
 @router.get("/operations")
-def operations() -> dict:
+def operations(_: User = Depends(get_current_user)) -> dict:
     return {"operations": processing.public_operations(), "max_side_px": processing.MAX_SIDE,
             "max_megapixels": processing.MAX_PIXELS // 1_000_000, "confidence_note": processing.CONFIDENCE_NOTE,
             "limitations": processing.LIMITATIONS, "opencv_version": processing.OPENCV_VERSION}
@@ -67,7 +67,14 @@ def compare(body: CompareIn, user: User = Depends(require_role("analista")), db:
 def results(limit: int = 50, _: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[dict]:
     q = (select(DataRecord).where(DataRecord.data_type == "imagen_procesada")
          .order_by(DataRecord.received_at.desc()).limit(min(max(limit, 1), 100)))
-    return [_out(r) for r in db.scalars(q)]
+    out = []
+    for r in db.scalars(q):
+        item = _out(r)
+        if isinstance(item.get("extra"), dict) and "regions" in item["extra"]:
+            # El listado no incluye las regiones (hasta 200 por resultado): se consultan por registro.
+            item["extra"] = {k: v for k, v in item["extra"].items() if k != "regions"}
+        out.append(item)
+    return out
 
 
 @router.get("/results/{record_id}/overlay")

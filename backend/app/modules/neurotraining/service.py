@@ -131,7 +131,8 @@ def predict(db: Session, user: User, model: AIModel, dataset_id: str) -> dict:
     if model.status not in ("entrenado", "validado") or not model.artifact_path or not model.artifact_sha256:
         raise ModelStateError("El modelo debe estar entrenado para predecir.")
     dataset = _csv_record(db, dataset_id)
-    fitted = trainer.load_artifact(settings.uploads_dir / model.artifact_path, model.artifact_sha256)
+    fitted = trainer.load_artifact(settings.uploads_dir / model.artifact_path, model.artifact_sha256,
+                                   settings.uploads_dir)
     rows, skipped = trainer.predict_rows(fitted, absolute_path(dataset).read_bytes(), model.features, model.task)
     if model.task == "clasificacion":
         summary = {"counts": dict(Counter(str(r["prediction"]) for r in rows))}

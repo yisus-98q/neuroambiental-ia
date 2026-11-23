@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { ErrorText, Loading, Notice } from "../components/Notice";
 import type { Layer, MeshData, PathPoint } from "../maps/Terrain3D";
-import { HYPSO_STOPS, SLOPE_CLASSES } from "../maps/Terrain3D";
+import { HYPSO_STOPS, NO_DATA_COLOR, SLOPE_CLASSES } from "../maps/terrainPalette";
 import { api, canWrite, post, session } from "../services/api";
 import { useApi } from "../services/useApi";
 
@@ -96,7 +96,7 @@ export function Neuro3DLab() {
           </div>
           <div className="row">
             <button className="btn" disabled={busy} onClick={download}>{busy && !mesh ? "Descargando… (puede tardar un minuto)" : "Descargar terreno real (DEM)"}</button>
-            <span className="small muted">Máximo 0,5° x 0,5°. Por defecto: Huaraz / Cordillera Blanca.</span>
+            <span className="small muted">Máximo unos 0,46° por lado con la resolución por defecto (~100 m; la malla del visor admite 512 px). Por defecto: Huaraz / Cordillera Blanca.</span>
           </div>
         </div>
       )}
@@ -152,6 +152,7 @@ export function Neuro3DLab() {
               <h2>Resultados</h2>
               {elev && <p className="small">Elevación: mínima <strong>{elev.min} m</strong>, máxima <strong>{elev.max} m</strong>, media {elev.mean} m.</p>}
               <p className="small">Pendiente media {sel.extra.slope_stats.mean_deg}° (máx. {sel.extra.slope_stats.max_deg}°).</p>
+              {mesh && mesh.valid_pct !== undefined && <p className="small">Celdas con dato real: <strong>{mesh.valid_pct} %</strong>{mesh.valid_pct < 100 && " (las celdas sin dato se dibujan en gris)"}.</p>}
               <div className="table-wrap"><table>
                 <thead><tr><th>Clase</th><th>% del área</th></tr></thead>
                 <tbody>{sel.extra.slope_stats.classes.map((c) => <tr key={c.label}><td>{c.label}</td><td>{c.pct.toFixed(1)} %</td></tr>)}</tbody>
@@ -195,6 +196,7 @@ function Legend({ layer, min, max }: { layer: Layer; min?: number; max?: number 
         {SLOPE_CLASSES.map((c) => (
           <span key={c.label}><span style={{ display: "inline-block", width: 12, height: 12, background: c.color, marginRight: 4, verticalAlign: "middle" }} />{c.label}</span>
         ))}
+        <span><span style={{ display: "inline-block", width: 12, height: 12, background: NO_DATA_COLOR, marginRight: 4, verticalAlign: "middle" }} />sin dato</span>
       </div>
     );
   }
@@ -202,7 +204,7 @@ function Legend({ layer, min, max }: { layer: Layer; min?: number; max?: number 
   return (
     <div aria-label="Leyenda de elevación">
       <div style={{ height: 12, background: grad, borderRadius: 4 }} />
-      <div className="row small" style={{ justifyContent: "space-between" }}><span>{min ?? "—"} m</span><span>{max ?? "—"} m</span></div>
+      <div className="row small" style={{ justifyContent: "space-between" }}><span>{min ?? "—"} m</span><span>gris = sin dato</span><span>{max ?? "—"} m</span></div>
     </div>
   );
 }

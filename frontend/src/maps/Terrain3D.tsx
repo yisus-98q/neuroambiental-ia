@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { HYPSO_LUT, NO_DATA_COLOR, SLOPE_LUT, hexToRgb } from "./terrainPalette";
 
 /** Visor 3D del terreno. Render SOLO bajo demanda (el equipo dibuja por software): nada de bucle continuo. */
 export interface MeshData {
@@ -12,34 +13,14 @@ export interface MeshData {
   heights: number[];         // m, fila a fila (norte → sur)
   slopes: number[];          // grados enteros
   extent_m: [number, number];
+  valid?: number[];           // 1 = dato real, 0 = sin dato (se dibuja en gris)
+  valid_pct?: number;
 }
 export type PathPoint = [number, number, number]; // lon, lat, elevación
 export type Layer = "elevation" | "slope";
 
-// Paletas compartidas con la leyenda del panel.
-export const HYPSO_STOPS: [number, string][] = [
-  [0, "#2e7d32"], [0.25, "#9ccc65"], [0.5, "#e6d27a"], [0.75, "#9a6b45"], [1, "#f5f5f5"],
-];
-export const SLOPE_CLASSES: { max: number; color: string; label: string }[] = [
-  { max: 15, color: "#43a047", label: "0-15°" },
-  { max: 25, color: "#fdd835", label: "15-25°" },
-  { max: 35, color: "#fb8c00", label: "25-35°" },
-  { max: 91, color: "#d32f2f", label: ">35°" },
-];
-
 const SIZE = 100;  // unidades de escena del lado mayor
-
-function hypso(t: number, out: THREE.Color) {
-  const x = Math.min(1, Math.max(0, t));
-  for (let i = 1; i < HYPSO_STOPS.length; i++) {
-    if (x <= HYPSO_STOPS[i][0]) {
-      const [t0, c0] = HYPSO_STOPS[i - 1];
-      const [t1, c1] = HYPSO_STOPS[i];
-      return out.set(c0).lerp(new THREE.Color(c1), (x - t0) / (t1 - t0));
-    }
-  }
-  return out.set(HYPSO_STOPS[HYPSO_STOPS.length - 1][1]);
-}
+const NO_DATA = hexToRgb(NO_DATA_COLOR);
 
 interface Props {
   mesh: MeshData;
@@ -98,11 +79,10 @@ export default function Terrain3D({ mesh, exaggeration, layer, path }: Props) {
     controls.maxPolarAngle = Math.PI / 2 - 0.02;
     controls.minDistance = 20;
     controls.maxDistance = 400;
-    let queued = false;
+    let frame = 0;
     const render = () => {
-      if (queued) return;
-      queued = true;
-      requestAnimationFrame(() => { queued = false; renderer.render(scene, camera); });
+      if (frame) return;
+      frame = requestAnimationFrame(() => { frame = 0; renderer.render(scene, camera); });
     };
     controls.addEventListener("change", render);
     el.appendChild(renderer.domElement);
@@ -119,6 +99,7 @@ export default function Terrain3D({ mesh, exaggeration, layer, path }: Props) {
     resize();
     s.current = { renderer, scene, camera, controls, render };
     return () => {
+      if (frame) cancelAnimationFrame(frame);  // evita render() después de dispose()
       ro.disconnect();
       controls.removeEventListener("change", render);
       controls.dispose();
@@ -160,12 +141,17 @@ export default function Terrain3D({ mesh, exaggeration, layer, path }: Props) {
     const pos = geo.getAttribute("position") as THREE.BufferAttribute;
     const col = geo.getAttribute("color") as THREE.BufferAttribute;
     const range = Math.max(1, mesh.max - mesh.min);
-    const c = new THREE.Color();
     for (let i = 0; i < mesh.heights.length; i++) {
       pos.setY(i, (mesh.heights[i] - mesh.min) * vs);
-      if (layer === "elevation") hypso((mesh.heights[i] - mesh.min) / range, c);
-      else c.set((SLOPE_CLASSES.find((q) => mesh.slopes[i] < q.max) ?? SLOPE_CLASSES[3]).color);
-      col.setXYZ(i, c.r, c.g, c.b);
+      if (mesh.valid && !mesh.valid[i]) {
+        col.setXYZ(i, NO_DATA[0], NO_DATA[1], NO_DATA[2]);
+        continue;
+      }
+      const j = layer === "elevation"
+        ? Math.round(Math.min(1, Math.max(0, (mesh.heights[i] - mesh.min) / range)) * 255) * 3
+        : Math.min(90, Math.max(0, mesh.slopes[i])) * 3;
+      const lut = layer === "elevation" ? HYPSO_LUT : SLOPE_LUT;
+      col.setXYZ(i, lut[j], lut[j + 1], lut[j + 2]);
     }
     pos.needsUpdate = true;
     col.needsUpdate = true;

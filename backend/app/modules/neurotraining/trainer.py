@@ -10,7 +10,9 @@ Principios:
 from __future__ import annotations
 
 import hashlib
+import io
 import math
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -65,9 +67,15 @@ class Dataset:
     classes: list[str] | None
 
 
+_THOUSANDS = re.compile(r"^-?\d{1,3}(,\d{3})+$")
+
+
 def _to_float(v) -> float:
+    s = str(v).strip()
+    if _THOUSANDS.match(s):
+        return math.nan  # «1,234» es ambiguo (¿miles o decimal?): la fila se descarta en lugar de adivinar
     try:
-        f = float(str(v).strip().replace(",", "."))
+        f = float(s.replace(",", "."))
     except (TypeError, ValueError):
         return math.nan
     return f if math.isfinite(f) else math.nan
@@ -191,12 +199,18 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def load_artifact(path: Path, expected_sha256: str):
-    if not path.is_file():
+def load_artifact(path: Path, expected_sha256: str, root: Path):
+    """Carga un artefacto propio: la ruta debe estar dentro de `root` y los bytes se leen UNA vez,
+    se verifican y se cargan desde memoria (sin ventana entre verificar y cargar)."""
+    resolved, base = path.resolve(), root.resolve()
+    if base not in resolved.parents:
+        raise TrainingError("Ruta de artefacto fuera de la carpeta de datos.")
+    if not resolved.is_file():
         raise TrainingError("El artefacto del modelo no existe.")
-    if sha256_file(path) != expected_sha256:
+    data = resolved.read_bytes()
+    if hashlib.sha256(data).hexdigest() != expected_sha256:
         raise TrainingError("El artefacto del modelo fue modificado (SHA-256 distinto). No se carga por seguridad.")
-    return joblib.load(path)
+    return joblib.load(io.BytesIO(data))
 
 
 def predict_rows(model, raw: bytes, features: list[str], task: str, limit: int = 5000) -> tuple[list[dict], int]:

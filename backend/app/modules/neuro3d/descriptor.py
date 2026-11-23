@@ -24,6 +24,8 @@ DESCRIPTOR = ModuleDescriptor(
         "Las simulaciones son aproximaciones demostrativas: no son simulaciones geotécnicas ni hidráulicas.",
         "El DEM tiene ~100 m de resolución por defecto y errores verticales de varios metros; no sustituye un levantamiento.",
         "Aún no se dibujan capas de NDVI/cambios sobre el terreno ni se comparan escenarios.",
+        "La trayectoria D8 no rellena depresiones: un pozo de ruido del DEM puede detenerla; si se detiene junto "
+        "a celdas sin dato se informa «sin_dato».",
     ],
     keywords=["3d", "tridimensional", "simulacion", "simular", "escenario", "escenarios", "terreno", "relieve"],
 )

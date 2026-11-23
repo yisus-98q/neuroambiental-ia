@@ -164,21 +164,26 @@ def flow_path(dem: np.ndarray, bbox, lon: float, lat: float, max_steps: int = MA
         if row in (0, h - 1) or col in (0, w - 1):
             reason = "borde"
             break
-        best, best_g, best_d = None, 0.0, 0.0
+        best, best_g, best_d, missing = None, 0.0, 0.0, False
         z = dem[row, col]
         for dr in (-1, 0, 1):
             for dc in (-1, 0, 1):
                 if dr == dc == 0:
                     continue
                 zn = dem[row + dr, col + dc]
-                if not np.isfinite(zn) or zn >= z:
+                if not np.isfinite(zn):
+                    missing = True
+                    continue
+                if zn >= z:
                     continue
                 dist = math.hypot(dc * dx_row[row], dr * dy)
                 g = float(z - zn) / dist
                 if g > best_g:
                     best, best_g, best_d = (dr, dc), g, dist
         if best is None:
-            reason = "minimo_local"
+            # Sin dato vecino: no se sabe si es un mínimo real. Sin relleno de depresiones, un pozo de ruido
+            # del DEM también detiene el camino (limitación documentada).
+            reason = "sin_dato" if missing else "minimo_local"
             break
         row, col, length_m = row + best[0], col + best[1], length_m + best_d
         path.append(coord(row, col))

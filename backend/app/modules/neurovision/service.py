@@ -62,14 +62,19 @@ def _save(images: dict[str, "proc.np.ndarray | None"], record_id: str) -> tuple[
     rel_dir = Path("vision") / f"{now:%Y}" / f"{now:%m}"
     (settings.uploads_dir / rel_dir).mkdir(parents=True, exist_ok=True)
     rels, written = {}, []
-    for key, img in images.items():
-        if img is None:
-            continue
-        rel = rel_dir / (f"{record_id}.png" if key == "processed" else f"{record_id}_{key}.png")
-        dest = settings.uploads_dir / rel
-        dest.write_bytes(proc.encode_png(img))
-        written.append(dest)
-        rels[key] = rel.as_posix()
+    try:
+        for key, img in images.items():
+            if img is None:
+                continue
+            rel = rel_dir / (f"{record_id}.png" if key == "processed" else f"{record_id}_{key}.png")
+            dest = settings.uploads_dir / rel
+            dest.write_bytes(proc.encode_png(img))
+            written.append(dest)
+            rels[key] = rel.as_posix()
+    except Exception:
+        for p in written:  # no dejar PNG huérfanos si falla una escritura intermedia
+            p.unlink(missing_ok=True)
+        raise
     return rels, written
 
 

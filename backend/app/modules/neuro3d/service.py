@@ -99,6 +99,7 @@ def fetch_dem(db: Session, user: User, *, bbox: list[float], res: float) -> Data
     tiles = demlib.tiles_for_bbox(grid.bbox)
     with _exclusive():
         run = _start_run(db, "dem", {"bbox": list(grid.bbox), "res": res, "tiles": [t.name for t in tiles]})
+        tif: Path | None = None
         try:
             opener = remote.HttpsOpener()
             parts, used = [], []
@@ -145,6 +146,8 @@ def fetch_dem(db: Session, user: User, *, bbox: list[float], res: float) -> Data
             return record
         except Exception as exc:
             db.rollback()
+            if tif is not None:
+                tif.unlink(missing_ok=True)  # no dejar archivos huérfanos sin registro
             _finish_run(db, run, "error", {"error": str(exc)[:500]})
             raise
 
@@ -170,15 +173,19 @@ def build_mesh(db: Session, record_id: str, max_size: int) -> dict:
     if valid.size == 0:
         raise ProcessingError("El DEM no tiene datos válidos.")
     lo, hi = float(valid.min()), float(valid.max())
-    heights = np.where(np.isfinite(arr), arr, lo).round().astype("int16")
+    finite = np.isfinite(arr)
+    heights = np.where(finite, arr, lo).round().astype("int16")
     slope = demlib.slope_deg(arr, bbox)
     slopes = np.where(np.isfinite(slope), slope, 0).round().clip(0, 90).astype("uint8")
     h, w = arr.shape
+    # Máscara de validez: las celdas sin dato NO deben pintarse como terreno real (el visor las dibuja en gris).
+    valid_mask = finite.astype("uint8")
     mid = (bbox[1] + bbox[3]) / 2
     extent = [round((bbox[2] - bbox[0]) * demlib.M_PER_DEG_LON * math.cos(math.radians(mid)), 1),
               round((bbox[3] - bbox[1]) * demlib.M_PER_DEG_LAT, 1)]
     return {"id": rec.id, "width": w, "height": h, "bbox": list(bbox), "min": round(lo), "max": round(hi),
             "heights": heights.ravel().tolist(), "slopes": slopes.ravel().tolist(), "extent_m": extent,
+            "valid": valid_mask.ravel().tolist(), "valid_pct": round(100 * float(finite.mean()), 2),
             "slope_stats": rec.extra.get("slope_stats", {}), "attribution": ATTRIBUTION}
 
 
