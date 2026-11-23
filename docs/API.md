@@ -160,10 +160,12 @@ Detalles y reglas del entrenamiento: [ARQUITECTURA_NEURAL_TRAINING.md](ARQUITECT
 
 ## NEUROVOICE
 
+La voz (reconocimiento y síntesis) **no pasa por este servidor**: la hace el navegador (ver [ARQUITECTURA_NEUROVOICE.md](ARQUITECTURA_NEUROVOICE.md)). La API solo recibe texto.
+
 | Método | Ruta | Rol | Descripción |
 |---|---|---|---|
-| POST | `/api/neurovoice/chat` | lector | Envía un mensaje de texto; devuelve respuesta, intención y módulo. Crea o continúa una conversación propia. |
-| GET | `/api/neurovoice/capabilities` | público | Qué etapas de voz existen realmente: `asr`, `vad`, `tts` y `language_detection` son `null` (sin proveedor); intérprete de intención `reglas_palabras_clave (es)`; herramientas con `implemented` y `sensitive`; idiomas. |
+| POST | `/api/neurovoice/chat` | lector | Envía un mensaje de texto (escrito o transcrito por el navegador); devuelve respuesta, intención y módulo. Crea o continúa una conversación propia; con `conversation_id` usa la **memoria de sesión** (las preguntas de seguimiento como «explícame más» retoman el módulo anterior). Solo consulta y explica con datos reales; no ejecuta acciones. |
+| GET | `/api/neurovoice/capabilities` | público | Qué etapas de voz existen y dónde corren: `asr` (Web Speech API de Chrome) y `tts` (`speechSynthesis`) se ejecutan **en el navegador**, `vad` incluido en la Web Speech API, `language_detection` es `null`. La entrada `asr` incluye la nota de privacidad: **el audio se envía a servidores de Google y requiere consentimiento**. También devuelve el intérprete (`reglas_palabras_clave (es)`), las herramientas (`implemented`, `sensitive`) y los idiomas. |
 | GET | `/api/neurovoice/conversations` | lector | Conversaciones propias (últimas 50). |
 | GET | `/api/neurovoice/conversations/{id}` | lector | Mensajes de una conversación propia (404 si es de otro usuario). |
 

@@ -7,12 +7,12 @@
 | Componente | Cómo funciona realmente |
 |---|---|
 | NEUROCORE (intérprete) | Reglas: normaliza el texto y cuenta palabras clave por módulo. No aprende ni entiende contexto. |
-| NEUROVOICE | Usa ese intérprete y responde con conteos reales de la base y el contrato del módulo. Solo texto en español. Sin voz, sin modelo de lenguaje, sin otros idiomas. Puede no entender frases complejas. |
+| NEUROVOICE | Usa ese intérprete y responde con datos reales de la base. Texto en español y **voz en el navegador** (el reconocimiento es el de Chrome, un servicio de Google al que se envía el audio; la síntesis es local): el reconocimiento de voz **no es un modelo de este proyecto**. Sin modelo de lenguaje propio, sin otros idiomas, sin acciones por voz. Puede no entender frases complejas. Parcial 5/8. |
 | NEURAL TRAINING ENGINE (NEUROTRAINING) | Registra modelos (nacen `planificado`), **entrena** random forest, regresión logística y ridge con scikit-learn sobre CSV de NEURODATA, evalúa solo con datos de prueba separados (con línea base), guarda artefactos con SHA-256, permite validar (solo admin, con evidencia, nunca si se entrenó con datos simulados) y predice sobre CSV nuevos marcando la salida como experimental si no está validado. Parcial 7/10: sin redes neuronales, sin datasets de imágenes, sin reanudar entrenamientos. |
-| NEURO PREDICTION ENGINE | Registro de predicciones con incertidumbre (parcial 1/4). Sin separación de tipos de salida, sin probabilidades calibradas ni horizonte temporal. |
+| NEURO PREDICTION ENGINE | Registro de predicciones con incertidumbre y catálogo que separa los tipos de resultado por reglas (parcial 2/4). El catálogo no valida nada. Sin probabilidades calibradas ni horizonte temporal. |
 | Predicción ambiental (Fase 2) | **Cálculos determinísticos, no IA ni aprendizaje automático:** NDVI = (NIR - Rojo) / (NIR + Rojo) con máscara de nubes (SCL) y detección de cambios por umbral sobre la diferencia de NDVI. No hay parámetros aprendidos de datos, ni entrenamiento, ni métricas de exactitud. Los cambios detectados quedan «sin validar» y **no confirman** deforestación ni daño. |
 | NEUROVISION | Procesamiento **determinista** con OpenCV (Canny, CLAHE, Otsu, ExG, comparación de fotos ORB+RANSAC): no es aprendizaje ni un modelo; `confidence = null`. Parcial 3/6; sin clasificación ni detección ([DOCUMENTACION_OPENCV.md](DOCUMENTACION_OPENCV.md)). |
-| NEURO 3D LAB | Terreno desde DEM real y trayectoria D8 de máxima pendiente: cálculos geométricos, no IA ni simulación física. Parcial 3/5 ([ARQUITECTURA_NEURO_3D.md](ARQUITECTURA_NEURO_3D.md)). |
+| NEURO 3D LAB | Terreno desde DEM real, trayectoria D8, susceptibilidad heurística e inundación de lámina local: cálculos con reglas fijas, no IA ni simulación física validada. Parcial 5/6 ([ARQUITECTURA_NEURO_3D.md](ARQUITECTURA_NEURO_3D.md)). |
 | Catástrofes, minería, geología, biodiversidad, terreno, industrial | Sin análisis ni modelos entrenados: solo el contrato del módulo. |
 | Alertas | Las crea una persona. No hay alertas automáticas. |
 

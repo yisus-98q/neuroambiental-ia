@@ -24,9 +24,9 @@ El orden impide dependencias circulares: un módulo solo puede depender de los y
 | 10 | `neurotraining` | NEURAL TRAINING ENGINE | núcleo | 7/10 | parcial | neurodata |
 | 11 | `neurovision` | NEUROVISION | especializado | 3/6 | parcial | neurodata, neurotraining |
 | 12 | `neuroindustrial` | NEUROINDUSTRIAL | especializado | 0/3 | en desarrollo | neurodata, neurovision |
-| 13 | `neuro3d` | NEURO 3D SIMULATION ENGINE | simulación | 5/5 | **operativo** (capacidades demostrativas por definición: no calibradas ni validadas) | neurodata, terrain |
+| 13 | `neuro3d` | NEURO 3D SIMULATION ENGINE | simulación | 5/6 | parcial (nueva capacidad pendiente `capas_ndvi_cambios`: no se dibujan NDVI/cambios sobre el terreno; los escenarios son demostrativos, no calibrados ni validados) | neurodata, terrain |
 | 14 | `neuroprediction` | NEURO PREDICTION ENGINE | núcleo | 2/4 | parcial (catálogo de tipos implementado; sin probabilidad calibrada ni horizonte temporal) | neurodata, neurotraining |
-| 15 | `neurovoice` | NEUROVOICE IA | núcleo | 3/7 | parcial | neurocore |
+| 15 | `neurovoice` | NEUROVOICE IA | núcleo | 5/8 | parcial (texto y voz en el navegador; sin modelo de lenguaje, otros idiomas ni acciones por voz) | neurocore |
 
 Los conteos y estados salen de los descriptores del código en el momento de escribir este documento; la fuente de verdad es `GET /api/neurocore/modules`. NEUROCORE mismo no es un módulo del registro.
 
@@ -43,6 +43,9 @@ Nota: `mining` (NEUROMINING) ya no incluye geología: pasó a `neurogeo`. `neuro
 | Llamadas entre módulos orquestadas por NEUROCORE | **No** |
 | Cola/eventos entre módulos | **No** |
 | Alertas automáticas desde modelos | **No** (capacidad pendiente) |
+| NEUROVOICE → datos de otros módulos | Sí, **solo lectura**: consulta alertas, datos, terreno y escenarios, NDVI, modelos y catálogo; no ejecuta acciones |
+| Arranque con carga diferida de librerías pesadas | Sí (`core/lazy.py`: scikit-learn, OpenCV, scipy, rasterio se importan al primer uso) |
+| Prueba de integración entre módulos | Sí (`test_integration.py`): flujo NEURODATA → NEUROCORE → NEUROVOICE → catálogo y mapa; todas las rutas no públicas exigen sesión; el lector no puede escribir salvo `POST /api/auth/logout`, `/api/neurovoice/chat` y `/api/neurocore/interpret` |
 
 ## Interfaz (menú agrupado)
 
@@ -52,7 +55,7 @@ Los módulos «en desarrollo» muestran una ficha honesta (capacidades pendiente
 
 ## Intérprete de solicitudes
 
-Reglas por palabras clave, sin modelo de lenguaje (ver [ARQUITECTURA_NEUROVOICE.md](ARQUITECTURA_NEUROVOICE.md)). Sirve para sugerir el módulo adecuado; no ejecuta acciones.
+Reglas por palabras clave, sin modelo de lenguaje (ver [ARQUITECTURA_NEUROVOICE.md](ARQUITECTURA_NEUROVOICE.md)). Sirve para sugerir el módulo adecuado y, en NEUROVOICE, para responder con datos reales; la entrada puede venir de texto o de voz transcrita en el navegador. No ejecuta acciones.
 
 ## Cómo integrar un módulo nuevo
 
@@ -64,4 +67,4 @@ Reglas por palabras clave, sin modelo de lenguaje (ver [ARQUITECTURA_NEUROVOICE.
 
 ## Pendiente
 
-Orquestación real de flujos (p. ej. imagen → NEUROVISION → NEUROTRAINING → NEUROALERTS), eventos entre módulos, herramientas de NEUROVOICE que invoquen a NEUROCORE, alertas automáticas, informes multimódulo. Hoja de ruta: [ROADMAP.md](../ROADMAP.md).
+Orquestación real de flujos (p. ej. imagen → NEUROVISION → NEUROTRAINING → NEUROALERTS), eventos entre módulos, herramientas sensibles de NEUROVOICE (ejecutar análisis o simulaciones por voz con confirmación), capas de NDVI/cambios sobre el terreno 3D, alertas automáticas, informes multimódulo. Hoja de ruta: [ROADMAP.md](../ROADMAP.md).

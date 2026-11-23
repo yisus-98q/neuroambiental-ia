@@ -10,7 +10,7 @@ Regla del proyecto: **no afirmar como operativo nada que no esté implementado y
 python scripts\comprobar.py
 ```
 
-Desde la carpeta del proyecto. Ejecuta pytest (**105 pruebas de backend**) y `npm run build` (tipos de TypeScript + compilación de Vite). Archivos de prueba en `tests/backend/`:
+Desde la carpeta del proyecto. Ejecuta pytest (**113 pruebas de backend**) y `npm run build` (tipos de TypeScript + compilación de Vite). Archivos de prueba en `tests/backend/`:
 
 | Archivo | Cubre |
 |---|---|
@@ -24,8 +24,10 @@ Desde la carpeta del proyecto. Ejecuta pytest (**105 pruebas de backend**) y `np
 | `test_neuro3d.py` (8) | DEM, pendiente, malla y trayectoria D8 con teselas locales (sin red) |
 | `test_scenarios.py` | Susceptibilidad, inundación de lámina local, comparador y sus validaciones (DEM sintético, sin red) |
 | `test_neuroprediction.py` | Catálogo de tipos: reglas disjuntas, un elemento simulado nunca es observación/predicción/alerta verificada |
+| `test_neurovoice.py` | Respuestas con cifras reales (predicciones, modelos), escenarios siempre rotulados como simulación, memoria de sesión, `GET /capabilities` honesto |
+| `test_integration.py` | **Todas las rutas `/api/...` no públicas exigen sesión** (lista pública explícita); el lector no puede escribir salvo `POST /api/auth/logout`, `/api/neurovoice/chat` y `/api/neurocore/interpret`; el servidor arranca sin importar las librerías pesadas; flujo NEURODATA → NEUROCORE → NEUROVOICE → catálogo y mapa |
 
-Limitaciones: no hay pruebas automáticas del frontend; **el panel NEUROVISION y el visor 3D no se probaron en un navegador** (el Chrome del equipo dibuja por software y no permite capturas); las pruebas ambientales no usan la red ni escenas reales (la verificación con Sentinel-2 real fue manual); las pruebas de entrenamiento usan datos sintéticos.
+Limitaciones: no hay pruebas automáticas del frontend; **el panel NEUROVISION, el visor 3D y el micrófono de NEUROVOICE no se probaron** (el Chrome del equipo dibuja por software y no permite capturas; el micrófono exige hablar y enviar audio a Google) (el Chrome del equipo dibuja por software y no permite capturas); las pruebas ambientales no usan la red ni escenas reales (la verificación con Sentinel-2 real fue manual); las pruebas de entrenamiento usan datos sintéticos.
 
 ## 2. Validación de resultados científicos (política)
 
@@ -61,7 +63,8 @@ No hay modelos de visión entrenados. NEUROVISION solo hace procesamiento determ
 | Mapa con capas raster en Chrome sin driver de GPU | Lento; no hay medición formal |
 | DEM 3D real de Huaraz (malla 334x278, 1 tesela) | 74,8 s y 10,2 MB en 39 peticiones; sin medición de memoria |
 | Visor 3D y panel NEUROVISION en navegador | **Sin medir** (no se probaron en navegador) |
-| Voz | **Sin medir (no existe)** |
+| Servidor en reposo con carga diferida (Fase 8) | ~77 MB (working set), ~66 MB privada, arranque ~5 s (antes: ~212 MB, ~371 MB privada, ~19 s) |
+| Voz (NEUROVOICE) en Chrome | Verificado: la página carga, el reconocimiento existe, «Hablar» queda deshabilitado hasta el consentimiento y no hay errores de consola. **Micrófono sin probar**; precisión de reconocimiento, latencia y calidad de las voces sin medir |
 
 ## 4. Criterios de aceptación por fase
 

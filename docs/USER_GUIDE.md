@@ -67,7 +67,9 @@ Aquí entran los datos.
 Muestra los modelos de IA registrados. **No hay ningún modelo entrenado.** Un analista puede «Registrar como planificado» un modelo previsto; siempre queda «planificado» y no puede marcarse como validado. No entrena ni evalúa. **Parcial.**
 
 ## 13. NEUROVOICE IA
-Chat **escrito en español**. Pruebe: «estado de los módulos», «¿cuántas alertas hay?», «¿cuántos datos hay?», «riesgo de huaycos». Entiende palabras clave, no frases complejas, y responde con cifras reales y con lo que está o no implementado. Guarda su historial (solo usted lo ve). **Sin voz ni otros idiomas** (pendiente). **Parcial.**
+Asistente en **español, por escrito y por voz**. Pruebe: «estado de los módulos», «¿cuántas alertas hay?», «explícame la simulación», «¿qué predicciones hay?», «¿cómo está el NDVI?». Entiende palabras clave, no frases complejas, y responde con cifras reales; las simulaciones las presenta siempre como simulaciones y lo no validado como experimental. Con «explícame más» continúa con el tema anterior. Guarda su historial (solo usted lo ve). Solo **consulta y explica**: no ejecuta análisis ni simulaciones por voz.
+
+**Voz (solo Chrome o Edge):** para hablar, primero marque la casilla de consentimiento y luego pulse «Hablar». **Importante: el audio se envía a servidores de Google** para transcribirse; no dicte información sensible. Mientras habla verá el texto provisional. Las respuestas pueden leerse en voz alta (voces de su navegador, localmente) y puede interrumpirlas. Sin Internet no hay reconocimiento de voz; siempre puede escribir. El micrófono no se ha probado a fondo: la transcripción puede equivocarse. **Quechua y aimara no están soportados.** **Parcial.**
 
 ## 14. Informes
 Lista de informes generados (hoy, solo informes de alertas creados desde la sección Alertas). Haga clic para leerlos; están en formato Markdown (texto). No hay exportación a PDF.

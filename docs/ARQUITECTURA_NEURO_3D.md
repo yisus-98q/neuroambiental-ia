@@ -1,6 +1,6 @@
 # NEURO 3D SIMULATION ENGINE (NEURO 3D LAB)
 
-**Estado: el descriptor declara 5 de 5 capacidades implementadas («operativo»), pero hay que leerlo con cuidado: las capacidades declaradas son demostrativas por definición.** Funcionan el terreno 3D desde un DEM real, el visor con Three.js, la trayectoria D8, una capa «Escenario» (susceptibilidad heurística e inundación de lámina local) y un comparador de 2 a 4 configuraciones. **«Operativo» no significa validado ni predictivo**: ningún escenario está calibrado ni validado, y **no se dibujan capas de cambios de NDVI** sobre el terreno (limitación declarada en el descriptor; la capacidad `capas_3d` se redefinió como la capa de «Escenario»). Detalle de los escenarios en [DOCUMENTACION_SIMULACIONES.md](DOCUMENTACION_SIMULACIONES.md).
+**Estado: parcial, 5 de 6 capacidades.** Quedó pendiente `capas_ndvi_cambios` (dibujar los rásters NDVI y de cambios de la Fase 2 sobre el terreno), que se separó de `capas_3d` para no declarar como hecho lo que no lo está. Además, las capacidades implementadas son demostrativas por definición. Funcionan el terreno 3D desde un DEM real, el visor con Three.js, la trayectoria D8, una capa «Escenario» (susceptibilidad heurística e inundación de lámina local) y un comparador de 2 a 4 configuraciones. **Ningún escenario está calibrado ni validado ni es predictivo**, y **no se dibujan NDVI ni cambios de NDVI** sobre el terreno (`capas_ndvi_cambios` pendiente; la capacidad `capas_3d` es la capa de «Escenario»). Detalle de los escenarios en [DOCUMENTACION_SIMULACIONES.md](DOCUMENTACION_SIMULACIONES.md).
 
 Código: `backend/app/modules/neuro3d/{dem.py, service.py, scenarios.py, descriptor.py}`, `backend/app/api/neuro3d.py`, `backend/app/api/simulation.py`, `frontend/src/maps/Terrain3D.tsx`, `frontend/src/pages/Neuro3DLab.tsx`, pruebas `tests/backend/test_neuro3d.py` (8) y `test_scenarios.py`. Three.js 0.187 (autorizado por el usuario).
 
@@ -15,6 +15,7 @@ Código: `backend/app/modules/neuro3d/{dem.py, service.py, scenarios.py, descrip
 | `escenarios_simplificados` | Implementada | Trayectoria de **máxima pendiente (D8)** desde un punto, siempre rotulada: «Escenario demostrativo simplificado… no es una simulación geotécnica ni predice un evento». Devuelve `end_reason`: `minimo_local` o **`sin_dato`** si se detiene junto a celdas sin dato. **No hay relleno de depresiones** (limitación): la trayectoria se detiene en el primer mínimo local |
 | `capas_3d` | Implementada (redefinida) | Capa «Escenario» sobre el terreno: clases de **susceptibilidad heurística** (NDVI opcional) y profundidad de **inundación demostrativa** de lámina local, con el rótulo permanente «SIMULACIÓN — escenario hipotético, no es una predicción». **No** dibuja NDVI ni cambios de NDVI |
 | `comparador_escenarios` | Implementada | 2 a 4 configuraciones lado a lado más una fila «Estado actual (observado)»; cálculo en memoria, no guarda (`POST /api/simulation/compare`) |
+| `capas_ndvi_cambios` | **Pendiente** | Dibujar los rásters NDVI y de cambios (Fase 2) sobre el terreno 3D |
 
 ## Datos y atribución
 

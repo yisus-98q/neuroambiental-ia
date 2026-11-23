@@ -12,11 +12,11 @@ Plataforma local de inteligencia ambiental territorial para Perú. La **Fase 1**
 | Alertas y Prevención (alertas experimentales, eventos, seguimiento, informe Markdown) | Parcial (5/6): falta generar alertas automáticamente desde modelos |
 | NEURAL TRAINING ENGINE / NEUROTRAINING (registro de modelos, entrenamiento ligero con scikit-learn sobre CSV de NEURODATA, métricas solo sobre datos de prueba, artefactos con SHA-256, validación por administrador, predicción experimental) | Parcial (7/10): faltan redes neuronales (PyTorch), datasets de imágenes y reanudar entrenamientos |
 | NEURO PREDICTION ENGINE (registro de predicciones con incertidumbre; catálogo que separa observación real, dato histórico, procesamiento, estimación de modelo, simulación, predicción validada y alertas verificadas/experimentales) | Parcial (2/4): sin probabilidad calibrada ni horizonte temporal; el catálogo clasifica por reglas y no valida nada ([detalle](docs/DOCUMENTACION_SIMULACIONES.md)) |
-| NEUROVOICE IA (chat de texto en español por palabras clave, con conteos reales) | Parcial (3/7): sin voz, sin modelo de lenguaje, sin otros idiomas |
+| NEUROVOICE IA (chat en español por palabras clave con datos reales y memoria de sesión; **voz en el navegador**: reconocimiento con Web Speech API de Chrome/Edge y síntesis con las voces del navegador) | Parcial (5/8): **el audio se envía a Google** (solo tras consentimiento explícito); el micrófono no se probó; sin modelo de lenguaje, sin quechua/aimara ni otros idiomas, sin acciones por voz ([detalle](docs/ARQUITECTURA_NEUROVOICE.md)) |
 | Construcción (solo carga de documentos vía NEURODATA) | Parcial (1/6): no analiza proyectos |
 | Predicción ambiental (Sentinel-2: búsqueda de escenas, NDVI con máscara de nubes, comparación de dos fechas, detección de cambios, capas en el mapa) | Parcial (5/9): faltan series temporales con muchas fechas, clasificación de cobertura, escenarios futuros y Sentinel-1 |
 | NEUROVISION (OpenCV: Canny, CLAHE, Otsu + contornos, índice de verdor ExG, características; comparación de dos fotos con ORB + RANSAC) | Parcial (3/6): procesamiento **determinista**, sin confianza estadística; **sin clasificación ni detección de grietas** (requieren un modelo entrenado). El panel no se probó en navegador ([detalle](docs/DOCUMENTACION_OPENCV.md)) |
-| NEURO 3D LAB (terreno 3D desde Copernicus DEM GLO-30, visor Three.js, trayectoria D8, susceptibilidad heurística, inundación demostrativa de lámina local y comparador de 2 a 4 escenarios) | Operativo (5/5 declaradas), pero **todo es simulación demostrativa**: los escenarios no están calibrados ni validados, no predicen nada y no son simulaciones geotécnicas ni hidráulicas. Sin capas de cambios de NDVI. El visor y los paneles no se probaron en navegador ([3D](docs/ARQUITECTURA_NEURO_3D.md), [escenarios](docs/DOCUMENTACION_SIMULACIONES.md)) |
+| NEURO 3D LAB (terreno 3D desde Copernicus DEM GLO-30, visor Three.js, trayectoria D8, susceptibilidad heurística, inundación demostrativa de lámina local y comparador de 2 a 4 escenarios) | Parcial (5/6), y **todo es simulación demostrativa**: los escenarios no están calibrados ni validados, no predicen nada y no son simulaciones geotécnicas ni hidráulicas. Pendiente `capas_ndvi_cambios`: no se dibujan NDVI/cambios sobre el terreno. El visor y los paneles no se probaron en navegador ([3D](docs/ARQUITECTURA_NEURO_3D.md), [escenarios](docs/DOCUMENTACION_SIMULACIONES.md)) |
 | NEUROMINING, NEUROGEO, NEUROTERRAIN, NEURODISASTER, NEUROINDUSTRIAL, Fauna y flora | En desarrollo (0 capacidades implementadas; solo existe el contrato del módulo) |
 | PyTorch (redes neuronales), voz (reconocimiento y síntesis) | **No instalados / no implementados**; requieren autorización |
 | Modelos de IA | El mecanismo para entrenar y validar modelos ligeros funciona, pero **no hay ningún modelo entrenado con datos reales ni validado**. El NDVI y la detección de cambios son cálculos determinísticos, no aprendizaje automático |
@@ -90,7 +90,7 @@ Abre dos ventanas: backend en el puerto 8000 y Vite (recarga en caliente) en <ht
 python scripts\comprobar.py
 ```
 
-Ejecútelo desde la carpeta del proyecto. Corre las pruebas del backend (pytest, 105 pruebas), la verificación de tipos de TypeScript y la compilación del frontend (`npm run build`). Es un script de Python y no un `.bat` porque el antivirus del equipo borró tres veces el `.bat` de verificación (ver [ARCHITECTURE.md](ARCHITECTURE.md)).
+Ejecútelo desde la carpeta del proyecto. Corre las pruebas del backend (pytest, 113 pruebas), la verificación de tipos de TypeScript y la compilación del frontend (`npm run build`). Es un script de Python y no un `.bat` porque el antivirus del equipo borró tres veces el `.bat` de verificación (ver [ARCHITECTURE.md](ARCHITECTURE.md)).
 
 ## Configuración
 
@@ -102,15 +102,17 @@ Mediciones reales en Windows 10, 4 GB de RAM, Intel i5-2410M:
 
 | Concepto | Valor |
 |---|---|
-| Servidor en marcha (python + uvicorn, 1 worker, API + frontend compilado) | ~91 MB de memoria (working set), ~76 MB de memoria privada |
+| Servidor en reposo, con carga diferida de librerías pesadas (Fase 8; `backend/app/core/lazy.py`) | **~77 MB** de memoria (working set), **~66 MB** de memoria privada; arranque ~5 s |
+| Mismo servidor sin carga diferida (importando scikit-learn, OpenCV, scipy y rasterio al arrancar) | ~212 MB (working set), ~371 MB privada; arranque ~19 s |
+| Servidor en la Fase 1 (antes de numpy/rasterio/scikit-learn/OpenCV) | ~91 MB (working set), ~76 MB privada |
 | Disco: `backend\.deps` | ~462 MB (eran 47 MB en la Fase 1; rasterio incluye GDAL, scikit-learn trae scipy y se añadió OpenCV; eran 347 MB antes de OpenCV) |
 | Disco: `frontend\node_modules` | 114 MB |
 | Disco: código + datos de muestra | ~2 MB |
 | Frontend compilado: JS principal | 273 KB (81 KB gzip) |
 | Frontend compilado: MapLibre (chunk separado) | 1,09 MB (299 KB gzip); solo se descarga al abrir un mapa |
-| Pruebas de backend | pasan en ~10 s (medido con 30-32 pruebas; hoy son 105) |
+| Pruebas de backend | pasan en ~10 s (medido con 30-32 pruebas; hoy son 113) |
 
-Son mediciones puntuales en un solo equipo, no garantías. El navegador consume memoria aparte.
+Son mediciones puntuales en un solo equipo, no garantías. El navegador consume memoria aparte. Con la carga diferida, cada librería pesada se importa la **primera vez** que se usa su servicio (NDVI, entrenamiento, NEUROVISION, DEM…), así que la memoria sube en ese momento y no vuelve necesariamente al valor de reposo; las cifras de pico de abajo siguen siendo válidas para esos análisis.
 
 ### Análisis Sentinel-2 (Fase 2), mediciones reales
 
@@ -153,7 +155,7 @@ Arquitectura de integración avanzada (la mayor parte es diseño pendiente; cada
 - [docs/DOCUMENTACION_DATASETS.md](docs/DOCUMENTACION_DATASETS.md): datasets.
 - [docs/ARQUITECTURA_NEURO_3D.md](docs/ARQUITECTURA_NEURO_3D.md): simulación 3D (no implementado).
 - [docs/DOCUMENTACION_SIMULACIONES.md](docs/DOCUMENTACION_SIMULACIONES.md): simulaciones y tipos de información.
-- [docs/ARQUITECTURA_NEUROVOICE.md](docs/ARQUITECTURA_NEUROVOICE.md): voz (solo contratos).
+- [docs/ARQUITECTURA_NEUROVOICE.md](docs/ARQUITECTURA_NEUROVOICE.md): texto y voz en el navegador (el audio va a Google).
 - [docs/CATALOGO_MODELOS_IA.md](docs/CATALOGO_MODELOS_IA.md): catálogo de modelos.
 - [docs/INTEGRACION_NEUROCORE.md](docs/INTEGRACION_NEUROCORE.md): registro de los 15 módulos.
 - [docs/PLAN_DE_VALIDACION.md](docs/PLAN_DE_VALIDACION.md): verificación y validación.

@@ -10,9 +10,10 @@ Para Windows 10/11. El resumen corto está en el [README](../README.md); aquí v
 | Python | 3.12 o superior (probado con 3.14.7), accesible como `python` en el PATH |
 | Node.js y npm | Node 24 y npm |
 | `uv` | Opcional; si existe, `instalar.bat` lo usa para instalar dependencias de Python |
-| RAM | Pensado para 4 GB. El servidor ocupa ~100 MB en reposo; un NDVI llega a ~170 MB y un entrenamiento de 50 000 filas a ~250 MB (mediciones del equipo de pruebas) |
+| RAM | Pensado para 4 GB. Con carga diferida de librerías el servidor ocupa **~77 MB** en reposo (antes ~212 MB) y arranca en ~5 s (antes ~19 s); al usar un análisis pesado la memoria sube (un NDVI llega a ~170 MB y un entrenamiento de 50 000 filas a ~250 MB). Mediciones del equipo de pruebas |
 | Disco | `backend\.deps` ~462 MB (numpy, rasterio con GDAL, scikit-learn, scipy, opencv…) + `frontend\node_modules` ~114 MB + datos. Deje margen para rásters y modelos en `data\uploads` |
-| Internet | Para instalar dependencias y para el análisis Sentinel-2. Después, el resto funciona sin conexión |
+| Internet | Para instalar dependencias, para el análisis Sentinel-2 y el DEM, y para el **reconocimiento de voz** (Chrome lo procesa en servidores de Google). El resto funciona sin conexión |
+| Navegador | Chrome o Edge para la voz (el resto funciona en cualquier navegador moderno); micrófono solo en `localhost`/`127.0.0.1` |
 | Cuentas/claves | Ninguna |
 
 ## 2. Instalación
