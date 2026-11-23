@@ -7,7 +7,8 @@ import { LoginPage } from "./pages/LoginPage";
 import { MapPage } from "./pages/MapPage";
 import { ModulePage } from "./pages/ModulePage";
 import { NeurodataPage } from "./pages/NeurodataPage";
-import { NeurocorePage, NeurovoicePage, ReportsPage, SettingsPage } from "./pages/SystemPages";
+import { NeurocorePage, ReportsPage, SettingsPage } from "./pages/SystemPages";
+import { VoicePage } from "./pages/VoicePage";
 import { TrainingCenter } from "./pages/TrainingCenter";
 import { api, session, setUnauthorizedHandler } from "./services/api";
 import { go, useHashRoute } from "./services/router";
@@ -22,7 +23,7 @@ function Page({ route }: { route: string }) {
     case "/neurocore": return <NeurocorePage />;
     case "/neurodata": return <NeurodataPage />;
     case "/neurotraining": return <TrainingCenter />;
-    case "/neurovoice": return <NeurovoicePage />;
+    case "/neurovoice": return <VoicePage />;
     case "/informes": return <ReportsPage />;
     case "/configuracion": return <SettingsPage />;
     default: return <div className="card"><h1>Página no encontrada</h1><a href="#/inicio">Volver al inicio</a></div>;

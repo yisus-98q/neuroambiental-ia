@@ -3,8 +3,9 @@
 Cada etapa es una interfaz: se puede sustituir el proveedor (p. ej. Vosk, Whisper local, Piper,
 el sintetizador del navegador) sin tocar la lógica del asistente ni NEUROCORE.
 
-Estado actual: solo existe la ruta de TEXTO en español (intención por reglas). Las etapas de audio
-están declaradas aquí pero NO implementadas; `available_providers()` lo informa con honestidad.
+Estado actual: texto en español (intención por reglas) y voz en el navegador (Chrome Web Speech para
+reconocer —el audio va a Google— y speechSynthesis para hablar). Sin detección de idioma.
+`available_providers()` lo informa con honestidad.
 """
 from __future__ import annotations
 
@@ -60,7 +61,10 @@ TOOLS: dict[str, dict] = {
     "consultar_estado_modulos": {"implemented": True, "sensitive": False},
     "consultar_alertas": {"implemented": True, "sensitive": False},
     "consultar_datos": {"implemented": True, "sensitive": False},
-    "consultar_modelos": {"implemented": False, "sensitive": False},
+    "consultar_modelos": {"implemented": True, "sensitive": False},
+    "explicar_simulaciones": {"implemented": True, "sensitive": False},
+    "consultar_catalogo_predicciones": {"implemented": True, "sensitive": False},
+    "consultar_ndvi": {"implemented": True, "sensitive": False},
     "activar_capa_mapa": {"implemented": False, "sensitive": False},
     "analizar_imagen": {"implemented": False, "sensitive": False},
     "ejecutar_analisis": {"implemented": False, "sensitive": True},
@@ -69,8 +73,8 @@ TOOLS: dict[str, dict] = {
 }
 
 LANGUAGES = {
-    "es": {"text": True, "voice": False, "note": "Español escrito: implementado (reglas)."},
-    "en": {"text": False, "voice": False, "note": "Pendiente."},
+    "es": {"text": True, "voice": True, "note": "Español: texto (reglas) y voz en Chrome (reconocimiento Web Speech, el audio se procesa en servidores de Google; síntesis con voces del navegador)."},
+    "en": {"text": False, "voice": False, "note": "Pendiente: el intérprete solo entiende español."},
     "pt": {"text": False, "voice": False, "note": "Pendiente."},
     "qu": {"text": False, "voice": False,
            "note": "Quechua: requiere evaluar variantes regionales con hablantes competentes y datos apropiados."},
@@ -82,7 +86,12 @@ LANGUAGES = {
 def available_providers() -> dict:
     """Informe honesto de qué etapas tienen proveedor real hoy."""
     return {
-        "asr": None, "vad": None, "tts": None, "language_detection": None,
+        # La voz se ejecuta en el NAVEGADOR (frontend), no en este servidor:
+        "asr": {"provider": "Web Speech API (Chrome)", "where": "navegador",
+                "privacy": "El audio se envía a servidores de Google para transcribirse; requiere consentimiento."},
+        "vad": {"provider": "incluido en Web Speech API", "where": "navegador"},
+        "tts": {"provider": "speechSynthesis (voces del sistema/navegador)", "where": "navegador (local)"},
+        "language_detection": None,
         "intent": "reglas_palabras_clave (es)",
         "tools": TOOLS, "languages": LANGUAGES,
     }

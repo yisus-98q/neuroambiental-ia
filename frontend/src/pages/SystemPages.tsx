@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { StatusBadge } from "../components/Badges";
-import { ErrorText, Loading, Notice } from "../components/Notice";
+import { ErrorText, Loading } from "../components/Notice";
 import { canWrite, fmtDate, post, session } from "../services/api";
 import type { ModuleInfo, ReportItem, User } from "../services/types";
 import { useApi } from "../services/useApi";
@@ -61,49 +61,6 @@ export function NeurocorePage() {
             </ul>
           )}
         </div>
-      </div>
-    </div>
-  );
-}
-
-interface Msg { role: "usuario" | "asistente"; content: string }
-
-export function NeurovoicePage() {
-  const mod = useApi<ModuleInfo>("/api/neurocore/modules/neurovoice");
-  const [msgs, setMsgs] = useState<Msg[]>([]);
-  const [text, setText] = useState("");
-  const [conv, setConv] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function send(e: FormEvent) {
-    e.preventDefault();
-    const message = text.trim();
-    if (!message) return;
-    setBusy(true); setError(null); setText("");
-    setMsgs((m) => [...m, { role: "usuario", content: message }]);
-    try {
-      const r = await post<{ conversation_id: string; reply: string }>("/api/neurovoice/chat", { message, conversation_id: conv });
-      setConv(r.conversation_id);
-      setMsgs((m) => [...m, { role: "asistente", content: r.reply }]);
-    } catch (err) { setError((err as Error).message); } finally { setBusy(false); }
-  }
-
-  return (
-    <div className="stack">
-      <div className="row" style={{ justifyContent: "space-between" }}><h1>NEUROVOICE IA</h1>{mod.data && <StatusBadge status={mod.data.status} />}</div>
-      <Notice kind="dev">Fase 1: solo texto en español. Interpreta palabras clave (no usa un modelo de lenguaje) y responde con datos reales del sistema. Voz y otros idiomas: pendientes.</Notice>
-      <div className="card stack">
-        <div className="chat" aria-live="polite">
-          {msgs.length === 0 && <p className="muted small">Pruebe: «estado de los módulos», «¿cuántas alertas hay?», «¿cuántos datos hay?», «riesgo de huaycos».</p>}
-          {msgs.map((m, i) => <div key={i} className={`msg ${m.role === "usuario" ? "msg-user" : "msg-bot"}`}>{m.content}</div>)}
-        </div>
-        <form onSubmit={send} className="row">
-          <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Escriba su consulta en español…" style={{ flex: 1 }} maxLength={2000} aria-label="Mensaje" />
-          <button className="btn" disabled={busy}>Enviar</button>
-          {conv && <button type="button" className="btn btn-ghost" onClick={() => { setConv(null); setMsgs([]); }}>Nueva conversación</button>}
-        </form>
-        <ErrorText error={error} />
       </div>
     </div>
   );

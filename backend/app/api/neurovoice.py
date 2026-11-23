@@ -31,7 +31,10 @@ def chat(body: ChatIn, user: User = Depends(get_current_user), db: Session = Dep
         conv = Conversation(user_id=user.id, title=body.message[:80])
         db.add(conv)
         db.flush()
-    reply, it = build_reply(db, body.message, registry)
+    # Memoria de sesión: el módulo de la última respuesta permite preguntas de seguimiento («explícame más»).
+    last = next((m.meta.get("module_key") for m in reversed(conv.messages or [])
+                 if m.role == "asistente" and m.meta), None) if body.conversation_id else None
+    reply, it = build_reply(db, body.message, registry, last_module=last)
     db.add(ConversationMessage(conversation_id=conv.id, role="usuario", content=body.message))
     db.add(ConversationMessage(conversation_id=conv.id, role="asistente", content=reply,
                                meta={"intent": it.intent, "module_key": it.module_key,
