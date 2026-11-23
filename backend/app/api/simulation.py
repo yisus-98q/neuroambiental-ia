@@ -11,8 +11,13 @@ from sqlalchemy.orm import Session
 from app.core.security import get_current_user, require_role
 from app.database.session import get_db
 from app.models import DataRecord, User
-from app.modules.neuro3d import scenarios, service
-from app.modules.neuro3d.dem import DemError
+from app.core.lazy import lazy
+
+# Carga diferida: scipy/rasterio solo se importan al calcular escenarios.
+scenarios = lazy("app.modules.neuro3d.scenarios")
+service = lazy("app.modules.neuro3d.service")
+dem = lazy("app.modules.neuro3d.dem")
+RISE_MIN, RISE_MAX = 0.5, 50.0  # iguales a scenarios.RISE_MIN/MAX (se vuelven a validar)
 
 router = APIRouter(prefix="/api/simulation", tags=["Simulación (escenarios)"])
 
@@ -28,7 +33,7 @@ class SuscParams(BaseModel):
         try:
             scenarios.check_susceptibility_params(self.w_pendiente, self.w_vegetacion, self.umbral_medio,
                                                   self.umbral_alto)
-        except DemError as exc:
+        except dem.DemError as exc:
             raise ValueError(str(exc)) from exc
         return self
 
@@ -36,7 +41,7 @@ class SuscParams(BaseModel):
 class FloodParams(BaseModel):
     lon: float = Field(ge=-180, le=180)
     lat: float = Field(ge=-90, le=90)
-    rise_m: float = Field(ge=scenarios.RISE_MIN, le=scenarios.RISE_MAX)
+    rise_m: float = Field(ge=RISE_MIN, le=RISE_MAX)
 
 
 class SuscIn(SuscParams):
@@ -75,7 +80,7 @@ def _handle(fn):
         return fn()
     except service.Busy as exc:
         raise HTTPException(409, str(exc)) from exc
-    except (DemError, service.ProcessingError) as exc:
+    except (dem.DemError, service.ProcessingError) as exc:
         raise HTTPException(422, str(exc)) from exc
     except service.NotFound as exc:
         raise HTTPException(404, str(exc)) from exc

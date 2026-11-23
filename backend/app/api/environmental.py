@@ -10,7 +10,12 @@ from sqlalchemy.orm import Session
 from app.core.security import get_current_user, require_role
 from app.database.session import get_db
 from app.models import DataRecord, Run, User
-from app.modules.environmental import raster, remote, service
+from app.core.lazy import lazy
+
+# Carga diferida: rasterio/numpy solo se importan con la primera petición que los necesite.
+raster = lazy("app.modules.environmental.raster")
+remote = lazy("app.modules.environmental.remote")
+service = lazy("app.modules.environmental.service")
 
 router = APIRouter(prefix="/api/environmental", tags=["Predicción Ambiental"])
 

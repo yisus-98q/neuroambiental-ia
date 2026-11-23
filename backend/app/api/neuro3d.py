@@ -7,9 +7,11 @@ from sqlalchemy.orm import Session
 from app.core.security import get_current_user, require_role
 from app.database.session import get_db
 from app.models import DataRecord, User
-from app.modules.environmental import remote
-from app.modules.neuro3d import service
-from app.modules.neuro3d.dem import DemError
+from app.core.lazy import lazy
+
+remote = lazy("app.modules.environmental.remote")
+service = lazy("app.modules.neuro3d.service")
+dem = lazy("app.modules.neuro3d.dem")
 
 router = APIRouter(prefix="/api/neuro3d", tags=["NEURO 3D LAB"])
 
@@ -48,7 +50,7 @@ def _handle(fn):
         return fn()
     except service.Busy as exc:
         raise HTTPException(409, str(exc)) from exc
-    except (DemError, service.ProcessingError) as exc:
+    except (dem.DemError, service.ProcessingError) as exc:
         raise HTTPException(422, str(exc)) from exc
     except service.NotFound as exc:
         raise HTTPException(404, str(exc)) from exc

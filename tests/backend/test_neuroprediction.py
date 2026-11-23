@@ -5,21 +5,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from app.main import app
-from app.api import neuroprediction
 
-_REGISTERED = "_neuroprediction_registrado"
-if not getattr(app, _REGISTERED, False):
-    _n = len(app.router.routes)
-    app.include_router(neuroprediction.router)
-    # Si el frontend compilado existe, el comodín SPA ("/{full_path:path}") ya está registrado y taparía
-    # las rutas nuevas: se mueven antes de él (con la integración en main.py esto no hace falta).
-    _new = app.router.routes[_n:]
-    _spa = next((i for i, r in enumerate(app.router.routes[:_n]) if getattr(r, "path", "") == "/{full_path:path}"), None)
-    if _spa is not None:
-        del app.router.routes[_n:]
-        app.router.routes[_spa:_spa] = _new
-    setattr(app, _REGISTERED, True)
+# El router se registra en app.main (integración oficial): no hace falta incluirlo aquí.
 
 BASE = "/api/neuroprediction"
 

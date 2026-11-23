@@ -7,11 +7,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from app.api import simulation
 from app.core import jobs
 from app.core.config import settings
 from app.database.session import SessionLocal
-from app.main import app
 from app.models import DataRecord
 from app.models.common import new_id
 from app.modules.environmental import raster
@@ -19,13 +17,7 @@ from app.modules.neuro3d import dem as demlib
 from app.modules.neuro3d import scenarios
 from app.neurodata.service import get_or_create_source
 
-if not any(getattr(r, "path", "").startswith("/api/simulation") for r in app.routes):
-    _n = len(app.router.routes)
-    app.include_router(simulation.router)
-    # Si main.py monta el frontend en "/", las rutas añadidas después quedarían tapadas: se anteponen.
-    _new = app.router.routes[_n:]
-    del app.router.routes[_n:]
-    app.router.routes[0:0] = _new
+# El router se registra en app.main (integración oficial): no hace falta incluirlo aquí.
 
 BBOX = [-77.30, -9.30, -77.10, -9.10]
 RES = 0.001

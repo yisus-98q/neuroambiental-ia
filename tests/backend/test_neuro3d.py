@@ -10,12 +10,9 @@ import pytest
 import rasterio
 from rasterio.transform import from_origin
 
-from app.api import neuro3d
-from app.main import app
 from app.modules.neuro3d import dem, service
 
-if not any(getattr(r, "path", "").startswith("/api/neuro3d") for r in app.routes):
-    app.include_router(neuro3d.router)
+# El router se registra en app.main (integración oficial): no hace falta incluirlo aquí.
 
 SLOPE_DEG = 10.0
 RES = 0.002  # resolución de las teselas sintéticas (1° = 500 px)

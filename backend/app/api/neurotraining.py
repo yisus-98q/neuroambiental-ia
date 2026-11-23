@@ -12,7 +12,12 @@ from app.core.audit import audit
 from app.core.security import get_current_user, require_role
 from app.database.session import get_db
 from app.models import AIModel, Prediction, Run, User
-from app.modules.neurotraining import service, trainer
+from app.core.lazy import lazy
+
+# Carga diferida: scikit-learn/scipy solo se importan al entrenar o predecir.
+service = lazy("app.modules.neurotraining.service")
+trainer = lazy("app.modules.neurotraining.trainer")
+MAX_FEATURES = 30  # igual que trainer.MAX_FEATURES (el servicio lo vuelve a validar)
 from app.neurocore.registry import registry
 from app.schemas import AIModelIn, AIModelOut
 
@@ -23,7 +28,7 @@ class TrainIn(BaseModel):
     dataset_record_id: str = Field(min_length=32, max_length=32)
     task: Literal["clasificacion", "regresion"]
     target: str = Field(min_length=1, max_length=128)
-    features: list[str] = Field(min_length=1, max_length=trainer.MAX_FEATURES)
+    features: list[str] = Field(min_length=1, max_length=MAX_FEATURES)
     algorithm: Literal["random_forest", "regresion_logistica", "ridge"]
 
 

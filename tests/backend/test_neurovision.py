@@ -5,20 +5,9 @@ import cv2
 import numpy as np
 import pytest
 
-from app.api import neurovision
 from app.core import jobs
-from app.main import app
 
-if not any(getattr(r, "path", "").startswith("/api/neurovision") for r in app.routes):
-    _n = len(app.router.routes)
-    app.include_router(neurovision.router)
-    # Las rutas nuevas deben quedar antes del comodín de la SPA (/{full_path}) para ser alcanzables.
-    _new = app.router.routes[_n:]
-    del app.router.routes[_n:]
-    _spa = next((i for i, r in enumerate(app.router.routes) if getattr(r, "path", "") == "/{full_path:path}"),
-                len(app.router.routes))
-    app.router.routes[_spa:_spa] = _new
-
+# El router se registra en app.main (integración oficial): no hace falta incluirlo aquí.
 
 def _png(img) -> bytes:
     ok, buf = cv2.imencode(".png", img)

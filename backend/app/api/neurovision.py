@@ -9,7 +9,11 @@ from sqlalchemy.orm import Session
 from app.core.security import get_current_user, require_role
 from app.database.session import get_db
 from app.models import DataRecord, User
-from app.modules.neurovision import processing, service
+from app.core.lazy import lazy
+
+# Carga diferida: OpenCV solo se importa con la primera petición de visión.
+processing = lazy("app.modules.neurovision.processing")
+service = lazy("app.modules.neurovision.service")
 
 router = APIRouter(prefix="/api/neurovision", tags=["NEUROVISION"])
 
