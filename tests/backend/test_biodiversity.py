@@ -196,3 +196,20 @@ def test_admin_cannot_validate_own_observation(client, admin_h):
     r = client.post(f"{B}/observations/{obs['id']}/validate", json={"estado": "validada", "nota": "Revisada"},
                     headers=admin_h)
     assert r.status_code == 422 and "otro administrador" in r.text
+
+
+def test_observations_appear_in_prediction_catalog(client, analyst_h, admin_h):
+    """Catálogo de NEURO PREDICTION: real → observación real; simulada → simulación; descartada → excluida."""
+    real = _obs(client, analyst_h, is_simulated=False).json()
+    sim = _obs(client, analyst_h, is_simulated=True).json()
+    gone = _obs(client, analyst_h, is_simulated=False).json()
+    client.post(f"{B}/observations/{gone['id']}/validate", json={"estado": "descartada", "nota": "Error de registro"},
+                headers=admin_h)
+
+    def ids(tipo):
+        r = client.get(f"/api/neuroprediction/catalog?tipo={tipo}&limit=200", headers=analyst_h).json()
+        return {i["id"] for i in r["items"]}
+
+    assert real["id"] in ids("observacion_real") and real["id"] not in ids("simulacion")
+    assert sim["id"] in ids("simulacion") and sim["id"] not in ids("observacion_real")
+    assert gone["id"] not in ids("observacion_real") | ids("simulacion")

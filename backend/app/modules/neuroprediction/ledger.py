@@ -20,6 +20,10 @@ Prediction (predictions)
   * is_validated, modelo en estado "validado", modelo no entrenado con datos simulados y
     datos de entrada no simulados                                  -> prediccion
   * cualquier otra                                                 -> estimacion_modelo
+Observation (observations, biodiversidad)
+  * is_simulated=True                                              -> simulacion (dato de prueba)
+  * is_simulated=False y estado_validacion != "descartada"         -> observacion_real
+  * estado_validacion == "descartada"                              -> se excluye del catálogo
 Alert (alerts)
   * validation_status == "validada" y no simulada                  -> alerta_verificada
   * resto (no_validada, en_revision, descartada, o simulada)       -> alerta_experimental
@@ -36,7 +40,7 @@ from typing import Any, Callable
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session, joinedload
 
-from app.models import AIModel, Alert, DataRecord, Event, Prediction, Run
+from app.models import AIModel, Alert, DataRecord, Event, Observation, Prediction, Run
 
 MAX_LIMIT = 200
 PRED_CAP = 2000  # las predicciones se clasifican en Python (el estado depende de JSON y de otra tabla)
@@ -49,7 +53,8 @@ KINDS: dict[str, dict[str, Any]] = {
         "etiqueta": "Observación real", "verificado": True,
         "definicion": "Dato cargado o registrado manualmente, declarado como real y no derivado de un modelo.",
         "regla": "DataRecord no simulado que no sea producto de procesamiento ni escenario (csv, geojson, imagen, "
-                 "documento, medicion_manual, raster_dem); evento real sin fecha pasada.",
+                 "documento, medicion_manual, raster_dem); evento real sin fecha pasada; observación de "
+                 "biodiversidad real no descartada.",
         "incertidumbre": "Depende del instrumento y de la calidad declarada; la carga no certifica la medición.",
         "limitaciones": ["La condición «real» es una declaración de quien cargó el dato; el sistema no la verifica."],
         "verificacion": "Contrastar con la fuente original y revisar la calidad y la cadena de custodia.",
@@ -82,7 +87,8 @@ KINDS: dict[str, dict[str, Any]] = {
     "simulacion": {
         "etiqueta": "Simulación", "verificado": False,
         "definicion": "Escenario hipotético o dato de prueba: no describe un hecho real ni un pronóstico.",
-        "regla": "Run de escenario, raster_escenario, o cualquier DataRecord/evento marcado is_simulated=True.",
+        "regla": "Run de escenario, raster_escenario, o cualquier DataRecord/evento/observación de biodiversidad "
+                 "marcado is_simulated=True.",
         "incertidumbre": "Depende de la resolución del terreno y de supuestos simplificados; no cuantificada.",
         "limitaciones": ["Resultado de un método simplificado; no sustituye un estudio hidrológico o geotécnico."],
         "verificacion": "Contrastar con un estudio técnico y con observaciones de campo.",
@@ -181,6 +187,19 @@ def _from_run(db: Session, r: Run) -> dict:
                  evidencias=[f"Parámetros: {', '.join(sorted(p))}"] if p else [])
 
 
+def _from_observation(tipo: str, o: Observation) -> dict:
+    nombre = o.species.nombre_cientifico if getattr(o, "species", None) else "especie no identificada"
+    estado = o.estado_validacion
+    return _item(tipo, o.id, f"Observación de {nombre}", o.is_simulated, ubicacion=_loc(o.latitude, o.longitude),
+                 fecha_analisis=o.created_at, fecha_observacion=o.fecha_observacion,
+                 datos=[{"observacion": o.id, "observador": o.observador}],
+                 resultado=f"{o.cantidad} individuo(s) por {o.metodo}; identificación {o.confianza_identificacion}; "
+                           f"validación: {estado}",
+                 incertidumbre=("Identificación declarada por el observador" +
+                                ("; validada por un administrador." if estado == "validada" else "; NO validada.")),
+                 evidencias=[f"Foto: {o.photo_record_id}"] if o.photo_record_id else [])
+
+
 def _from_alert(a: Alert) -> dict:
     ok = a.validation_status == "validada" and not a.is_simulated
     return _item("alerta_verificada" if ok else "alerta_experimental", a.id, a.title, a.is_simulated,
@@ -234,6 +253,12 @@ def _event_where(tipo: str, now: datetime) -> Any:
             "observacion_real": and_(real, ~dated)}[tipo]
 
 
+def _observation_where(tipo: str) -> Any:
+    keep = Observation.estado_validacion != "descartada"
+    return {"simulacion": and_(Observation.is_simulated.is_(True), keep),
+            "observacion_real": and_(Observation.is_simulated.is_(False), keep)}[tipo]
+
+
 def _alert_where(tipo: str) -> Any:
     ok = and_(Alert.validation_status == "validada", Alert.is_simulated.is_(False))
     return ok if tipo == "alerta_verificada" else ~ok
@@ -262,6 +287,9 @@ def _sources(tipo: str, db: Session) -> list[tuple[Any, Any, Callable[[Any], dic
         out.append((DataRecord, _record_where(tipo), lambda r, t=tipo: _from_record(t, r), DataRecord.received_at))
     if tipo in ("observacion_real", "dato_historico", "simulacion"):
         out.append((Event, _event_where(tipo, now), lambda e, t=tipo: _from_event(t, e), Event.created_at))
+    if tipo in ("observacion_real", "simulacion"):
+        out.append((Observation, _observation_where(tipo), lambda o, t=tipo: _from_observation(t, o),
+                    Observation.created_at))
     if tipo == "simulacion":
         out.append((Run, Run.run_type.like("escenario%"), lambda r: _from_run(db, r), Run.started_at))
     if tipo in ("alerta_verificada", "alerta_experimental"):
