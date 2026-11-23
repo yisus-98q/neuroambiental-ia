@@ -1,22 +1,26 @@
 # NEUROAMBIENTAL IA
 
-Plataforma local de inteligencia ambiental territorial para Perú. La **Fase 1** es una base técnica sólida y honesta: recibe y valida datos, los muestra en un mapa, registra alertas experimentales con seguimiento, y declara con transparencia qué módulos funcionan y cuáles aún no. La **Fase 2** agrega el primer análisis con datos reales: NDVI y detección de cambios con imágenes Sentinel-2 (Copernicus) de un área acotada.
+Plataforma local de inteligencia ambiental territorial para Perú. La **Fase 1** es una base técnica sólida y honesta: recibe y valida datos, los muestra en un mapa, registra alertas experimentales con seguimiento, y declara con transparencia qué módulos funcionan y cuáles aún no. La **Fase 2** agrega el primer análisis con datos reales: NDVI y detección de cambios con imágenes Sentinel-2 (Copernicus) de un área acotada. La **Fase 3** agrega el **NEURAL TRAINING ENGINE**: entrenamiento y evaluación de modelos ligeros de scikit-learn sobre CSV, con validación humana obligatoria. También se definió la arquitectura de integración avanzada (15 módulos registrados); la mayoría son solo contratos en desarrollo.
 
 > **Aviso importante.** Las alertas de esta plataforma son **experimentales**. No son emergencias oficiales ni sustituyen a INDECI, COEN, SENAMHI u otras autoridades. Ante un peligro real, siga las indicaciones oficiales.
 
-## Estado real (Fases 1 y 2)
+## Estado real (Fases 1 a 3)
 
 | Área | Estado |
 |---|---|
 | NEURODATA ENGINE (carga y validación de CSV, GeoJSON, PNG/JPG, PDF; registro manual; procedencia; capas para el mapa) | Operativo (7/7 capacidades) |
 | Alertas y Prevención (alertas experimentales, eventos, seguimiento, informe Markdown) | Parcial (5/6): falta generar alertas automáticamente desde modelos |
-| NEUROTRAINING (registro de modelos como «planificado», consulta de ejecuciones) | Parcial (2/4): no entrena ni evalúa nada |
+| NEURAL TRAINING ENGINE / NEUROTRAINING (registro de modelos, entrenamiento ligero con scikit-learn sobre CSV de NEURODATA, métricas solo sobre datos de prueba, artefactos con SHA-256, validación por administrador, predicción experimental) | Parcial (7/10): faltan redes neuronales (PyTorch), datasets de imágenes y reanudar entrenamientos |
+| NEURO PREDICTION ENGINE (registro de predicciones con incertidumbre) | Parcial (1/4): sin separación de tipos de salida, probabilidad calibrada ni horizonte temporal |
 | NEUROVOICE IA (chat de texto en español por palabras clave, con conteos reales) | Parcial (3/7): sin voz, sin modelo de lenguaje, sin otros idiomas |
 | Construcción (solo carga de documentos vía NEURODATA) | Parcial (1/6): no analiza proyectos |
 | Predicción ambiental (Sentinel-2: búsqueda de escenas, NDVI con máscara de nubes, comparación de dos fechas, detección de cambios, capas en el mapa) | Parcial (5/9): faltan series temporales con muchas fechas, clasificación de cobertura, escenarios futuros y Sentinel-1 |
-| Minería, Biodiversidad, Movimientos territoriales, Catástrofes | En desarrollo (0 capacidades implementadas; solo existe el contrato del módulo) |
-| Modelos de IA entrenados | **Ninguno**. El NDVI y la detección de cambios son cálculos determinísticos, no aprendizaje automático |
-| Fuentes de datos reales integradas | **Una**: Sentinel-2 L2A (Copernicus) vía Earth Search / AWS Open Data, solo recortes pequeños y bajo demanda. Además: muestras simuladas y un mapa base local de países (Natural Earth); OpenStreetMap es una capa opcional, desactivada por defecto |
+| NEUROVISION (OpenCV: Canny, CLAHE, Otsu + contornos, índice de verdor ExG, características; comparación de dos fotos con ORB + RANSAC) | Parcial (3/6): procesamiento **determinista**, sin confianza estadística; **sin clasificación ni detección de grietas** (requieren un modelo entrenado). El panel no se probó en navegador ([detalle](docs/DOCUMENTACION_OPENCV.md)) |
+| NEURO 3D LAB (terreno 3D desde Copernicus DEM GLO-30, visor Three.js, trayectoria demostrativa de máxima pendiente) | Parcial (3/5): sin capas NDVI/cambios sobre el terreno ni comparador de escenarios. El escenario **no es una simulación geotécnica**. El visor no se probó en navegador ([detalle](docs/ARQUITECTURA_NEURO_3D.md)) |
+| NEUROMINING, NEUROGEO, NEUROTERRAIN, NEURODISASTER, NEUROINDUSTRIAL, Fauna y flora | En desarrollo (0 capacidades implementadas; solo existe el contrato del módulo) |
+| PyTorch (redes neuronales), voz (reconocimiento y síntesis) | **No instalados / no implementados**; requieren autorización |
+| Modelos de IA | El mecanismo para entrenar y validar modelos ligeros funciona, pero **no hay ningún modelo entrenado con datos reales ni validado**. El NDVI y la detección de cambios son cálculos determinísticos, no aprendizaje automático |
+| Fuentes de datos reales integradas | **Dos**: Sentinel-2 L2A (imágenes) y Copernicus DEM GLO-30 (elevación), ambas vía AWS Open Data, solo recortes pequeños y bajo demanda. Ningún inventario de eventos (INGEMMET, CENEPRED, NASA COOLR) está descargado: sus términos no se pudieron confirmar. Además: muestras simuladas y un mapa base local de países (Natural Earth); OpenStreetMap es una capa opcional, desactivada por defecto |
 
 Los resultados de cambio (disminución/aumento de NDVI) quedan marcados **«sin validar»**: un cambio de NDVI **no confirma** deforestación ni daño ambiental.
 
@@ -30,7 +34,7 @@ El estado de cada módulo **se calcula** a partir de sus capacidades implementad
 - Opcional: `uv` (si está instalado, `instalar.bat` lo usa para instalar dependencias de Python más rápido).
 - Pensado para equipos modestos (4 GB de RAM). Ver [docs/AI_MODELS.md](docs/AI_MODELS.md).
 - Internet solo para el análisis Sentinel-2 (buscar escenas y descargar recortes de ~15-20 MB por fecha). El resto funciona sin conexión. No hacen falta cuentas ni claves.
-- Dependencias nuevas de la Fase 2: numpy y rasterio (incluye GDAL), instaladas por `scripts\instalar.bat` en `backend\.deps`.
+- Dependencias nuevas de las Fases 2 y 3: numpy, rasterio (incluye GDAL) y scikit-learn (con scipy y joblib), y opencv-python-headless, instaladas por `scripts\instalar.bat` en `backend\.deps` (hoy ~462 MB). El frontend añade Three.js.
 
 ## Instalación
 
@@ -65,7 +69,7 @@ Carga `data\samples\mediciones_simuladas.csv` y `data\samples\area_estudio_simul
 scripts\iniciar.bat
 ```
 
-Abre <http://127.0.0.1:8000>. Es **un solo proceso** que sirve la API y el frontend compilado (ahorra memoria). La documentación interactiva de la API está en <http://127.0.0.1:8000/docs>. Solo escucha en `127.0.0.1` (uso local).
+Abre <http://127.0.0.1:8000>. Es **un solo proceso** que sirve la API y el frontend compilado (ahorra memoria). La documentación interactiva de la API está en <http://127.0.0.1:8000/docs>. Solo escucha en `127.0.0.1` (uso local). **Debe correr con un solo worker** (`iniciar.bat` ya usa `--workers 1`): el candado de «un proceso pesado a la vez» y el bloqueo de intentos de login están en la memoria de cada proceso y no se comparten entre varios workers.
 
 ## Modo desarrollo
 
@@ -86,7 +90,7 @@ Abre dos ventanas: backend en el puerto 8000 y Vite (recarga en caliente) en <ht
 python scripts\comprobar.py
 ```
 
-Ejecútelo desde la carpeta del proyecto. Corre las pruebas del backend (pytest, 41 pruebas), la verificación de tipos de TypeScript y la compilación del frontend (`npm run build`). Es un script de Python y no un `.bat` porque el antivirus del equipo borró tres veces el `.bat` de verificación (ver [ARCHITECTURE.md](ARCHITECTURE.md)).
+Ejecútelo desde la carpeta del proyecto. Corre las pruebas del backend (pytest, 73 pruebas), la verificación de tipos de TypeScript y la compilación del frontend (`npm run build`). Es un script de Python y no un `.bat` porque el antivirus del equipo borró tres veces el `.bat` de verificación (ver [ARCHITECTURE.md](ARCHITECTURE.md)).
 
 ## Configuración
 
@@ -99,12 +103,12 @@ Mediciones reales en Windows 10, 4 GB de RAM, Intel i5-2410M:
 | Concepto | Valor |
 |---|---|
 | Servidor en marcha (python + uvicorn, 1 worker, API + frontend compilado) | ~91 MB de memoria (working set), ~76 MB de memoria privada |
-| Disco: `backend\.deps` | 192 MB desde la Fase 2 (eran 47 MB; rasterio incluye GDAL) |
+| Disco: `backend\.deps` | ~462 MB (eran 47 MB en la Fase 1; rasterio incluye GDAL, scikit-learn trae scipy y se añadió OpenCV; eran 347 MB antes de OpenCV) |
 | Disco: `frontend\node_modules` | 114 MB |
 | Disco: código + datos de muestra | ~2 MB |
 | Frontend compilado: JS principal | 273 KB (81 KB gzip) |
 | Frontend compilado: MapLibre (chunk separado) | 1,09 MB (299 KB gzip); solo se descarga al abrir un mapa |
-| Pruebas de backend | pasan en ~10 s (medido con 30-32 pruebas; hoy son 41) |
+| Pruebas de backend | pasan en ~10 s (medido con 30-32 pruebas; hoy son 73) |
 
 Son mediciones puntuales en un solo equipo, no garantías. El navegador consume memoria aparte.
 
@@ -141,3 +145,16 @@ En el equipo de pruebas, Chrome usaba «Microsoft Basic Render Driver» (falta e
 - [docs/AI_MODELS.md](docs/AI_MODELS.md): estado honesto de la IA.
 - [docs/SECURITY.md](docs/SECURITY.md): medidas de seguridad y limitaciones conocidas.
 - [docs/USER_GUIDE.md](docs/USER_GUIDE.md): guía para usuarios no técnicos.
+
+Arquitectura de integración avanzada (la mayor parte es diseño pendiente; cada documento indica qué está implementado y qué no):
+
+- [docs/ARQUITECTURA_NEURAL_TRAINING.md](docs/ARQUITECTURA_NEURAL_TRAINING.md): entrenamiento, evaluación, ciclo de vida de modelos (implementado para modelos ligeros).
+- [docs/DOCUMENTACION_OPENCV.md](docs/DOCUMENTACION_OPENCV.md): visión por computador (no implementado).
+- [docs/DOCUMENTACION_DATASETS.md](docs/DOCUMENTACION_DATASETS.md): datasets.
+- [docs/ARQUITECTURA_NEURO_3D.md](docs/ARQUITECTURA_NEURO_3D.md): simulación 3D (no implementado).
+- [docs/DOCUMENTACION_SIMULACIONES.md](docs/DOCUMENTACION_SIMULACIONES.md): simulaciones y tipos de información.
+- [docs/ARQUITECTURA_NEUROVOICE.md](docs/ARQUITECTURA_NEUROVOICE.md): voz (solo contratos).
+- [docs/CATALOGO_MODELOS_IA.md](docs/CATALOGO_MODELOS_IA.md): catálogo de modelos.
+- [docs/INTEGRACION_NEUROCORE.md](docs/INTEGRACION_NEUROCORE.md): registro de los 15 módulos.
+- [docs/PLAN_DE_VALIDACION.md](docs/PLAN_DE_VALIDACION.md): verificación y validación.
+- [docs/MANUAL_DE_INSTALACION.md](docs/MANUAL_DE_INSTALACION.md): instalación y solución de problemas.

@@ -83,13 +83,49 @@ Requiere Internet para buscar escenas y calcular NDVI (servicios públicos de Se
 
 Errores propios: 409 si ya hay un procesamiento en curso; 422 por área o malla inválida, escena que no cubre el área, sin píxeles válidos o NDVI incompatibles (distinta área/resolución); 502 si el servicio de imágenes no responde. El `bbox` debe ser `[minLon, minLat, maxLon, maxLat]` con lados de máximo 0,5°.
 
+## NEUROVISION (OpenCV, determinista)
+
+| Método | Ruta | Rol | Descripción |
+|---|---|---|---|
+| GET | `/api/neurovision/operations` | lector | Operaciones disponibles con sus parámetros y rangos, límites (2048 px por lado, 25 MP), versión de OpenCV, nota de confianza y limitaciones. |
+| POST | `/api/neurovision/analyze` | analista | Aplica una operación a una imagen ya cargada: `record_id` (registro `imagen`), `operation`, `params`. 201 con un registro `imagen_procesada` (con superposición). |
+| POST | `/api/neurovision/compare` | analista | Compara dos fotos de la misma escena: `record_a`, `record_b` (alineación ORB + RANSAC; 422 si hay < 10 correspondencias o si la homografía no es plausible: inliers < 25 %, escala fuera de 0,5-2 o perspectiva > 0,002). No usa georreferenciación. |
+| GET | `/api/neurovision/results` | lector | Últimos resultados `imagen_procesada` (hasta 100), **sin las regiones** (se ven por registro). |
+| GET | `/api/neurovision/results/{id}/overlay` | lector | PNG de la superposición del resultado. |
+
+Errores: 404 registro inexistente; 409 otro procesamiento pesado en curso; 422 imagen corrupta, > 25 MP o parámetros inválidos. `confidence` siempre es `null`: son operaciones deterministas, no un modelo. Ver [DOCUMENTACION_OPENCV.md](DOCUMENTACION_OPENCV.md).
+
+## NEURO 3D LAB (DEM y escenario demostrativo)
+
+Requiere Internet para descargar el DEM (Copernicus GLO-30).
+
+| Método | Ruta | Rol | Descripción |
+|---|---|---|---|
+| GET | `/api/neuro3d/defaults` | lector | Área por defecto (Huaraz), resolución (0,0009°), lado máximo (0,5°), fuente y atribución. |
+| POST | `/api/neuro3d/terrain` | analista | Obtiene el DEM de un `bbox` (lado máx. 0,5°; con la resolución por defecto el tope real es ~0,46° por la malla máxima de 512 px) con `resolution_deg` (0,0003 a 0,01). 201 con un registro `raster_dem`. |
+| GET | `/api/neuro3d/terrains` | lector | Terrenos ya obtenidos. |
+| GET | `/api/neuro3d/terrains/{id}/mesh?max_size=` | lector | Malla (alturas) para el visor, hasta 512 x 512 (`max_size` 16 a 512), con pendiente y estadísticas, `valid` (máscara 0/1 de celdas con dato) y `valid_pct`. |
+| POST | `/api/neuro3d/terrains/{id}/flow-path` | analista | Trayectoria de máxima pendiente (D8) desde `lon`, `lat`. Escenario **demostrativo**, no es simulación geotécnica. Incluye `end_reason` (`minimo_local` o `sin_dato`). |
+| GET | `/api/neuro3d/scenarios` | lector | Escenarios guardados. |
+| GET | `/api/neuro3d/scenarios/{id}` | lector | Un escenario. |
+
+Errores: 409 proceso pesado en curso; 422 DEM no disponible o punto fuera del DEM; 502 servicio de DEM no disponible. Ver [ARQUITECTURA_NEURO_3D.md](ARQUITECTURA_NEURO_3D.md).
+
 ## NEUROTRAINING
 
 | Método | Ruta | Rol | Descripción |
 |---|---|---|---|
-| GET | `/api/neurotraining/models` | lector | Modelos registrados. |
-| POST | `/api/neurotraining/models` | analista | Registra un modelo; siempre queda `planificado`. No hay endpoint para entrenar ni para cambiar su estado. |
-| GET | `/api/neurotraining/runs` | lector | Últimas 100 ejecuciones. Hoy solo las crea el módulo ambiental (NDVI y detección de cambios); NEUROTRAINING no entrena nada. |
+| GET | `/api/neurotraining/models` | lector | Modelos registrados (con estado, versión, métricas, `task`, `target`, `features`, `trained_with_simulated`, `artifact_sha256`, `validation_evidence`). |
+| GET | `/api/neurotraining/models/{id}` | lector | Un modelo (404 si no existe). |
+| POST | `/api/neurotraining/models` | analista | Registra un modelo; siempre nace `planificado`. |
+| POST | `/api/neurotraining/models/{id}/train` | analista | Entrena o reentrena (sube la versión): `dataset_record_id` (CSV válido de NEURODATA), `task` (`clasificacion`/`regresion`), `target`, `features` (1-30), `algorithm` (`random_forest`, `regresion_logistica`, `ridge`). Deja el modelo `entrenado` (experimental). Espera hasta terminar. 409 si hay otro proceso pesado; 422 por datos inválidos, fuga (objetivo entre las entradas), < 60 filas, clase con < 2 filas, demasiadas clases para la prueba o estado no permitido. Las métricas salen del 25 % reservado del mismo CSV (no independiente) e incluyen `warnings`. |
+| POST | `/api/neurotraining/models/{id}/validate` | **admin** | Marca `validado`. Cuerpo: `evidence` (≥ 40 caracteres), `version` y `artifact_sha256` (deben coincidir con el modelo actual). 422 si no está `entrenado`, si la versión o el hash no coinciden (el modelo cambió), si quien valida es quien lo entrenó, si se entrenó con datos simulados o si no supera la línea base (clasificación: accuracy ≤ clase mayoritaria; regresión: MAE ≥ el de la media). |
+| POST | `/api/neurotraining/models/{id}/retire` | **admin** | Marca `retirado`. 422 si ya estaba retirado. |
+| POST | `/api/neurotraining/models/{id}/predict` | analista | Predice sobre otro CSV (`dataset_record_id`); hasta 5 000 filas; verifica el SHA-256 del artefacto antes de cargarlo. Devuelve predicciones, `model_probability` (clasificación; **probabilidad del modelo NO calibrada**), `uncertainty`, `input_simulated` y `model_trained_with_simulated`; guarda la predicción en `predictions`. |
+| GET | `/api/neurotraining/predictions` | lector | Últimas 50 predicciones con su incertidumbre y bandera `is_validated`. |
+| GET | `/api/neurotraining/runs` | lector | Últimas 100 ejecuciones (entrenamientos y análisis del módulo ambiental), con resumen de resultados. |
+
+Detalles y reglas del entrenamiento: [ARQUITECTURA_NEURAL_TRAINING.md](ARQUITECTURA_NEURAL_TRAINING.md).
 
 ## Informes
 
@@ -102,6 +138,7 @@ Errores propios: 409 si ya hay un procesamiento en curso; 422 por área o malla 
 | Método | Ruta | Rol | Descripción |
 |---|---|---|---|
 | POST | `/api/neurovoice/chat` | lector | Envía un mensaje de texto; devuelve respuesta, intención y módulo. Crea o continúa una conversación propia. |
+| GET | `/api/neurovoice/capabilities` | público | Qué etapas de voz existen realmente: `asr`, `vad`, `tts` y `language_detection` son `null` (sin proveedor); intérprete de intención `reglas_palabras_clave (es)`; herramientas con `implemented` y `sensitive`; idiomas. |
 | GET | `/api/neurovoice/conversations` | lector | Conversaciones propias (últimas 50). |
 | GET | `/api/neurovoice/conversations/{id}` | lector | Mensajes de una conversación propia (404 si es de otro usuario). |
 

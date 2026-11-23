@@ -18,6 +18,9 @@
 | TypeScript | Tipado | Apache-2.0 | 0 |
 | numpy | Cálculo con arreglos (Fase 2) | BSD-3-Clause | 0 |
 | rasterio (incluye GDAL) | Lectura/escritura de rásters (Fase 2) | BSD-3-Clause (rasterio); GDAL con licencia tipo MIT/X | 0 |
+| scikit-learn (con scipy y joblib) | Modelos ligeros (Fase 3) | BSD-3-Clause | 0 |
+| opencv-python-headless | Visión por computador (autorizado; implementación en curso) | Apache-2.0 (OpenCV 4.5+; verificar) | 0 |
+| Three.js | Visor 3D (autorizado; implementación en curso) | MIT | 0 |
 | Sentinel-2 L2A COG en AWS Open Data + catálogo STAC Earth Search (Element 84) | Imágenes satelitales (Fase 2) | Datos Copernicus: uso libre con atribución obligatoria; servicios gratuitos, sin cuenta ni claves | 0 |
 | MapLibre GL JS | Mapa | BSD-3-Clause | 0 |
 | Natural Earth 1:110m países (mapa base local, `frontend/public/basemap/paises.geojson`) | Fondo del mapa por defecto; funciona sin Internet | Dominio público | 0 |

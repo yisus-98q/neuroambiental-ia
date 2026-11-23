@@ -25,7 +25,7 @@ Convenciones: los `id` son UUID hexadecimal de 32 caracteres (texto); casi todas
 
 | Tabla | Columnas principales |
 |---|---|
-| `data_records` | `source_id`, `data_type` (csv, geojson, imagen, documento, medicion_manual, raster_ndvi, raster_cambio), `title`, `territory_id`, `latitude`, `longitude`, `bbox` (JSON `[minLon,minLat,maxLon,maxLat]`), `observed_at`, `received_at`, `unit`, `value`, `file_format`, `validation_status` (pendiente, valido, invalido), `validation_messages`, `quality` (sin_evaluar, baja, media, alta), `provenance`, **`is_simulated`**, `file_path`, `file_size`, `sha256`, `extra` (JSON), `created_by` |
+| `data_records` | `source_id`, `data_type` (csv, geojson, imagen, documento, medicion_manual, raster_ndvi, raster_cambio, raster_dem, imagen_procesada), `title`, `territory_id`, `latitude`, `longitude`, `bbox` (JSON `[minLon,minLat,maxLon,maxLat]`), `observed_at`, `received_at`, `unit`, `value`, `file_format`, `validation_status` (pendiente, valido, invalido), `validation_messages`, `quality` (sin_evaluar, baja, media, alta), `provenance`, **`is_simulated`**, `file_path`, `file_size`, `sha256`, `extra` (JSON), `created_by` |
 | `sensors` | `name`, `kind` (gps, inclinometro, piezometro, pluviometro, estacion_meteorologica, otro), `latitude`, `longitude`, `territory_id`, `is_active` |
 | `measurements` | `sensor_id`, `data_record_id`, `variable`, `value`, `unit`, `observed_at`, `is_simulated` |
 | `documents` | `data_record_id`, `category`, `module_key`, `notes` |
@@ -37,14 +37,21 @@ Convenciones: los `id` son UUID hexadecimal de 32 caracteres (texto); casi todas
 | `events` | `event_type`, `title`, `description`, `latitude`, `longitude`, `occurred_at`, `source_name`, `is_simulated`, `created_by` |
 | `alerts` | `title`, `description`, `module_key`, `level` (bajo, medio, alto), `alert_kind` (siempre `experimental`), `latitude`, `longitude`, `evidence`, `source_name`, `observed_at`, `uncertainty` (obligatoria), `validation_status` (no_validada, en_revision, validada, descartada), `event_id`, `is_simulated`, `created_by` |
 | `alert_followups` | `alert_id`, `note`, `new_status`, `created_by` |
-| `ai_models` | `name`, `module_key`, `algorithm`, `version`, `status` (planificado, en_entrenamiento, entrenado, validado, retirado; por API siempre nace `planificado`), `metrics`, `dataset_description`, `artifact_path` |
+| `ai_models` | `name`, `module_key`, `algorithm`, `version`, `status` (planificado, entrenado, validado, retirado; `en_entrenamiento` existe en el esquema pero no se usa; siempre nace `planificado`), `metrics` (JSON), `dataset_description`, `artifact_path`. **Fase 3 (migración `efe6f2f7b71a`):** `task` (clasificacion/regresion), `target`, `features` (JSON, defecto `[]`), `dataset_record_id` (FK a `data_records`, SET NULL), `trained_with_simulated` (bool, defecto falso), `artifact_sha256`, `trained_at`, `validation_evidence` (texto, defecto vacío), `validated_by` (FK a `users`, SET NULL) |
 | `runs` | `run_type`, `module_key`, `model_id`, `status` (esquema: pendiente, ok, error; el módulo ambiental además usa `en_proceso` mientras corre), `started_at`, `finished_at`, `parameters`, `result_summary` |
 | `predictions` | `run_id`, `model_id`, `territory_id`, `target`, `value` (JSON), `uncertainty` (obligatoria), `is_validated`, `validation_evidence` |
 | `reports` | `title`, `module_key`, `content_md`, `created_by` |
 | `conversations` | `user_id`, `language` (es), `title` |
 | `conversation_messages` | `conversation_id`, `role` (usuario, asistente), `content`, `meta` (JSON) |
 
-Estado de uso: la API escribe en `users`, `user_sessions`, `audit_logs`, `sources`, `data_records`, `documents`, `measurements` (solo con registro manual que incluya variable y valor), `events`, `alerts`, `alert_followups`, `territories`, `ai_models`, `reports`, `conversations`, `conversation_messages` y, desde la Fase 2, `runs` (un registro por NDVI o detección de cambios, con parámetros y resumen). **Ninguna ruta escribe todavía** en `coordinates`, `sensors` ni `predictions`: existen para fases futuras. La Fase 2 no agregó tablas ni migraciones: los rásters son filas de `data_records`.
+Estado de uso: la API escribe en `users`, `user_sessions`, `audit_logs`, `sources`, `data_records`, `documents`, `measurements` (solo con registro manual que incluya variable y valor), `events`, `alerts`, `alert_followups`, `territories`, `ai_models`, `reports`, `conversations`, `conversation_messages` y, desde la Fase 2, `runs` (un registro por NDVI o detección de cambios, con parámetros y resumen). Desde la Fase 3 también escribe en `predictions` (una fila por llamada a `/predict`) y en `runs` (entrenamientos, con `run_type = entrenamiento`). **Ninguna ruta escribe todavía** en `coordinates` ni `sensors`. La Fase 2 no agregó tablas ni migraciones (los rásters son filas de `data_records`).
+
+### Migraciones
+
+1. `79e40e3a19e0_esquema_inicial`: 20 tablas y roles semilla.
+2. `efe6f2f7b71a_fase_3_entrenamiento_de_modelos` (depende de la anterior): agrega las columnas nuevas de `ai_models` (modo batch de SQLite) con valores por defecto que cubren los modelos ya registrados. Tiene `downgrade`.
+
+Artefactos de modelos: `data/uploads/models/<id_modelo>/v<versión>.joblib`; `ai_models.artifact_path` es relativo a la carpeta de cargas y `artifact_sha256` guarda su hash.
 
 Registros ráster (Fase 2): `data_type` = `raster_ndvi` o `raster_cambio`, `is_simulated = false`, `bbox` de la malla, `unit` (NDVI o clase), `file_format` `image/tiff`, `quality` `media` (NDVI) o `sin_evaluar` (cambio; fijos, no evaluados), y en `extra`: `kind`, `stats`, `grid`, `scene_id`, `mgrs_tile`, `cloud_cover`, `download` (bytes y peticiones), `preview` (nombre del PNG), `uncertainty` y, en los cambios, `before`, `after` y `validated: false`. La fuente es «Copernicus Sentinel-2 L2A (Earth Search / AWS Open Data)» (`kind` = `satelite`).
 

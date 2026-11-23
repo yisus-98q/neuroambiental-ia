@@ -49,7 +49,7 @@
 | `data/` | Base SQLite (no versionada), `uploads/` (archivos cargados, no versionados) y `samples/` (muestras simuladas). |
 | `ai/` | `datasets/`, `evaluation/`, `models/`: carpetas reservadas; hoy no hay modelos ni conjuntos de datos de entrenamiento. |
 | `scripts/` | Archivos `.bat` de instalación, arranque y verificación. |
-| `tests/backend/` | Pruebas pytest (41 pruebas). No hay pruebas automáticas del frontend; solo `tsc` y la compilación. |
+| `tests/backend/` | Pruebas pytest (73 pruebas). No hay pruebas automáticas del frontend; solo `tsc` y la compilación. |
 
 Separación: el **frontend** nunca toca la base de datos (solo habla con `/api`); el **backend** guarda **metadatos** en SQLite y los **archivos** en disco (`data/uploads`); los **modelos de IA** irían en `ai/models` (vacío hoy).
 
@@ -82,11 +82,13 @@ Como un módulo solo puede depender de los ya registrados, **un ciclo es imposib
 - **SQLite + Alembic (`render_as_batch=True`).** Sin servidor de base de datos que consuma RAM. `render_as_batch` permite `ALTER TABLE` en SQLite. Se activan `PRAGMA foreign_keys=ON` y `journal_mode=WAL`.
 - **Migración futura a PostgreSQL/PostGIS.** El modelo usa SQLAlchemy y la URL se cambia con `NEURO_DATABASE_URL`. Lo que cambiaría: `territories.geometry` (hoy JSON GeoJSON EPSG:4326) pasaría a columna `geometry` de PostGIS con índice espacial; `data_records.bbox` también; los `JSON` pasarían a `JSONB`; habría que revisar las migraciones (hoy escritas para SQLite en modo batch). Aún no está probado contra PostgreSQL.
 - **Un solo proceso uvicorn sirve `frontend/dist`.** Ahorra un servidor Node y su RAM. FastAPI monta `/assets` y devuelve `index.html` para cualquier ruta que no sea de la API. En desarrollo, Vite (5173) hace proxy de `/api` al 8000.
+- **Un solo worker obligatorio.** El candado de «un proceso pesado a la vez» (`core/jobs.py`) y el bloqueo de intentos de login son por proceso (memoria). Con varios workers de uvicorn no se compartirían y se podrían ejecutar dos análisis pesados a la vez. `scripts\iniciar.bat` ya usa `--workers 1`; no cambiarlo sin mover ese estado a la base de datos.
+- **Frontend con carga diferida.** Three.js va en un chunk aparte (Terrain3D ~560 KB, 138 KB gzip) y MapLibre en otro; el bundle principal pesa ~315 KB (92 KB gzip). Las paletas del terreno están en `frontend/src/maps/terrainPalette.ts`.
 - **Router por hash (`#/ruta`) sin dependencias.** Funciona al servir archivos estáticos sin configurar reescrituras.
 - **MapLibre en chunk separado.** Se carga con `lazy()` solo al abrir una vista con mapa (pesa ~1 MB).
 - **Validación con la librería estándar.** CSV, GeoJSON y firmas de PNG/JPG/PDF se validan sin dependencias extra (bajo consumo de RAM). Desde la Fase 2 el proyecto sí depende de numpy y rasterio, pero solo el módulo ambiental los usa.
 - **Dependencias Python en `backend\.deps` (no en `.venv`).** Se instalan con `uv pip install --target` (o `pip --target`) y se ejecuta con el Python del sistema y `PYTHONPATH=backend\.deps;backend` (ver `scripts\_entorno.bat`). Motivo: el antivirus del equipo (Avast) elimina los `python.exe` y lanzadores `.exe` recién copiados, lo que rompe un `.venv`. Consecuencia: no se usan los ejecutables `uvicorn.exe`/`alembic.exe`; se invoca `python -m uvicorn` y `python -m alembic`.
-- **Verificación con `python scripts\comprobar.py` (no `.bat`).** El antivirus del equipo eliminó tres veces el script de verificación en formato `.bat` (`pruebas.bat`, `verificar.bat` y `comprobar.bat`; los que lanzan pytest). Se reemplazó por un script de Python, que sobrevivió a dos ejecuciones completas. Hace lo mismo: pytest (41 pruebas) y `npm run build` (tsc + vite). Es otro efecto de la misma causa que motivó `backend\.deps`: el antivirus es hostil con los ejecutables y lanzadores recién creados. Los demás `.bat` (instalar, iniciar, etc.) no han sido eliminados hasta ahora.
+- **Verificación con `python scripts\comprobar.py` (no `.bat`).** El antivirus del equipo eliminó tres veces el script de verificación en formato `.bat` (`pruebas.bat`, `verificar.bat` y `comprobar.bat`; los que lanzan pytest). Se reemplazó por un script de Python, que sobrevivió a dos ejecuciones completas. Hace lo mismo: pytest (73 pruebas) y `npm run build` (tsc + vite). Es otro efecto de la misma causa que motivó `backend\.deps`: el antivirus es hostil con los ejecutables y lanzadores recién creados. Los demás `.bat` (instalar, iniciar, etc.) no han sido eliminados hasta ahora.
 - **Archivos `.bat` con finales de línea CRLF.** `.gitattributes` fuerza `*.bat text eol=crlf` (y `*.cmd`); con LF, `cmd.exe` puede fallar de forma errática.
 
 ## Fase 2: módulo ambiental (Sentinel-2, NDVI, cambios)

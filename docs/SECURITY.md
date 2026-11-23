@@ -15,13 +15,17 @@ Pensada para **uso local** (`127.0.0.1`). No ha tenido auditoría externa.
 - **CORS:** restringido a `http://localhost:5173` y `http://127.0.0.1:5173` (configurable), sin credenciales, solo GET y POST.
 - **XSS en el mapa:** los popups se construyen con `textContent`, sin inyectar HTML de los datos.
 - **Acceso remoto de la Fase 2 (SSRF y TLS):** el módulo ambiental solo contacta `earth-search.aws.element84.com` y `sentinel-cogs.s3.us-west-2.amazonaws.com` por HTTPS; cualquier otro host se rechaza. El identificador de escena se valida con una expresión regular estricta. **No se desactiva la verificación TLS**: GDAL/curl fallaba con «schannel: the certificate chain is incomplete» por la inspección HTTPS del antivirus, y se resolvió leyendo por rangos desde Python (`urllib`) con el almacén de certificados de Windows. Límites contra abuso de recursos: área máx. 0,5° x 0,5°, malla máx. 1600 x 1600 px, un solo procesamiento a la vez (409), y solo rol analista puede lanzar descargas.
+- **DEM remoto (NEURO 3D LAB):** reutiliza la misma lectura por rangos con TLS validado y lista de hosts permitidos; el área máxima es 0,5° x 0,5° y solo el rol analista puede descargar o lanzar el escenario D8.
+- **Procesamiento de imágenes (NEUROVISION):** se rechazan imágenes de más de 25 megapíxeles leyendo la cabecera antes de decodificar y las corruptas (422); se trabaja con máx. 2048 px por lado y un solo procesamiento pesado a la vez. OpenCV decodifica archivos subidos por usuarios: una vulnerabilidad en sus decodificadores sería un riesgo (mantenerlo actualizado).
+- **Artefactos de modelos:** el archivo `.joblib` se lee **una sola vez en memoria**, se verifica su SHA-256 contra la base y se carga desde esos mismos bytes (sin ventana entre la comprobación y la carga); la ruta debe quedar dentro de la carpeta de datos. La validación de un modelo exige un administrador distinto de quien lo entrenó y queda atada a su versión y hash.
+- **NEUROVISION:** `GET /api/neurovision/operations` exige sesión; la comparación de fotos rechaza homografías no plausibles (422).
 - **Errores internos:** respuesta genérica al usuario; el detalle va al registro del servidor.
 - **Secretos:** en `.env` (en `.gitignore`, nunca versionado); `.env.example` no contiene secretos. La contraseña del administrador se pide oculta y no se guarda en historial.
 
 ## Limitaciones conocidas
 
 - **Sin HTTPS**: el tráfico va en claro. No exponer el servicio fuera de `127.0.0.1` sin un proxy con TLS.
-- El bloqueo de intentos de login está **en memoria**: se reinicia al reiniciar el servidor y no se comparte entre procesos.
+- El bloqueo de intentos de login está **en memoria**: se reinicia al reiniciar el servidor y no se comparte entre procesos. Por eso el servidor **debe correr con un solo worker** (`--workers 1`, como hace `iniciar.bat`): con varios, el bloqueo de login y el candado de «un proceso pesado a la vez» serían independientes en cada uno y se podrían eludir.
 - **No hay recuperación de contraseña**; un admin puede crear usuarios, pero no hay cambio ni reinicio de contraseña por la interfaz ni la API (ni desactivar usuarios).
 - **No hay expiración por inactividad**: solo expira a las 12 h desde el inicio de sesión. Las sesiones vencidas no se purgan de la tabla.
 - La validación de PNG/JPG/PDF comprueba la firma, no analiza el archivo completo; un archivo con firma válida podría contener contenido malicioso. Los archivos se descargan, no se ejecutan.
