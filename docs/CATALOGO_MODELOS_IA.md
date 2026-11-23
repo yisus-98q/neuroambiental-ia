@@ -22,6 +22,11 @@ El catálogo vivo está en la base de datos (tabla `ai_models`, interfaz NEURAL 
 
 **Cómo leer las métricas de un modelo del catálogo:** salen del 25 % de filas reservadas del mismo CSV (corte aleatorio, mínimo 60 filas), **no de un conjunto independiente**, y pueden sobrestimar el rendimiento si los datos están autocorrelacionados en el espacio o el tiempo; `metrics.warnings` lo advierte. Un modelo solo se valida con revisión de otro administrador, versión y hash coincidentes, línea base superada y datos externos revisados ([PLAN_DE_VALIDACION.md](PLAN_DE_VALIDACION.md)).
 
+## Qué NO es un modelo del catálogo
+
+- Los **escenarios de NEURO 3D LAB** (trayectoria D8, susceptibilidad heurística, inundación de lámina local) son cálculos con reglas fijas y parámetros ajustables a mano: **no son modelos entrenados ni validados**, no aprenden de datos y se rotulan «SIMULACIÓN». En particular, la susceptibilidad (`w_pendiente·min(pendiente/45°,1) + w_vegetación·(1−NDVI)`) no es un modelo de riesgo.
+- El **catálogo de tipos** de NEURO PREDICTION ENGINE (`/api/neuroprediction/catalog`) solo clasifica resultados existentes por reglas; una «predicción validada» exige un modelo del catálogo en estado `validado`, entrenado con datos no simulados, y hoy no hay ninguno.
+
 ## Modelos previstos por módulo (todos pendientes)
 
 Ninguno de estos modelos existe. Son líneas de trabajo posibles, con lo que falta para que sean legítimas.

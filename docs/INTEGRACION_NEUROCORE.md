@@ -24,8 +24,8 @@ El orden impide dependencias circulares: un módulo solo puede depender de los y
 | 10 | `neurotraining` | NEURAL TRAINING ENGINE | núcleo | 7/10 | parcial | neurodata |
 | 11 | `neurovision` | NEUROVISION | especializado | 3/6 | parcial | neurodata, neurotraining |
 | 12 | `neuroindustrial` | NEUROINDUSTRIAL | especializado | 0/3 | en desarrollo | neurodata, neurovision |
-| 13 | `neuro3d` | NEURO 3D SIMULATION ENGINE | simulación | 3/5 | parcial | neurodata, terrain |
-| 14 | `neuroprediction` | NEURO PREDICTION ENGINE | núcleo | 1/4 | parcial | neurodata, neurotraining |
+| 13 | `neuro3d` | NEURO 3D SIMULATION ENGINE | simulación | 5/5 | **operativo** (capacidades demostrativas por definición: no calibradas ni validadas) | neurodata, terrain |
+| 14 | `neuroprediction` | NEURO PREDICTION ENGINE | núcleo | 2/4 | parcial (catálogo de tipos implementado; sin probabilidad calibrada ni horizonte temporal) | neurodata, neurotraining |
 | 15 | `neurovoice` | NEUROVOICE IA | núcleo | 3/7 | parcial | neurocore |
 
 Los conteos y estados salen de los descriptores del código en el momento de escribir este documento; la fuente de verdad es `GET /api/neurocore/modules`. NEUROCORE mismo no es un módulo del registro.
@@ -36,7 +36,7 @@ Nota: `mining` (NEUROMINING) ya no incluye geología: pasó a `neurogeo`. `neuro
 
 | Mecanismo | Realidad |
 |---|---|
-| API HTTP por módulo | Sí: `/api/neurodata`, `/api/alerts`, `/api/environmental`, `/api/neurotraining`, `/api/neurovision`, `/api/neuro3d`, `/api/neurovoice`, `/api/neurocore` ([API.md](API.md)) |
+| API HTTP por módulo | Sí: `/api/neurodata`, `/api/alerts`, `/api/environmental`, `/api/neurotraining`, `/api/neurovision`, `/api/neuro3d`, `/api/simulation`, `/api/neuroprediction`, `/api/neurovoice`, `/api/neurocore` ([API.md](API.md)) |
 | Datos compartidos | Sí: todo pasa por NEURODATA (`data_records`) y la base SQLite; el módulo ambiental produce rásters como registros; NEUROTRAINING consume CSV |
 | Un proceso pesado a la vez | Sí: `core/jobs.py` (raster y entrenamiento) |
 | Auditoría | Sí: `audit_logs` y `runs` |

@@ -1,8 +1,8 @@
 # NEURO 3D SIMULATION ENGINE (NEURO 3D LAB)
 
-**Estado: parcial, 3 de 5 capacidades.** Funcionan el terreno 3D desde un DEM real, el visor con Three.js y **un escenario demostrativo** de trayectoria de máxima pendiente. **No están implementadas** las capas de NDVI/cambios sobre el terreno ni el comparador de escenarios.
+**Estado: el descriptor declara 5 de 5 capacidades implementadas («operativo»), pero hay que leerlo con cuidado: las capacidades declaradas son demostrativas por definición.** Funcionan el terreno 3D desde un DEM real, el visor con Three.js, la trayectoria D8, una capa «Escenario» (susceptibilidad heurística e inundación de lámina local) y un comparador de 2 a 4 configuraciones. **«Operativo» no significa validado ni predictivo**: ningún escenario está calibrado ni validado, y **no se dibujan capas de cambios de NDVI** sobre el terreno (limitación declarada en el descriptor; la capacidad `capas_3d` se redefinió como la capa de «Escenario»). Detalle de los escenarios en [DOCUMENTACION_SIMULACIONES.md](DOCUMENTACION_SIMULACIONES.md).
 
-Código: `backend/app/modules/neuro3d/{dem.py, service.py, descriptor.py}`, `backend/app/api/neuro3d.py`, `frontend/src/maps/Terrain3D.tsx`, `frontend/src/pages/Neuro3DLab.tsx`, pruebas `tests/backend/test_neuro3d.py` (8). Three.js 0.187 (autorizado por el usuario).
+Código: `backend/app/modules/neuro3d/{dem.py, service.py, scenarios.py, descriptor.py}`, `backend/app/api/neuro3d.py`, `backend/app/api/simulation.py`, `frontend/src/maps/Terrain3D.tsx`, `frontend/src/pages/Neuro3DLab.tsx`, pruebas `tests/backend/test_neuro3d.py` (8) y `test_scenarios.py`. Three.js 0.187 (autorizado por el usuario).
 
 > Limitación de la verificación: las pruebas de backend pasan y el cálculo se verificó con datos reales, pero **el visor 3D no se probó en un navegador** (el Chrome del equipo dibuja por software y no permite capturas). Su rendimiento real es desconocido.
 
@@ -13,8 +13,8 @@ Código: `backend/app/modules/neuro3d/{dem.py, service.py, descriptor.py}`, `bac
 | `terreno_dem` | Implementada | Malla del terreno desde **Copernicus DEM GLO-30** (AWS Open Data, sin cuenta), 1 a 4 teselas de 1°x1°; malla EPSG:4326, resolución por defecto 0,0009° (~100 m), máx. 512 x 512 en el visor; pendiente, estadísticas y clases de pendiente. La malla devuelve `valid` (máscara 0/1) y `valid_pct` (% de celdas con dato) |
 | `visor_threejs` | Implementada (sin probar en navegador) | Three.js con render bajo demanda, exageración vertical 1 a 5x, capas de elevación y pendiente, OrbitControls, carga diferida (chunk aparte de ~560 KB, 138 KB gzip, paletas en `terrainPalette.ts`). **Las celdas sin dato se pintan en gris** y la leyenda lo indica |
 | `escenarios_simplificados` | Implementada | Trayectoria de **máxima pendiente (D8)** desde un punto, siempre rotulada: «Escenario demostrativo simplificado… no es una simulación geotécnica ni predice un evento». Devuelve `end_reason`: `minimo_local` o **`sin_dato`** si se detiene junto a celdas sin dato. **No hay relleno de depresiones** (limitación): la trayectoria se detiene en el primer mínimo local |
-| `capas_3d` | **Pendiente** | NDVI, cambios y riesgo dibujados sobre el terreno |
-| `comparador_escenarios` | **Pendiente** | Comparar estado actual y escenarios |
+| `capas_3d` | Implementada (redefinida) | Capa «Escenario» sobre el terreno: clases de **susceptibilidad heurística** (NDVI opcional) y profundidad de **inundación demostrativa** de lámina local, con el rótulo permanente «SIMULACIÓN — escenario hipotético, no es una predicción». **No** dibuja NDVI ni cambios de NDVI |
+| `comparador_escenarios` | Implementada | 2 a 4 configuraciones lado a lado más una fila «Estado actual (observado)»; cálculo en memoria, no guarda (`POST /api/simulation/compare`) |
 
 ## Datos y atribución
 
@@ -39,7 +39,7 @@ Es una ejecución puntual en el equipo de pruebas, no un benchmark.
 
 ## Endpoints (ver [API.md](API.md))
 
-`GET /api/neuro3d/defaults`, `GET /terrains`, `GET /terrains/{id}/mesh`, `GET /scenarios`, `GET /scenarios/{id}` (lector); `POST /terrain` y `POST /terrains/{id}/flow-path` (analista).
+`GET /api/neuro3d/defaults`, `GET /terrains`, `GET /terrains/{id}/mesh`, `GET /scenarios`, `GET /scenarios/{id}` (lector); `POST /terrain` y `POST /terrains/{id}/flow-path` (analista). Escenarios: `/api/simulation` (`POST /susceptibility`, `/flood`, `/compare` para analista; `GET /scenarios`, `/scenarios/{id}/grid`, `/scenarios/{id}/preview` para lector).
 
 ## Reglas para las simulaciones
 
@@ -49,4 +49,4 @@ Es una ejecución puntual en el equipo de pruebas, no un benchmark.
 
 ## Riesgos y pendiente
 
-El visor puede ir muy lento sin aceleración gráfica (el equipo dibuja por software); resolución de ~100 m insuficiente para escala de obra; DEM de superficie; capas NDVI/cambios y comparador sin hacer; falta prueba del visor en navegador. Validación según [PLAN_DE_VALIDACION.md](PLAN_DE_VALIDACION.md).
+El visor puede ir muy lento sin aceleración gráfica (el equipo dibuja por software); resolución de ~100 m insuficiente para escala de obra; DEM de superficie; la susceptibilidad y la inundación no están calibradas ni validadas; sin capas de cambios de NDVI; el comparador no guarda resultados; la prueba de la interfaz (visor, capa «Escenario», `PredictionPanel`) en un navegador sigue pendiente. Validación según [PLAN_DE_VALIDACION.md](PLAN_DE_VALIDACION.md).

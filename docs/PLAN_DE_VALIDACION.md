@@ -10,7 +10,7 @@ Regla del proyecto: **no afirmar como operativo nada que no esté implementado y
 python scripts\comprobar.py
 ```
 
-Desde la carpeta del proyecto. Ejecuta pytest (**73 pruebas de backend**) y `npm run build` (tipos de TypeScript + compilación de Vite). Archivos de prueba en `tests/backend/`:
+Desde la carpeta del proyecto. Ejecuta pytest (**105 pruebas de backend**) y `npm run build` (tipos de TypeScript + compilación de Vite). Archivos de prueba en `tests/backend/`:
 
 | Archivo | Cubre |
 |---|---|
@@ -22,6 +22,8 @@ Desde la carpeta del proyecto. Ejecuta pytest (**73 pruebas de backend**) y `npm
 | `test_training.py` | Entrenar/evaluar/predecir, validación por admin (incluida la línea base), fuga de datos, artefacto alterado, candado |
 | `test_neurovision.py` (12) | Operaciones OpenCV, límites de imagen, imágenes corruptas, comparación de fotos |
 | `test_neuro3d.py` (8) | DEM, pendiente, malla y trayectoria D8 con teselas locales (sin red) |
+| `test_scenarios.py` | Susceptibilidad, inundación de lámina local, comparador y sus validaciones (DEM sintético, sin red) |
+| `test_neuroprediction.py` | Catálogo de tipos: reglas disjuntas, un elemento simulado nunca es observación/predicción/alerta verificada |
 
 Limitaciones: no hay pruebas automáticas del frontend; **el panel NEUROVISION y el visor 3D no se probaron en un navegador** (el Chrome del equipo dibuja por software y no permite capturas); las pruebas ambientales no usan la red ni escenas reales (la verificación con Sentinel-2 real fue manual); las pruebas de entrenamiento usan datos sintéticos.
 
@@ -49,7 +51,7 @@ Tras reentrenar, la validación se **pierde** y debe repetirse.
 
 ### Modelos de visión y simulaciones
 
-No hay modelos de visión entrenados. NEUROVISION solo hace procesamiento determinista, sin confianza estadística (`confidence = null`); su salida no está validada contra inspecciones reales. NEURO 3D LAB solo tiene un escenario demostrativo D8 sin validar. Cuando se implementen modelos o simulaciones reales: conjunto anotado por expertos, partición independiente, métricas por clase y comparación con eventos observados.
+No hay modelos de visión entrenados. NEUROVISION solo hace procesamiento determinista, sin confianza estadística (`confidence = null`); su salida no está validada contra inspecciones reales. NEURO 3D LAB solo tiene escenarios demostrativos (D8, susceptibilidad heurística, inundación de lámina local, comparador) **sin calibrar ni validar**: se verificaron con el DEM real de Huaraz solo para comprobar que el método no da resultados absurdos (la «bañera» pura daba 42,6 km² y 335 m con 2 m de subida; la lámina local, 0,29 km² y 3,85 m), **no** contra eventos reales. Para validarlos haría falta un inventario de eventos reales (hoy no disponible) y comparar áreas observadas con las simuladas. El catálogo de NEURO PREDICTION ENGINE clasifica por reglas y es verificable con pruebas, pero **no valida** los resultados que clasifica. Cuando se implementen modelos o simulaciones reales: conjunto anotado por expertos, partición independiente, métricas por clase y comparación con eventos observados.
 
 ## 3. Pruebas de rendimiento (equipo de 4 GB)
 

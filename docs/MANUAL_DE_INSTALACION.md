@@ -47,7 +47,7 @@ Modo desarrollo: `scripts\iniciar-desarrollo.bat` (backend 8000 + Vite 5173; má
 python scripts\comprobar.py
 ```
 
-Ejecuta pytest (73 pruebas) y la compilación del frontend. Es un script de Python porque el antivirus borró tres veces el verificador `.bat`.
+Ejecuta pytest (105 pruebas) y la compilación del frontend. Es un script de Python porque el antivirus borró tres veces el verificador `.bat`.
 
 ## 5. Configuración opcional (`.env`)
 

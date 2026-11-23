@@ -12,7 +12,7 @@ Las Fases 1, 2 y 3 describen lo ya construido (con lo pendiente de cada una); lo
 - NEUROTRAINING: registro de modelos (siempre «planificado») y consulta de ejecuciones.
 - NEUROVOICE: chat de texto en español con intérprete por reglas e historial por usuario.
 - Interfaz React con 15 secciones de menú, mapa territorial (MapLibre con mapa base local Natural Earth; OpenStreetMap opcional), panel de inicio con cifras reales.
-- Scripts `.bat` de instalación, arranque, desarrollo, parada y verificación; pruebas de backend (hoy 73 en total, incluidas las de las Fases 2 y 3 y las de NEUROVISION y NEURO 3D LAB).
+- Scripts `.bat` de instalación, arranque, desarrollo, parada y verificación; pruebas de backend (hoy 105 en total, incluidas las de las Fases 2, 3 y 6 y las de NEUROVISION y NEURO 3D LAB).
 - Muestras simuladas en `data/samples`.
 
 Pendiente dentro de lo ya construido: alertas automáticas, recuperación de contraseña, HTTPS, pruebas automáticas del frontend, informes más allá de alertas.
@@ -49,8 +49,8 @@ Hecho (detalle en [docs/ARQUITECTURA_NEURAL_TRAINING.md](docs/ARQUITECTURA_NEURA
 - Entrenamiento y evaluación de modelos ligeros de scikit-learn (random forest, regresión logística, ridge) sobre CSV de NEURODATA, `n_jobs=1`; métricas solo sobre datos de prueba con línea base; artefactos `.joblib` con SHA-256 verificado antes de cargar.
 - Ciclo de vida planificado → entrenado (experimental) → validado (solo admin, con evidencia, nunca con datos simulados) → retirado; versiones; predicción experimental sobre CSV nuevos.
 - Candado común de un proceso pesado a la vez (raster y entrenamiento).
-- Interfaz NEURAL TRAINING CENTER; migración 2 de la base (columnas nuevas de `ai_models`); la validación de un modelo exige superar la línea base, un administrador distinto de quien entrenó y que coincidan versión y hash; mínimo 60 filas y evaluación sobre filas reservadas del mismo CSV (no independiente); 73 pruebas de backend en total.
-- NEUROVISION (OpenCV, parcial 3/6) y NEURO 3D LAB (Three.js, parcial 3/5): ver el mapa de fases abajo.
+- Interfaz NEURAL TRAINING CENTER; migración 2 de la base (columnas nuevas de `ai_models`); la validación de un modelo exige superar la línea base, un administrador distinto de quien entrenó y que coincidan versión y hash; mínimo 60 filas y evaluación sobre filas reservadas del mismo CSV (no independiente); 105 pruebas de backend en total (cifra actual).
+- NEUROVISION (OpenCV, parcial 3/6) y NEURO 3D LAB (Three.js, escenarios simplificados): ver el mapa de fases abajo.
 - Arquitectura de integración: 15 módulos registrados con `codename` y grupo; menú agrupado; contratos de NEUROVOICE y `GET /api/neurovoice/capabilities`.
 
 Pendiente de la Fase 3: ningún modelo real entrenado ni validado; alertas automáticas desde modelos; susceptibilidad a huaycos/deslizamientos (requiere inventarios de eventos reales: se investigaron GEOCATMIN/INGEMMET, CENEPRED SIGRID y NASA COOLR, pero no se descargó nada porque no se encontraron licencias en fuentes oficiales); validación cruzada y partición espacial/temporal; calibración de probabilidades.
@@ -65,9 +65,9 @@ El usuario definió su propio plan de 8 fases. Estado real (no es lo mismo que l
 | 2. Datasets + OpenCV | **Parcial** | Datasets = CSV de NEURODATA (sin Dataset Manager ni imágenes anotadas). OpenCV instalado: procesamiento determinista y comparación de fotos (3/6); sin clasificación ni detección. Panel sin probar en navegador ([docs/DOCUMENTACION_OPENCV.md](docs/DOCUMENTACION_OPENCV.md), [docs/DOCUMENTACION_DATASETS.md](docs/DOCUMENTACION_DATASETS.md)) |
 | 3. Entrenamiento inicial | **Hecha para modelos ligeros** | Mecanismo probado; sin modelos reales entrenados; sin redes neuronales profundas (PyTorch requiere autorización y no es viable a gran escala en 4 GB) |
 | 4. Modelos especializados | **Pendiente** | Solo contratos; ningún modelo especializado. Faltan datos reales para entrenarlos ([docs/CATALOGO_MODELOS_IA.md](docs/CATALOGO_MODELOS_IA.md)) |
-| 5. Simulación 3D con Three.js | **Parcial (3/5)** | Terreno real desde Copernicus DEM GLO-30, visor Three.js y trayectoria demostrativa D8; faltan capas NDVI/cambios y comparador; visor sin probar en navegador ([docs/ARQUITECTURA_NEURO_3D.md](docs/ARQUITECTURA_NEURO_3D.md)) |
-| 6. Simulación y predicción | **Pendiente / parcial** | Registro de predicciones experimentales sí; la única «simulación» es el escenario demostrativo D8, no una simulación física validada ([docs/DOCUMENTACION_SIMULACIONES.md](docs/DOCUMENTACION_SIMULACIONES.md)) |
-| 7. NEUROVOICE (voz) | **Parcial** | Texto en español por reglas; contratos de ASR/TTS/VAD sin proveedor ([docs/ARQUITECTURA_NEUROVOICE.md](docs/ARQUITECTURA_NEUROVOICE.md)) |
+| 5. Simulación 3D con Three.js | **Hecha en lo implementado** | Terreno real desde Copernicus DEM GLO-30, visor Three.js, trayectoria D8 y capa «Escenario»; faltan capas de cambios de NDVI; visor y paneles sin probar en navegador ([docs/ARQUITECTURA_NEURO_3D.md](docs/ARQUITECTURA_NEURO_3D.md)) |
+| 6. Simulación y predicción | **Hecha en lo implementado (escenarios demostrativos)** | Susceptibilidad heurística, inundación de lámina local y comparador de 2 a 4 escenarios, siempre rotulados «SIMULACIÓN»; catálogo de 8 categorías que separa observación, procesamiento, estimación, simulación, predicción validada y alertas (NEURO PREDICTION ENGINE 2/4). **Pendiente:** probabilidad calibrada, horizonte temporal, modelos hidráulicos/geotécnicos, calibración y validación con eventos reales; ningún escenario predice nada ([docs/DOCUMENTACION_SIMULACIONES.md](docs/DOCUMENTACION_SIMULACIONES.md)) |
+| 7. NEUROVOICE (voz) | **Parcial; la voz sigue pendiente** | Texto en español por reglas; contratos de ASR/TTS/VAD sin proveedor ([docs/ARQUITECTURA_NEUROVOICE.md](docs/ARQUITECTURA_NEUROVOICE.md)) |
 | 8. Integración general | **Pendiente** | Flujos automáticos, alertas automáticas, informes multimódulo; validación según [docs/PLAN_DE_VALIDACION.md](docs/PLAN_DE_VALIDACION.md) |
 
 OpenCV y Three.js ya fueron autorizados e instalados. Siguen requiriendo autorización expresa del usuario antes de empezar: PyTorch, cualquier proveedor de voz, y la descarga de nuevas fuentes de datos.

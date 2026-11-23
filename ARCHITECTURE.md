@@ -49,7 +49,7 @@
 | `data/` | Base SQLite (no versionada), `uploads/` (archivos cargados, no versionados) y `samples/` (muestras simuladas). |
 | `ai/` | `datasets/`, `evaluation/`, `models/`: carpetas reservadas; hoy no hay modelos ni conjuntos de datos de entrenamiento. |
 | `scripts/` | Archivos `.bat` de instalación, arranque y verificación. |
-| `tests/backend/` | Pruebas pytest (73 pruebas). No hay pruebas automáticas del frontend; solo `tsc` y la compilación. |
+| `tests/backend/` | Pruebas pytest (105 pruebas). No hay pruebas automáticas del frontend; solo `tsc` y la compilación. |
 
 Separación: el **frontend** nunca toca la base de datos (solo habla con `/api`); el **backend** guarda **metadatos** en SQLite y los **archivos** en disco (`data/uploads`); los **modelos de IA** irían en `ai/models` (vacío hoy).
 
@@ -88,7 +88,7 @@ Como un módulo solo puede depender de los ya registrados, **un ciclo es imposib
 - **MapLibre en chunk separado.** Se carga con `lazy()` solo al abrir una vista con mapa (pesa ~1 MB).
 - **Validación con la librería estándar.** CSV, GeoJSON y firmas de PNG/JPG/PDF se validan sin dependencias extra (bajo consumo de RAM). Desde la Fase 2 el proyecto sí depende de numpy y rasterio, pero solo el módulo ambiental los usa.
 - **Dependencias Python en `backend\.deps` (no en `.venv`).** Se instalan con `uv pip install --target` (o `pip --target`) y se ejecuta con el Python del sistema y `PYTHONPATH=backend\.deps;backend` (ver `scripts\_entorno.bat`). Motivo: el antivirus del equipo (Avast) elimina los `python.exe` y lanzadores `.exe` recién copiados, lo que rompe un `.venv`. Consecuencia: no se usan los ejecutables `uvicorn.exe`/`alembic.exe`; se invoca `python -m uvicorn` y `python -m alembic`.
-- **Verificación con `python scripts\comprobar.py` (no `.bat`).** El antivirus del equipo eliminó tres veces el script de verificación en formato `.bat` (`pruebas.bat`, `verificar.bat` y `comprobar.bat`; los que lanzan pytest). Se reemplazó por un script de Python, que sobrevivió a dos ejecuciones completas. Hace lo mismo: pytest (73 pruebas) y `npm run build` (tsc + vite). Es otro efecto de la misma causa que motivó `backend\.deps`: el antivirus es hostil con los ejecutables y lanzadores recién creados. Los demás `.bat` (instalar, iniciar, etc.) no han sido eliminados hasta ahora.
+- **Verificación con `python scripts\comprobar.py` (no `.bat`).** El antivirus del equipo eliminó tres veces el script de verificación en formato `.bat` (`pruebas.bat`, `verificar.bat` y `comprobar.bat`; los que lanzan pytest). Se reemplazó por un script de Python, que sobrevivió a dos ejecuciones completas. Hace lo mismo: pytest (105 pruebas) y `npm run build` (tsc + vite). Es otro efecto de la misma causa que motivó `backend\.deps`: el antivirus es hostil con los ejecutables y lanzadores recién creados. Los demás `.bat` (instalar, iniciar, etc.) no han sido eliminados hasta ahora.
 - **Archivos `.bat` con finales de línea CRLF.** `.gitattributes` fuerza `*.bat text eol=crlf` (y `*.cmd`); con LF, `cmd.exe` puede fallar de forma errática.
 
 ## Fase 2: módulo ambiental (Sentinel-2, NDVI, cambios)

@@ -111,6 +111,31 @@ Requiere Internet para descargar el DEM (Copernicus GLO-30).
 
 Errores: 409 proceso pesado en curso; 422 DEM no disponible o punto fuera del DEM; 502 servicio de DEM no disponible. Ver [ARQUITECTURA_NEURO_3D.md](ARQUITECTURA_NEURO_3D.md).
 
+## Simulación: escenarios simplificados (`/api/simulation`)
+
+Todo es **simulación demostrativa**, no una predicción; las respuestas incluyen `banner` («SIMULACIÓN — escenario hipotético, no es una predicción»). Los escenarios se guardan como registros `raster_escenario` (`is_simulated` heredado). Un solo proceso pesado a la vez (409). Detalle: [DOCUMENTACION_SIMULACIONES.md](DOCUMENTACION_SIMULACIONES.md).
+
+| Método | Ruta | Rol | Descripción |
+|---|---|---|---|
+| POST | `/api/simulation/susceptibility` | analista | Índice heurístico de susceptibilidad sobre un DEM: `dem_id`, `ndvi_id` opcional, `w_pendiente` y `w_vegetacion` (suman 1; 0,6/0,4 por defecto), `umbral_medio` y `umbral_alto` (0 < medio < alto < 1; 0,33/0,66). **No calibrado ni validado.** 201. |
+| POST | `/api/simulation/flood` | analista | Inundación demostrativa de lámina local: `dem_id`, `lon`, `lat`, `rise_m` (0,5 a 50). Celdas conectadas con cota entre (cota del punto − subida) y (cota del punto + subida). No es una simulación hidráulica. 201. |
+| POST | `/api/simulation/compare` | analista | Compara 2 a 4 configuraciones (`kind`: `susceptibilidad` o `inundacion_demostrativa`) frente al estado actual observado. Cálculo en memoria; **no guarda** (`saved: false`). |
+| GET | `/api/simulation/scenarios?dem_id=` | lector | Escenarios guardados (opcionalmente de un DEM). |
+| GET | `/api/simulation/scenarios/{id}/grid?max_size=` | lector | Malla del escenario para el visor (`max_size` 16 a 512). |
+| GET | `/api/simulation/scenarios/{id}/preview` | lector | PNG de vista previa. |
+
+Errores: 404 registro inexistente; 409 proceso pesado en curso; 422 parámetros inválidos, punto fuera del DEM o en celda sin dato.
+
+## NEURO PREDICTION ENGINE: catálogo de tipos (`/api/neuroprediction`)
+
+Solo lectura; sin tablas nuevas. Clasifica los resultados por reglas ([DOCUMENTACION_SIMULACIONES.md](DOCUMENTACION_SIMULACIONES.md)). Todos exigen sesión (lector).
+
+| Método | Ruta | Rol | Descripción |
+|---|---|---|---|
+| GET | `/api/neuroprediction/kinds` | lector | Las 8 categorías con definición, regla, si son verificadas y limitaciones. |
+| GET | `/api/neuroprediction/catalog?tipo=&limit=&offset=` | lector | Elementos unificados (`limit` 1 a 200) más `totales_por_tipo`. Cada elemento trae ubicación, fechas, datos usados, modelo, versión, incertidumbre, evidencias, limitaciones y `simulated`. `horizonte_temporal` siempre `null`. 422 si el tipo no existe. |
+| GET | `/api/neuroprediction/catalog/{tipo}/{id}` | lector | Detalle de un elemento (404 si no pertenece a ese tipo). |
+
 ## NEUROTRAINING
 
 | Método | Ruta | Rol | Descripción |

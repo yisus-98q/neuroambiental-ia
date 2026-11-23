@@ -11,12 +11,12 @@ Plataforma local de inteligencia ambiental territorial para Perú. La **Fase 1**
 | NEURODATA ENGINE (carga y validación de CSV, GeoJSON, PNG/JPG, PDF; registro manual; procedencia; capas para el mapa) | Operativo (7/7 capacidades) |
 | Alertas y Prevención (alertas experimentales, eventos, seguimiento, informe Markdown) | Parcial (5/6): falta generar alertas automáticamente desde modelos |
 | NEURAL TRAINING ENGINE / NEUROTRAINING (registro de modelos, entrenamiento ligero con scikit-learn sobre CSV de NEURODATA, métricas solo sobre datos de prueba, artefactos con SHA-256, validación por administrador, predicción experimental) | Parcial (7/10): faltan redes neuronales (PyTorch), datasets de imágenes y reanudar entrenamientos |
-| NEURO PREDICTION ENGINE (registro de predicciones con incertidumbre) | Parcial (1/4): sin separación de tipos de salida, probabilidad calibrada ni horizonte temporal |
+| NEURO PREDICTION ENGINE (registro de predicciones con incertidumbre; catálogo que separa observación real, dato histórico, procesamiento, estimación de modelo, simulación, predicción validada y alertas verificadas/experimentales) | Parcial (2/4): sin probabilidad calibrada ni horizonte temporal; el catálogo clasifica por reglas y no valida nada ([detalle](docs/DOCUMENTACION_SIMULACIONES.md)) |
 | NEUROVOICE IA (chat de texto en español por palabras clave, con conteos reales) | Parcial (3/7): sin voz, sin modelo de lenguaje, sin otros idiomas |
 | Construcción (solo carga de documentos vía NEURODATA) | Parcial (1/6): no analiza proyectos |
 | Predicción ambiental (Sentinel-2: búsqueda de escenas, NDVI con máscara de nubes, comparación de dos fechas, detección de cambios, capas en el mapa) | Parcial (5/9): faltan series temporales con muchas fechas, clasificación de cobertura, escenarios futuros y Sentinel-1 |
 | NEUROVISION (OpenCV: Canny, CLAHE, Otsu + contornos, índice de verdor ExG, características; comparación de dos fotos con ORB + RANSAC) | Parcial (3/6): procesamiento **determinista**, sin confianza estadística; **sin clasificación ni detección de grietas** (requieren un modelo entrenado). El panel no se probó en navegador ([detalle](docs/DOCUMENTACION_OPENCV.md)) |
-| NEURO 3D LAB (terreno 3D desde Copernicus DEM GLO-30, visor Three.js, trayectoria demostrativa de máxima pendiente) | Parcial (3/5): sin capas NDVI/cambios sobre el terreno ni comparador de escenarios. El escenario **no es una simulación geotécnica**. El visor no se probó en navegador ([detalle](docs/ARQUITECTURA_NEURO_3D.md)) |
+| NEURO 3D LAB (terreno 3D desde Copernicus DEM GLO-30, visor Three.js, trayectoria D8, susceptibilidad heurística, inundación demostrativa de lámina local y comparador de 2 a 4 escenarios) | Operativo (5/5 declaradas), pero **todo es simulación demostrativa**: los escenarios no están calibrados ni validados, no predicen nada y no son simulaciones geotécnicas ni hidráulicas. Sin capas de cambios de NDVI. El visor y los paneles no se probaron en navegador ([3D](docs/ARQUITECTURA_NEURO_3D.md), [escenarios](docs/DOCUMENTACION_SIMULACIONES.md)) |
 | NEUROMINING, NEUROGEO, NEUROTERRAIN, NEURODISASTER, NEUROINDUSTRIAL, Fauna y flora | En desarrollo (0 capacidades implementadas; solo existe el contrato del módulo) |
 | PyTorch (redes neuronales), voz (reconocimiento y síntesis) | **No instalados / no implementados**; requieren autorización |
 | Modelos de IA | El mecanismo para entrenar y validar modelos ligeros funciona, pero **no hay ningún modelo entrenado con datos reales ni validado**. El NDVI y la detección de cambios son cálculos determinísticos, no aprendizaje automático |
@@ -90,7 +90,7 @@ Abre dos ventanas: backend en el puerto 8000 y Vite (recarga en caliente) en <ht
 python scripts\comprobar.py
 ```
 
-Ejecútelo desde la carpeta del proyecto. Corre las pruebas del backend (pytest, 73 pruebas), la verificación de tipos de TypeScript y la compilación del frontend (`npm run build`). Es un script de Python y no un `.bat` porque el antivirus del equipo borró tres veces el `.bat` de verificación (ver [ARCHITECTURE.md](ARCHITECTURE.md)).
+Ejecútelo desde la carpeta del proyecto. Corre las pruebas del backend (pytest, 105 pruebas), la verificación de tipos de TypeScript y la compilación del frontend (`npm run build`). Es un script de Python y no un `.bat` porque el antivirus del equipo borró tres veces el `.bat` de verificación (ver [ARCHITECTURE.md](ARCHITECTURE.md)).
 
 ## Configuración
 
@@ -108,7 +108,7 @@ Mediciones reales en Windows 10, 4 GB de RAM, Intel i5-2410M:
 | Disco: código + datos de muestra | ~2 MB |
 | Frontend compilado: JS principal | 273 KB (81 KB gzip) |
 | Frontend compilado: MapLibre (chunk separado) | 1,09 MB (299 KB gzip); solo se descarga al abrir un mapa |
-| Pruebas de backend | pasan en ~10 s (medido con 30-32 pruebas; hoy son 73) |
+| Pruebas de backend | pasan en ~10 s (medido con 30-32 pruebas; hoy son 105) |
 
 Son mediciones puntuales en un solo equipo, no garantías. El navegador consume memoria aparte.
 

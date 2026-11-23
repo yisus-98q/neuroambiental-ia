@@ -13,6 +13,7 @@ DESCRIPTOR = ModuleDescriptor(
         cap("terreno_dem", "Malla 3D del terreno desde un DEM real (Copernicus DEM GLO-30) con pendiente y estadísticas", True),
         cap("visor_threejs", "Visor 3D ligero con Three.js (render bajo demanda, exageración vertical, capas de elevación y pendiente)", True),
         cap("capas_3d", "Capa «Escenario» sobre el terreno 3D: clases de susceptibilidad heurística (con NDVI opcional) y profundidad de inundación demostrativa", True),
+        cap("capas_ndvi_cambios", "Dibujar los rasters NDVI y de cambios de la Fase 2 sobre el terreno 3D"),
         cap("escenarios_simplificados", "Escenario demostrativo de trayectoria de máxima pendiente (D8), rotulado como simulación", True),
         cap("comparador_escenarios", "Comparar 2-4 configuraciones de escenario lado a lado frente al estado actual observado (cálculo en memoria, sin guardar)", True),
     ],
