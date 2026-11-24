@@ -7,6 +7,7 @@ import type { DataRecord, ModuleInfo } from "../services/types";
 import { useApi } from "../services/useApi";
 import { BiodiversityPanel } from "./BiodiversityPanel";
 import { ConstructionPanel } from "./ConstructionPanel";
+import { DisasterPanel } from "./DisasterPanel";
 import { EnvironmentalPanel } from "./EnvironmentalPanel";
 import { Neuro3DLab } from "./Neuro3DLab";
 import { NeurovisionPanel } from "./NeurovisionPanel";
@@ -25,6 +26,7 @@ export function ModulePage({ moduleKey }: { moduleKey: string }) {
       {moduleKey === "biodiversity" && <BiodiversityPanel />}
       {moduleKey === "terrain" && <TerrainPanel />}
       {moduleKey === "construction" && <ConstructionPanel />}
+      {moduleKey === "disasters" && <DisasterPanel />}
       {moduleKey === "neurovision" && <NeurovisionPanel />}
       {moduleKey === "neuro3d" && <Neuro3DLab />}
       {moduleKey === "neuroprediction" && <PredictionPanel />}

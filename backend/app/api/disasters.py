@@ -75,3 +75,8 @@ def validate(body: ValidateIn, user: User = Depends(require_role("analista")), d
 @router.get("/runs")
 def runs(_: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[dict]:
     return service.list_runs(db)
+
+
+@router.get("/inventories")
+def inventories(_: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[dict]:
+    return service.list_inventories(db)

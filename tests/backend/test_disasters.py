@@ -72,6 +72,8 @@ def test_import_registers_source_license_and_types(client, analyst_h, monkeypatc
     assert out["eventos"] == 4 and out["is_simulated"] is False
     assert "INGEMMET" in out["source"] and "no redistribuir" in out["license"]
     assert out["tipos_peligro"] == {"1000|1300": 3, "2000|2100": 1}
+    listed = client.get("/api/disasters/inventories", headers=analyst_h).json()
+    assert any(i["id"] == out["id"] and i["eventos"] == 4 for i in listed)
 
 
 def test_heuristic_discriminates_when_events_are_on_steep_slopes(client, analyst_h, monkeypatch):

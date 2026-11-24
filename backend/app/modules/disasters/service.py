@@ -106,3 +106,11 @@ def list_runs(db: Session) -> list[dict]:
     return [{"id": r.id, "run_type": r.run_type, "status": r.status, "started_at": r.started_at,
              "finished_at": r.finished_at, "parameters": r.parameters, "result_summary": r.result_summary}
             for r in db.scalars(q)]
+
+
+def list_inventories(db: Session) -> list[dict]:
+    q = select(DataRecord).where(DataRecord.data_type == "geojson").order_by(DataRecord.received_at.desc()).limit(200)
+    return [{"id": r.id, "title": r.title, "bbox": r.bbox, "received_at": r.received_at,
+             "is_simulated": r.is_simulated, "source": r.source.name, "license": r.source.license,
+             "eventos": (r.extra or {}).get("features"), "tipos_peligro": (r.extra or {}).get("tipos_peligro")}
+            for r in db.scalars(q) if (r.extra or {}).get("inventory")]
