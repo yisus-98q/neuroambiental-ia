@@ -18,7 +18,8 @@ interface Report {
 interface RunRow { id: string; run_type: string; status: string; started_at: string; parameters: Record<string, unknown>; result_summary: (Report & { error?: string }) | null }
 
 const ANCASH_HUARAZ = "-77.75,-9.78,-77.25,-9.28";
-const cv = (c: Cv) => (c.auc_mean == null ? "—" : `${c.auc_mean.toFixed(2)} ± ${(c.auc_sd ?? 0).toFixed(2)}`);
+const d2 = (v: number) => v.toFixed(2).replace(".", ",");
+const cv = (c: Cv) => (c.auc_mean == null ? "—" : `${d2(c.auc_mean)} ± ${d2(c.auc_sd ?? 0)}`);
 
 /** NEURODISASTER: inventario real de INGEMMET y validación espacial de la susceptibilidad. */
 export function DisasterPanel() {
@@ -57,7 +58,7 @@ export function DisasterPanel() {
 
   return (
     <div className="stack">
-      <Notice kind="dev"><strong>Inventario de eventos REALES de INGEMMET (GEOCATMIN, 2013).</strong> Licencia no declarada por el servicio:
+      <Notice kind="dev"><strong>Inventario de eventos REALES de INGEMMET (GEOCATMIN).</strong> La fecha de cada evento es desconocida (FECHA parece la del estudio). Licencia no declarada por el servicio:
         uso interno de investigación, citando a INGEMMET y sin redistribuir. El inventario es incompleto y está sesgado hacia zonas pobladas y vías.</Notice>
 
       {writable && (
@@ -119,8 +120,8 @@ export function DisasterPanel() {
 function ReportCard({ r }: { r: Report }) {
   const a = r.ausencias_libres, b = r.ausencias_mismo_rango_elevacion;
   const rows: [string, string, string][] = [
-    ["Índice heurístico (solo pendiente)", a.auc_heuristico_pendiente.toFixed(2), b.auc_heuristico_pendiente.toFixed(2)],
-    ["Solo elevación", a.auc_solo_elevacion_baja.toFixed(2), b.auc_solo_elevacion_baja.toFixed(2)],
+    ["Índice heurístico (solo pendiente)", d2(a.auc_heuristico_pendiente), d2(b.auc_heuristico_pendiente)],
+    ["Solo elevación", d2(a.auc_solo_elevacion_baja), d2(b.auc_solo_elevacion_baja)],
     ["Regresión logística · validación espacial", cv(a.regresion_logistica.espacial), cv(b.regresion_logistica.espacial)],
     ["Bosque aleatorio · validación espacial", cv(a.bosque_aleatorio.espacial), cv(b.bosque_aleatorio.espacial)],
     ["Regresión logística · aleatoria (solo referencia)", cv(a.regresion_logistica.aleatoria_referencia), cv(b.regresion_logistica.aleatoria_referencia)],

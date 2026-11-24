@@ -90,7 +90,7 @@ Además: NEURO 3D LAB queda 6/6 declaradas (capas NDVI/cambio sobre el terreno) 
 
 Primera evaluación de la plataforma contra datos reales de campo.
 
-- **Fuente:** inventario de peligros geológicos de INGEMMET (GEOCATMIN, feb. 2013), importado por recorte desde el servicio oficial (`POST /api/disasters/inventory/import`). La licencia no está declarada en el servicio, así que se usa **solo internamente para investigación**, citando la fuente y sin redistribuir.
+- **Fuente:** inventario de peligros geológicos de INGEMMET (GEOCATMIN; registros de 2007 y 2018–2026, fecha del evento desconocida), importado por recorte desde el servicio oficial (`POST /api/disasters/inventory/import`). La licencia no está declarada en el servicio, así que se usa **solo internamente para investigación**, citando la fuente y sin redistribuir.
 - **Método** (`POST /api/disasters/susceptibility/validate`):
   - presencias tomadas del inventario y pseudo-ausencias a ≥ 300 m;
   - variables: pendiente y elevación del DEM GLO-30;

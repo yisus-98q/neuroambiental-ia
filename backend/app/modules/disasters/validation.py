@@ -161,7 +161,7 @@ def evaluate(arr: np.ndarray, bbox, fc: dict, *, ratio: int = 3, min_dist_m: flo
         "conclusion_automatica": _conclusion(libre, ajustada),
         "interpretacion_auc": "0,5 = azar; 0,7–0,8 aceptable; > 0,8 bueno (referencia común, no un umbral oficial).",
         "advertencias": [
-            "Las ausencias son pseudo-ausencias: el inventario de 2013 es incompleto.",
+            "Las ausencias son pseudo-ausencias: el inventario es incompleto (sin evento inventariado ≠ sin peligro).",
             "El inventario se concentra donde hay población y vías: la elevación puede reflejar ese sesgo de "
             "muestreo y no el peligro físico. Por eso se informa también la variante con ausencias en el mismo "
             "rango de elevación que los eventos.",
@@ -173,22 +173,27 @@ def evaluate(arr: np.ndarray, bbox, fc: dict, *, ratio: int = 3, min_dist_m: flo
     return report, X, y, pts   # el dataset exportado usa la variante con sesgo de elevación corregido
 
 
+def _d(v) -> str:
+    """Número con coma decimal (convención del proyecto en textos para personas)."""
+    return f"{float(v):.2f}".replace(".", ",")
+
+
 def _conclusion(libre: dict, ajustada: dict) -> list[str]:
     out = []
     h = libre["auc_heuristico_pendiente"]
     if h < 0.6:
-        out.append(f"El índice heurístico por pendiente NO discrimina los eventos inventariados (AUC {h}): no debe "
+        out.append(f"El índice heurístico por pendiente NO discrimina los eventos inventariados (AUC {_d(h)}): no debe "
                    "usarse como indicador de susceptibilidad en esta área.")
     e_libre, e_aj = libre["auc_solo_elevacion_baja"], ajustada["auc_solo_elevacion_baja"]
     m_libre = libre["regresion_logistica"]["espacial"]["auc_mean"]
     m_aj = ajustada["regresion_logistica"]["espacial"]["auc_mean"]
     if e_libre >= 0.7 and m_aj is not None and m_libre is not None and m_aj < m_libre - 0.05:
-        out.append(f"El buen resultado con ausencias libres (AUC espacial {m_libre}) depende sobre todo de la "
-                   f"elevación (AUC solo elevación {e_libre}); al corregir ese sesgo baja a {m_aj}: es probable que "
+        out.append(f"El buen resultado con ausencias libres (AUC espacial {_d(m_libre)}) depende sobre todo de la "
+                   f"elevación (AUC solo elevación {_d(e_libre)}); al corregir ese sesgo baja a {_d(m_aj)}: es probable que "
                    "refleje dónde se hizo el inventario más que el peligro físico.")
     if m_aj is not None and e_aj >= m_aj - 0.05:
-        out.append(f"Incluso con el sesgo corregido, el modelo (AUC {m_aj}) apenas supera a la elevación sola "
-                   f"(AUC {e_aj}): la pendiente casi no aporta información con estos datos.")
+        out.append(f"Incluso con el sesgo corregido, el modelo (AUC {_d(m_aj)}) apenas supera a la elevación sola "
+                   f"(AUC {_d(e_aj)}): la pendiente casi no aporta información con estos datos.")
     if m_aj is not None and m_aj < 0.65:
         out.append("Con pendiente y elevación no se obtiene un modelo de susceptibilidad útil: hacen falta más "
                    "variables (litología, geomorfología, lluvia, cobertura).")

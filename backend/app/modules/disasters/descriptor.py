@@ -22,7 +22,8 @@ DESCRIPTOR = ModuleDescriptor(
     possible_errors=["datos_historicos_insuficientes", "servicio_ingemmet_no_disponible", "area_demasiado_pequena"],
     limitations=[
         "No puede predecir la fecha exacta de terremotos, explosiones ni otros eventos.",
-        "Inventario INGEMMET de 2013, incompleto y concentrado donde hay población y vías (sesgo de muestreo); "
+        "Inventario INGEMMET incompleto y concentrado donde hay población y vías (sesgo de muestreo); la fecha del "
+        "evento es desconocida (FECHA parece la del estudio: 2007 en la mayoría); "
         "licencia no declarada por el servicio: uso interno de investigación autorizado por el usuario.",
         "Resultado real en Huaraz (181 movimientos en masa): la pendiente sola no discrimina (AUC 0,49); "
         "pendiente + elevación da AUC espacial ~0,74 tras corregir el sesgo de elevación, explicado casi solo "

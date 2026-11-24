@@ -161,3 +161,24 @@ def test_rare_class_is_a_clear_error_not_500(client, analyst_h):
     mid = _model(client, analyst_h, "Clase rara")
     r = _train(client, analyst_h, mid, ds, features=["a", "b"])
     assert r.status_code == 422 and "al menos 2 filas" in r.text
+
+
+def test_geospatial_dataset_cannot_be_validated_with_random_split(client, analyst_h, admin_h):
+    rng = np.random.default_rng(11)
+    n = 200
+    lat, lon, pend = -9.5 + rng.random(n) * 0.5, -77.7 + rng.random(n) * 0.5, rng.random(n) * 40
+    ev = (pend + rng.normal(0, 5, n) > 20).astype(int)
+    raw = ("latitud,longitud,pendiente_deg,evento\n" + "\n".join(
+        f"{a:.5f},{b:.5f},{c:.2f},{d}" for a, b, c, d in zip(lat, lon, pend, ev)) + "\n").encode()
+    ds = _upload(client, analyst_h, "geo.csv", raw, "false")
+    mid = _model(client, analyst_h, "Modelo geoespacial")
+    r = _train(client, analyst_h, mid, ds, target="evento", features=["latitud", "longitud", "pendiente_deg"])
+    assert r.status_code == 200, r.text
+    m = r.json()
+    met = m["metrics"]
+    assert met["geoespacial"] and met["random_split_insufficient"]
+    assert met["coordinate_features"] == ["latitud", "longitud"]
+    assert any("memorizar la ubicación" in w for w in met["warnings"])
+    v = client.post(f"/api/neurotraining/models/{mid}/validate", headers=admin_h,
+                    json=_reviewed(m, "Evaluado con 120 eventos independientes de 2024, revisado por geólogo."))
+    assert v.status_code == 422 and "geoespacial" in v.text

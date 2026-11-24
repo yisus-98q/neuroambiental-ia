@@ -104,6 +104,10 @@ def validate_model(db: Session, admin: User, model: AIModel, evidence: str, *, v
     if model.trained_with_simulated:
         raise ModelStateError("Un modelo entrenado con datos simulados nunca puede marcarse como validado.")
     m = model.metrics or {}
+    if m.get("random_split_insufficient"):
+        raise ModelStateError("El conjunto de datos es geoespacial y las métricas provienen de un corte aleatorio del "
+                              "mismo CSV: no son evidencia suficiente. Hace falta una validación espacial con prueba "
+                              "independiente (protocolo en docs/INFORME_FORTALECIMIENTO_CIENTIFICO.md).")
     if model.task == "clasificacion" and m.get("accuracy", 0) <= m.get("baseline_majority", 1):
         raise ModelStateError("El modelo no supera la línea base (predecir siempre la clase mayoritaria): "
                               "no puede validarse.")

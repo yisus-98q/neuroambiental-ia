@@ -1,0 +1,104 @@
+NEUROAMBIENTAL IA - CHECKLIST DE LO REALIZADO
+Actualizado: 24 nov. 2026
+Proyecto: D:\Proyectos\neuroambiental-ia
+Estado: 155 pruebas pasan y el frontend compila (scripts\comprobar.py)
+
+[x] = hecho      [~] = parcial      [ ] = pendiente
+
+======================================================================
+A. HERRAMIENTAS INSTALADAS EN EL EQUIPO
+======================================================================
+[x] Skills de Anthropic copiadas en ~/.claude/skills
+[x] graphify instalado (skill registrada con "python -m graphify install")
+[x] free-claude-code instalado (uv actualizado a 0.13.9)
+[x] equipo-claude.zip incorporado (3 agentes y la skill "equipo")
+[x] Avast: no usa venv; dependencias en backend\.deps con PYTHONPATH
+[x] Disco C: se borraron cachés de uv y pip (se liberaron ~6,8 GB)
+
+======================================================================
+B. FASES DEL PROYECTO
+======================================================================
+FASE 1 - Base funcional (d0f24fc)
+[x] Backend FastAPI + SQLite + migraciones Alembic
+[x] Usuarios con roles (lector / analista / admin) y registro de auditoría
+[x] NEURODATA: carga y validación de CSV, GeoJSON y rásteres
+[x] NEUROCORE: registro de módulos e intérprete de solicitudes
+[x] Frontend React + mapa MapLibre con mapa base local (sin coste)
+
+FASE 2 - Satélite real (587dae5)
+[x] Sentinel-2 L2A real (catálogo Earth Search; lee solo el recorte necesario)
+[x] NDVI con máscara de nubes; corrección automática del desfase radiométrico
+[x] Detección de cambios entre dos fechas
+[x] Zona de trabajo: Cordillera Blanca / Huaraz
+
+FASE 3 - NEURAL TRAINING ENGINE (b689129)
+[x] Entrenamiento con scikit-learn sobre datasets de NEURODATA
+[x] Reglas de validación: aprueba un admin, con evidencia, superando la referencia;
+    nadie valida su propio modelo; nunca con datos simulados
+
+FASE 4 - Visión y 3D (c7046a4)
+[x] NEUROVISION con OpenCV
+[x] NEURO 3D LAB con Three.js y DEM Copernicus GLO-30 real
+
+REVISIÓN DE CÓDIGO (450a08f, 753e922)
+[x] 13 hallazgos corregidos
+[x] Documentación de las Fases 3 y 4 y de la integración (97db759)
+
+FASE 6 - Escenarios y motor de predicción (5a645f0)
+[x] Susceptibilidad heurística (marcada como SIMULACIÓN)
+[x] Inundación demostrativa "bañera" limitada a una banda alrededor del punto
+[x] Trayectoria de flujo D8
+[x] NEURO PREDICTION: registro de resultados de 8 tipos
+
+FASE 7 - NEUROVOICE (4d4db7f, 1ff2836)
+[x] Voz con Chrome Web Speech, con consentimiento de micrófono por sesión
+[x] Explicaciones habladas de los resultados
+
+FASE 8 - Integración general (de752fd, 987d926)
+[x] Permisos revisados en toda la API
+[x] Un solo proceso pesado a la vez (candado compartido)
+[x] Carga diferida de librerías pesadas (servidor en reposo ~77 MB)
+
+FASE 9 - Módulos especializados (533e2a6, b97b359, bba7a36)
+[x] NEUROTERRAIN: sensores y series de desplazamiento (CSV), alertas experimentales
+[x] Biodiversidad: catálogo de especies y observaciones validadas por un admin
+[x] NEUROCONSTRUCTION: análisis de sitio sobre el DEM
+[x] Observaciones de biodiversidad incluidas en el catálogo de NEURO PREDICTION
+
+FASE 10 - NEURODISASTER con datos REALES (fdbb175, d35015d, 110ccb6)
+[x] Inventario INGEMMET (GEOCATMIN; fecha del evento desconocida): importación por recorte, solo del host
+    oficial; licencia "no declarada; uso interno, no redistribuir"
+[x] Validación espacial: pseudo-ausencias, prueba por bloques geográficos,
+    variante con ausencias en el mismo rango de altura, conclusiones automáticas
+[x] Resultado real en Huaraz (181 eventos):
+      - índice por pendiente: AUC 0,49 (igual al azar), NO sirve
+      - pendiente + elevación: AUC 0,74 con el sesgo de altura corregido
+      - ningún modelo de susceptibilidad queda validado
+[x] Avisos de 3D LAB y NEUROCONSTRUCTION actualizados con esta evidencia
+[x] Panel NEURODISASTER en la interfaz (verificado en el navegador)
+[x] Comando: python -m app.cli importar-ingemmet --bbox=... --validar
+[x] Datos de Huaraz importados en la base real de la aplicación
+[x] Administrador creado por el usuario
+
+======================================================================
+C. PENDIENTE
+======================================================================
+[ ] Formato decimal con coma en las conclusiones de NEURODISASTER
+[ ] Añadir NDVI (Sentinel-2) como tercera variable del modelo de susceptibilidad
+[ ] Litología y geomorfología (capas INGEMMET; revisar licencia)
+[ ] Confirmar con INGEMMET el significado de los subcódigos (1100, 1300, 1500...)
+[ ] Ampliar a todo Áncash por recortes (máx. 2,5° por lado)
+[ ] NEUROGEO, NEUROINDUSTRIAL, NEUROMINING (necesitan datos reales)
+[ ] NEUROCONSTRUCTION: capa de ríos y compatibilidad territorial
+[ ] Biodiversidad: reconocimiento de especies por foto
+[ ] NEUROTERRAIN: InSAR (Sentinel-1)
+[ ] Verificar en el navegador los demás paneles nuevos
+
+======================================================================
+D. REGLAS QUE SE CUMPLEN EN TODO EL PROYECTO
+======================================================================
+[x] Presupuesto 0 USD: solo servicios y datos públicos gratuitos
+[x] Funciona en un equipo con 4 GB de RAM
+[x] Nunca se presentan datos simulados como reales (etiquetas SIMULADO / REAL)
+[x] No se afirma que una IA esté entrenada o validada si no lo está
+[x] Se pide aprobación antes de gastos, descargas grandes o borrados

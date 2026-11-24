@@ -13,7 +13,7 @@ import hashlib
 import io
 import math
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import joblib
@@ -65,6 +65,19 @@ class Dataset:
     target: str
     dropped_rows: int
     classes: list[str] | None
+    geo_columns: list[str] = field(default_factory=list)   # columnas de coordenadas presentes en el CSV
+
+
+# Nombres habituales de columnas de coordenadas (en minúsculas, sin tildes).
+GEO_NAMES = {"lat", "latitud", "latitude", "lon", "lng", "long", "longitud", "longitude", "x", "y", "este", "norte",
+             "easting", "northing", "utm_x", "utm_y", "coord_x", "coord_y"}
+GEO_NOTE = ("El conjunto tiene coordenadas: los datos espaciales están autocorrelacionados y un corte aleatorio "
+            "sobrestima el rendimiento. Estas métricas NO sirven para validar el modelo; se necesita una "
+            "validación espacial con datos de prueba independientes (otra zona).")
+
+
+def geo_columns(headers: list[str]) -> list[str]:
+    return [h for h in headers if h.strip().lower().replace("í", "i") in GEO_NAMES]
 
 
 _THOUSANDS = re.compile(r"^-?\d{1,3}(,\d{3})+$")
@@ -123,7 +136,8 @@ def load_dataset(raw: bytes, *, target: str, features: list[str], task: str) -> 
             raise TrainingError(f"Cada clase necesita al menos 2 filas para separar entrenamiento y prueba: {rare}")
         if round(len(y) * 0.25) < len(classes):
             raise TrainingError("Hay demasiadas clases para el número de filas: la prueba no podría incluirlas todas.")
-    return Dataset(np.asarray(X, dtype="float64"), np.asarray(y), features, target, dropped, classes)
+    return Dataset(np.asarray(X, dtype="float64"), np.asarray(y), features, target, dropped, classes,
+                   geo_columns(headers))
 
 
 def train(ds: Dataset, *, task: str, algorithm: str, test_size: float = 0.25):
@@ -149,6 +163,16 @@ def _train(ds: Dataset, factory, task: str, test_size: float):
         "evaluated_on": "25 % de filas reservadas del mismo CSV (corte aleatorio; no es un conjunto independiente)",
         "warnings": [],
     }
+    if ds.geo_columns:
+        metrics["geoespacial"] = True
+        metrics["random_split_insufficient"] = True
+        metrics["warnings"].append(GEO_NOTE)
+        coord_feats = [f for f in ds.features if f in ds.geo_columns]
+        if coord_feats:
+            metrics["coordinate_features"] = coord_feats
+            metrics["warnings"].append(f"Usa coordenadas como variables ({', '.join(coord_feats)}): el modelo puede "
+                                       "memorizar la ubicación de los ejemplos en lugar de aprender del ambiente; "
+                                       "no generalizará a otras zonas.")
     if len(y_te) < SMALL_TEST_WARNING:
         metrics["warnings"].append(f"Solo {len(y_te)} filas de prueba: las métricas son muy inciertas.")
     metrics["warnings"].append("Si los datos tienen autocorrelación espacial o temporal, un corte aleatorio "

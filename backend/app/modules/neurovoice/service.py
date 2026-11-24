@@ -10,8 +10,10 @@ import re
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import AIModel, Alert, DataRecord
+from app.models import AIModel, Alert, DataRecord, Run
 from app.neurocore.registry import Interpretation, ModuleRegistry, interpret, normalize
+
+SCENARIO_TYPES = ("raster_escenario",)  # resultados hipotéticos calculados, nunca observaciones
 
 # Palabras que piden seguir con el tema anterior («explícame más», «y eso qué significa»).
 _FOLLOW_UP = {"explica", "explicame", "explicar", "mas", "detalle", "detalles", "eso", "significa", "continua", "sigue"}
@@ -50,6 +52,29 @@ def _scenario_lines(db: Session) -> list[str]:
     if ex.get("disclaimer"):
         lines.append(ex["disclaimer"])
     return lines
+
+
+def _disaster_lines(db: Session) -> list[str]:
+    run = db.scalar(select(Run).where(Run.module_key == "disasters", Run.run_type == "validacion_susceptibilidad",
+                                      Run.status == "ok").order_by(Run.started_at.desc()).limit(1))
+    if run is None or not run.result_summary:
+        return ["Aún no hay ninguna validación con eventos reales. Importe el inventario de INGEMMET y valide en "
+                "NEURODISASTER."]
+    r = run.result_summary
+    libre, aj = r.get("ausencias_libres", {}), r.get("ausencias_mismo_rango_elevacion", {})
+    lr = (aj.get("regresion_logistica") or {}).get("espacial") or {}
+    lines = [f"Última validación con eventos REALES de INGEMMET: {libre.get('n_presencias')} eventos frente a "
+             f"{libre.get('n_ausencias')} pseudo-ausencias.",
+             f"Índice heurístico de pendiente: AUC {_dec(libre.get('auc_heuristico_pendiente'))} (0,5 es azar).",
+             f"Pendiente + elevación con el sesgo de altura corregido, validación espacial: AUC {_dec(lr.get('auc_mean'))}"
+             f" ± {_dec(lr.get('auc_sd'))}."]
+    lines += list(r.get("conclusion_automatica") or [])[:3]
+    lines.append("Ningún modelo de susceptibilidad está validado: es una evaluación experimental.")
+    return lines
+
+
+def _dec(v) -> str:
+    return "—" if v is None else f"{float(v):.2f}".replace(".", ",")
 
 
 def _prediction_lines(db: Session) -> list[str]:
@@ -113,9 +138,14 @@ def build_reply(db: Session, text: str, reg: ModuleRegistry,
                      f"{unvalidated} sin validar. Ninguna es una emergencia oficial.")
     elif it.module_key == "neurodata":
         total = _count(db, select(func.count()).select_from(DataRecord))
-        sim = _count(db, select(func.count()).where(DataRecord.is_simulated.is_(True)))
-        lines.append(f"NEURODATA contiene {total} registro(s): {total - sim} real(es) y {sim} simulado(s).")
-    elif it.module_key in ("neuro3d", "terrain", "disasters"):
+        scen = _count(db, select(func.count()).where(DataRecord.data_type.in_(SCENARIO_TYPES)))
+        sim = _count(db, select(func.count()).where(DataRecord.is_simulated.is_(True),
+                                                    DataRecord.data_type.not_in(SCENARIO_TYPES)))
+        lines.append(f"NEURODATA contiene {total} registro(s): {total - sim - scen} con datos reales, {sim} de prueba "
+                     f"(simulados) y {scen} escenario(s) hipotético(s) calculados por el sistema (no son observaciones).")
+    elif it.module_key == "disasters":
+        lines += _disaster_lines(db)
+    elif it.module_key in ("neuro3d", "terrain"):
         lines += _scenario_lines(db)
     elif it.module_key == "neuroprediction":
         lines += _prediction_lines(db)

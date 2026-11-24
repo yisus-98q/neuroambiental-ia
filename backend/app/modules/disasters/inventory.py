@@ -1,4 +1,7 @@
-"""Inventario REAL de peligros geológicos: INGEMMET — GEOCATMIN «Peligros Geológicos del Perú» (feb. 2013).
+"""Inventario REAL de peligros geológicos: INGEMMET — GEOCATMIN «Peligros Geológicos del Perú».
+
+- Fecha: el título del servicio dice «Feb 2013», pero se sigue actualizando (en Huaraz hay registros de 2007
+  y de 2018–2026). FECHA parece ser la fecha del estudio o registro, NO la del evento (sin documentación oficial).
 
 - Servicio público ArcGIS REST, sin cuenta. Licencia NO declarada en el servicio (copyrightText vacío):
   el usuario autorizó su uso INTERNO de investigación, citando la fuente y sin redistribuir.
@@ -19,7 +22,8 @@ from app.neurodata.validators import validate_geojson
 
 SERVICE = "https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_PELIGROS_GEOLOGICOS/MapServer/0/query"
 ALLOWED_HOST = "geocatmin.ingemmet.gob.pe"
-SOURCE_NAME = "INGEMMET — GEOCATMIN Peligros Geológicos del Perú (feb. 2013)"
+SOURCE_NAME = "INGEMMET — GEOCATMIN Peligros Geológicos del Perú"
+DATE_NOTE = ("El título del servicio dice «Feb 2013», pero el servicio se sigue actualizando (en Huaraz hay registros de 2007 y de 2018–2026). El campo FECHA parece la fecha del estudio o del registro, no la del evento.")
 SOURCE_LICENSE = "No declarada por el servicio; uso interno de investigación autorizado por el usuario; no redistribuir"
 FIELDS = ["COD_INV", "TIP_PELIGRO", "NOM_PELIGRO", "FECHA", "NM_DPTO", "NM_PROV", "NM_DIST", "NM_SECTOR",
           "FUENTE", "AUTOR", "TIESTU_ANO"]
@@ -78,8 +82,9 @@ def import_events(db: Session, user: User | None, bbox: list[float], fetcher=fet
         source_name=SOURCE_NAME, source_license=SOURCE_LICENSE,
         title=f"Inventario INGEMMET de peligros geológicos · {len(fc['features'])} eventos",
         observed_at=None, is_simulated=False,
-        provenance=(f"Consulta por recorte {bbox} al servicio oficial {SERVICE} (GEOCATMIN, feb. 2013). "
-                    "Eventos inventariados en campo y gabinete por INGEMMET. Licencia no declarada: uso interno."),
+        provenance=(f"Consulta por recorte {bbox} al servicio oficial {SERVICE} (GEOCATMIN). "
+                    "Eventos inventariados en campo y gabinete por INGEMMET. Licencia no declarada: uso interno. "
+                    + DATE_NOTE),
         user_id=getattr(user, "id", None),
     )
     return rec
