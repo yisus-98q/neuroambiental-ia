@@ -19,6 +19,8 @@ from app.modules.environmental import raster
 M_PER_DEG_LON = 111_320.0
 M_PER_DEG_LAT = 110_574.0
 MAX_VIEWER_PX = 512
+# DEM para ANÁLISIS (pendientes a resolución casi nativa): el visor 3D lo reduce al leerlo (read_dem max_size).
+MAX_ANALYSIS_PX = 1600
 DEM_NODATA = -9999.0
 SLOPE_BINS = (0.0, 15.0, 25.0, 35.0, 90.01)
 SLOPE_LABELS = ("0-15°", "15-25°", "25-35°", ">35°")
@@ -51,13 +53,14 @@ def tiles_for_bbox(bbox) -> list[Tile]:
     return [Tile(la, lo) for la in lats for lo in lons]
 
 
-def make_dem_grid(bbox, res: float) -> raster.Grid:
+def make_dem_grid(bbox, res: float, analysis: bool = False) -> raster.Grid:
     try:
         grid = raster.make_grid(bbox, res)
     except raster.GridError as exc:
         raise DemError(str(exc)) from exc
-    if grid.width > MAX_VIEWER_PX or grid.height > MAX_VIEWER_PX:
-        raise DemError(f"La malla resultante ({grid.width}x{grid.height} px) supera {MAX_VIEWER_PX}x{MAX_VIEWER_PX}: "
+    limit = MAX_ANALYSIS_PX if analysis else MAX_VIEWER_PX
+    if grid.width > limit or grid.height > limit:
+        raise DemError(f"La malla resultante ({grid.width}x{grid.height} px) supera {limit}x{limit}: "
                        "reduzca el área o use una resolución más gruesa.")
     return grid
 

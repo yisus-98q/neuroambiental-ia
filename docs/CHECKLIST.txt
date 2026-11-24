@@ -90,7 +90,7 @@ AUDITORÍA CIENTÍFICA (24 nov. 2026)
 [x] P1.2 Zona de exclusión de 500 m entre bloques y 5 sorteos de pseudo-ausencias
 [x] P1.3 PR-AUC, Brier, matriz de confusión, precisión/recall/F1, IC 95 % por bloques
 [ ] P1.2 Variograma para el tamaño de bloque y máscara de hielo/agua
-[ ] P1.4 DEM a 30 m (necesita autorización A2)
+[x] P1.4 DEM a ≈35 m descargado (A2); mismas conclusiones que a 110 m
 [ ] P2 Scientific Validation Engine (necesita autorización A6)
 
 ======================================================================

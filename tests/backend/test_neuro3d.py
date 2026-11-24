@@ -192,3 +192,16 @@ def test_descriptor_honest():
     assert caps == {"terreno_dem": True, "visor_threejs": True, "capas_3d": True, "capas_ndvi_cambios": True,
                     "escenarios_simplificados": True, "comparador_escenarios": True}
     assert DESCRIPTOR.version == "0.1.0" and DESCRIPTOR.api_prefix == "/api/neuro3d"
+
+
+def test_analysis_dem_allows_near_native_resolution_but_viewer_does_not():
+    import pytest as _pytest
+
+    from app.modules.neuro3d import dem as demlib
+    bbox = [-77.75, -9.78, -77.25, -9.28]
+    with _pytest.raises(demlib.DemError):
+        demlib.make_dem_grid(bbox, 0.0003125)                     # visor: máx. 512 px
+    g = demlib.make_dem_grid(bbox, 0.0003125, analysis=True)      # análisis: hasta 1600 px (≈35 m)
+    assert (g.width, g.height) == (1600, 1600)
+    with _pytest.raises(demlib.DemError):
+        demlib.make_dem_grid(bbox, 0.000278, analysis=True)       # 1 arcsec sobre 0,5° = 1800 px: demasiado

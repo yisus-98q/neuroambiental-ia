@@ -123,6 +123,27 @@ def import_ingemmet(bbox_text: str, res: float, dem_id: str | None, validate: bo
     return 0
 
 
+def download_dem(bbox_text: str, res: float) -> int:
+    """Descarga un DEM GLO-30 para ANÁLISIS (hasta 1600 px por lado) como acción del sistema."""
+    from app.database.session import SessionLocal
+    from app.modules.neuro3d import dem as demlib
+    from app.modules.neuro3d import service as neuro3d
+
+    bbox = [float(v) for v in bbox_text.split(",")]
+    if len(bbox) != 4:
+        print("bbox inválido: minLon,minLat,maxLon,maxLat.")
+        return 2
+    with SessionLocal() as db:
+        try:
+            rec = neuro3d.fetch_dem(db, None, bbox=bbox, res=res, analysis=True)
+        except demlib.DemError as exc:
+            print(f"No se pudo: {exc}")
+            return 2
+        g = rec.extra["grid"]
+        print(f"DEM: {rec.id} · {g['width']}x{g['height']} px a {g['res']}° · {rec.extra['elevation']}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m app.cli")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -137,6 +158,9 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--validar", action="store_true", help="Descarga/usa un DEM y valida la susceptibilidad")
     g.add_argument("--dem-id", default=None, help="DEM ya registrado (si no, se descarga)")
     g.add_argument("--res", type=float, default=0.001, help="Resolución del DEM en grados")
+    d = sub.add_parser("descargar-dem", help="Descarga un DEM GLO-30 para análisis (hasta 1600 px por lado)")
+    d.add_argument("--bbox", required=True, help="minLon,minLat,maxLon,maxLat")
+    d.add_argument("--res", type=float, default=0.0003125, help="Resolución en grados (≈35 m por defecto)")
     args = parser.parse_args(argv)
     if args.cmd == "migrate":
         migrate()
@@ -144,6 +168,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.cmd == "create-admin":
         return create_admin(args.username, args.password)
+    if args.cmd == "descargar-dem":
+        return download_dem(args.bbox, args.res)
     if args.cmd == "importar-ingemmet":
         return import_ingemmet(args.bbox, args.res, args.dem_id, args.validar)
     return load_samples(args.username)

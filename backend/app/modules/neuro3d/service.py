@@ -95,8 +95,8 @@ def _finish_run(db: Session, run: Run, status: str, summary: dict) -> None:
     db.commit()
 
 
-def fetch_dem(db: Session, user: User | None, *, bbox: list[float], res: float) -> DataRecord:
-    grid = demlib.make_dem_grid(bbox, res)  # valida antes de tocar la red
+def fetch_dem(db: Session, user: User | None, *, bbox: list[float], res: float, analysis: bool = False) -> DataRecord:
+    grid = demlib.make_dem_grid(bbox, res, analysis)  # valida antes de tocar la red
     tiles = demlib.tiles_for_bbox(grid.bbox)
     with _exclusive():
         run = _start_run(db, "dem", {"bbox": list(grid.bbox), "res": res, "tiles": [t.name for t in tiles]})
@@ -133,7 +133,7 @@ def fetch_dem(db: Session, user: User | None, *, bbox: list[float], res: float) 
                 provenance=(f"Teselas {', '.join(used)} leídas por rangos HTTP y remuestreadas (promedio) a una "
                             f"malla EPSG:4326 de {grid.res}° ({grid.width}x{grid.height} px). {ATTRIBUTION}."),
                 is_simulated=False, file_path=rel.as_posix(), file_size=tif.stat().st_size, sha256=_sha256(tif),
-                extra={"kind": "dem", "elevation": stats, "slope_stats": slopes, "tiles": used,
+                extra={"kind": "dem", "analysis": analysis, "elevation": stats, "slope_stats": slopes, "tiles": used,
                        "grid": {"bbox": list(grid.bbox), "res": grid.res, "width": grid.width,
                                 "height": grid.height},
                        "download": dict(opener.stats), "attribution": ATTRIBUTION},

@@ -290,7 +290,7 @@ La memoria indicada es el pico estimado [I] durante la ejecución. El coste es 0
 | **P1.1** ✅ | Validación por tipo de proceso (n ≥ 30) | `disasters/validation.py`, API y panel | P0 | < 300 MB | Pocos eventos por tipo, con intervalos amplios | Pruebas sintéticas por tipo | Informe separado para 1100, 1300 y 1500 |
 | **P1.2** ✅ (falta el variograma y la máscara) | Zona de exclusión entre bloques, variograma para el tamaño de bloque, 10 semillas de ausencias, máscara de dominio (hielo y agua) | `validation.py` | scipy (ya instalado) | < 300 MB | Máscara de hielo imperfecta | Prueba de que no hay puntos de prueba dentro de la zona de exclusión | Media ± desviación de las semillas en el informe |
 | **P1.3** ✅ | Métricas completas: PR-AUC, Brier, curva de fiabilidad, matriz y FP/FN con umbral fijado en validación, bootstrap por bloques | `validation.py` | — | < 200 MB | — | Prueba de valores conocidos | Tabla completa en el informe |
-| **P1.4** | DEM a resolución nativa (≈30 m) | Uso de `fetch_dem` con res 0,000278° | — | ≈ 1800² × 4 B ≈ 13 MB por banda; < 400 MB en total | Descarga ≈10–20 MB **(autorización)** | — | Pendiente y curvatura a 30 m |
+| **P1.4** ✅ (≈35 m) | DEM a resolución nativa (≈30 m) | Uso de `fetch_dem` con res 0,000278° | — | ≈ 1800² × 4 B ≈ 13 MB por banda; < 400 MB en total | Descarga ≈10–20 MB **(autorización)** | — | Pendiente y curvatura a 30 m |
 | **P2** | Scientific Validation Engine (tablas, servicio, API mínima, estados) | `modules/validation/*`, migración, `neurotraining/service.py` | P0.3 | < 100 MB | Migración de esquema (con copia previa de la base) | Pruebas de transiciones, prueba sellada y doble aprobación | No se puede validar sin criterios previos y prueba independiente |
 | **P3.1** | Variables derivadas del DEM: curvatura, TPI, distancia a drenaje (D8) | `neuro3d/dem.py`, `validation.py` | P1.4 | < 400 MB | Umbral de cauce | Pruebas sobre un DEM sintético | Variables documentadas y justificadas |
 | P3.2 | NDVI: compuesto de época seca, anillo, % válido y prueba con y sin | `environmental/*`, `validation.py` | P1 | < 500 MB | Fuga temporal (§6.3); descarga ≈20–50 MB **(autorización)** | Prueba del filtro de cobertura | La limitación temporal se declara en el informe |
@@ -323,6 +323,19 @@ Lectura:
 - **Flujos:** la pendiente en el punto es engañosa. Para ellos hará falta la distancia a drenaje y la acumulación de flujo (P3.1).
 - **Todos los grupos:** el límite inferior del IC queda en 0,43–0,54, así que la evidencia es débil. **Ningún modelo cumple los criterios de §6.1.** Los grupos 1600 (17) y 1700 (8) se omiten por pocos eventos.
 - **Optimización:** el AUC del bootstrap se calcula por rangos (Mann-Whitney), con resultado idéntico a `roc_auc_score`. El bosque aleatorio se evalúa con el primer sorteo y la variación entre sorteos se mide con el modelo lineal. Así el protocolo completo tarda ≈40 s en el equipo de 4 GB.
+
+**P1.4: DEM a ≈35 m (24 nov. 2026, autorización A2).**
+- El modo «análisis» de `fetch_dem` admite hasta 1600 px por lado; el visor 3D sigue limitado a 512. Comando: `python -m app.cli descargar-dem --bbox=...`. Para 0,5° la resolución resultante es 0,0003125° (≈35 m), porque 1 segundo de arco exigiría 1800 px.
+- Resultados con la franja de altura, al pasar de 110 m a 35 m:
+
+| Grupo | AUC pendiente sola | Regresión logística |
+|---|---|---|
+| Todos | 0,54 → 0,56 | 0,74 → 0,76 |
+| 1100 | 0,75 → 0,73 | 0,71 → 0,68 |
+| 1300 | 0,62 → 0,58 | 0,72 → 0,70 |
+| 1500 | 0,40 → 0,42 | 0,70 → 0,73 |
+
+- **Las conclusiones no dependen de la resolución.** Las pendientes medianas de los eventos suben (en 1100, de 26,7° a 29,3°), pero la capacidad de discriminar no mejora.
 
 ### 8.1 Diseño InSAR (Tarea 5)
 
