@@ -216,6 +216,8 @@ class AIModelOut(BaseModel):
 class ChatIn(BaseModel):
     message: str = Field(min_length=1, max_length=2000)
     conversation_id: str | None = None
+    # Módulo que el usuario está viendo (contexto de la pantalla); solo se usa si existe en NEUROCORE.
+    context_module: str | None = Field(default=None, max_length=32, pattern="^[a-z0-9_]+$")
 
 
 class ChatOut(BaseModel):

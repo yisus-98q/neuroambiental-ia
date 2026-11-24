@@ -73,3 +73,13 @@ def test_disasters_answer_explains_the_real_validation(client, analyst_h):
     assert r["module_key"] == "disasters"
     assert "AUC 0,49" in r["reply"] and "AUC 0,74" in r["reply"] and "NO discrimina" in r["reply"]
     assert "Ningún modelo de susceptibilidad está validado" in r["reply"]
+
+
+def test_screen_context_resolves_ambiguous_follow_up(client, analyst_h):
+    r = client.post("/api/neurovoice/chat", headers=analyst_h,
+                    json={"message": "explícame esto", "context_module": "disasters"}).json()
+    assert r["intent"] == "seguimiento" and r["module_key"] == "disasters"
+    # Un módulo inexistente se ignora (no se inventa contexto).
+    r = client.post("/api/neurovoice/chat", headers=analyst_h,
+                    json={"message": "explícame esto", "context_module": "noexiste"}).json()
+    assert r["intent"] == "desconocida"

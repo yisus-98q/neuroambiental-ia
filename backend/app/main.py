@@ -95,7 +95,9 @@ def _mount_frontend(app: FastAPI) -> None:
         candidate = (dist / full_path).resolve()
         if full_path and candidate.is_file() and dist.resolve() in candidate.parents:
             return FileResponse(candidate)
-        return FileResponse(index)
+        # index.html nunca en caché: tras actualizar, el navegador carga siempre los archivos nuevos
+        # (los de /assets llevan huella en el nombre y sí pueden guardarse en caché).
+        return FileResponse(index, headers={"Cache-Control": "no-cache, must-revalidate"})
 
 
 app = create_app()

@@ -34,6 +34,8 @@ def chat(body: ChatIn, user: User = Depends(get_current_user), db: Session = Dep
     # Memoria de sesión: el módulo de la última respuesta permite preguntas de seguimiento («explícame más»).
     last = next((m.meta.get("module_key") for m in reversed(conv.messages or [])
                  if m.role == "asistente" and m.meta), None) if body.conversation_id else None
+    if not last and body.context_module and registry.get(body.context_module):
+        last = body.context_module   # contexto de la pantalla actual (p. ej. «explícame esto» en NEURODISASTER)
     reply, it = build_reply(db, body.message, registry, last_module=last)
     db.add(ConversationMessage(conversation_id=conv.id, role="usuario", content=body.message))
     db.add(ConversationMessage(conversation_id=conv.id, role="asistente", content=reply,

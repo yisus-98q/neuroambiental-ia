@@ -71,3 +71,11 @@ def test_territory_geometry_validated(client, analyst_h):
     assert client.post("/api/territories", json=ok, headers=analyst_h).status_code == 201
     bad = {"name": "Mala", "geometry": {"type": "Point", "coordinates": [-777, -9]}}
     assert client.post("/api/territories", json=bad, headers=analyst_h).status_code == 422
+
+
+def test_neurocore_overview_is_verifiable(client, reader_h):
+    o = client.get("/api/neurocore/overview", headers=reader_h).json()
+    assert o["modulos"]["total"] == 16 and sum(o["modulos"]["por_estado"].values()) == 16
+    assert "validados" in o["modelos"] and "experimentos" in o["validacion_cientifica"]
+    assert o["recursos"]["perfil"]["name"] in ("ligero", "estandar", "potente")
+    assert isinstance(o["actividad_reciente"], list) and "registrado" in o["nota"]

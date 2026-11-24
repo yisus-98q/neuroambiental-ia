@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { StatusBadge } from "../components/Badges";
+import { CoreOverview } from "../components/CoreOverview";
 import { ErrorText, Loading } from "../components/Notice";
 import { canWrite, fmtDate, post, session } from "../services/api";
 import type { ModuleInfo, ReportItem, User } from "../services/types";
@@ -31,6 +32,7 @@ export function NeurocorePage() {
         <p className="muted">{info.data?.description}</p>
         <p className="small">Módulos registrados: <strong>{info.data?.modules_registered}</strong> · Intérprete: <code>{info.data?.interpreter}</code></p>
       </div>
+      <CoreOverview />
       <div className="card">
         <h2>Registro de módulos</h2>
         {mods.loading && <Loading />}

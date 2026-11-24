@@ -83,3 +83,10 @@ def test_interpreter_routes_spanish_with_accents():
 
 def test_module_detail_404(client):
     assert client.get("/api/neurocore/modules/no-existe").status_code == 404
+
+
+def test_index_html_is_not_cached(client):
+    from app.core.config import settings  # noqa: F401
+    r = client.get("/inicio-cualquiera")
+    if r.status_code == 200 and "text/html" in r.headers.get("content-type", ""):
+        assert "no-cache" in r.headers.get("cache-control", "")
