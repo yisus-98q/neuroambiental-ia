@@ -55,6 +55,16 @@ def create_app() -> FastAPI:
         response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
         return response
 
+    from app.core import jobs as _jobs
+
+    @app.exception_handler(_jobs.InsufficientMemory)
+    async def _no_memory(request, exc):  # noqa: ANN001
+        return JSONResponse(status_code=503, content={"detail": str(exc)})
+
+    @app.exception_handler(_jobs.Cancelled)
+    async def _cancelled(request, exc):  # noqa: ANN001
+        return JSONResponse(status_code=409, content={"detail": str(exc)})
+
     @app.exception_handler(Exception)
     async def unhandled(request: Request, exc: Exception):  # pragma: no cover - red de seguridad
         log.exception("Error no controlado en %s", request.url.path)

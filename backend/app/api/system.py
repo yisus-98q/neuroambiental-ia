@@ -5,7 +5,8 @@ from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.security import get_current_user
+from app.core import hardware, jobs
+from app.core.security import get_current_user, require_role
 from app.database.session import get_db
 from app.models import Alert, AuditLog, DataRecord, Report, Source, User
 from app.neurocore.registry import registry
@@ -54,3 +55,16 @@ def dashboard(_: User = Depends(get_current_user), db: Session = Depends(get_db)
         "modules": [{"key": m["key"], "name": m["name"], "status": m["status"]} for m in modules],
         "processing": {"queued_jobs": 0, "note": "Fase 1: no existen procesos en segundo plano."},
     }
+
+
+@router.get("/system/resources")
+def resources(_: User = Depends(get_current_user)) -> dict:
+    """Perfil de ejecución detectado, memoria y trabajo pesado en curso (Fase 8)."""
+    return {**hardware.snapshot(), "trabajo_en_curso": jobs.current()}
+
+
+@router.post("/system/jobs/cancel")
+def cancel_job(_: User = Depends(require_role("analista"))) -> dict:
+    ok = jobs.request_cancel()
+    return {"cancelacion_pedida": ok,
+            "detalle": "Se cancelará en el próximo punto de control." if ok else "No hay ningún trabajo en curso."}

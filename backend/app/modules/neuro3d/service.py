@@ -98,7 +98,7 @@ def _finish_run(db: Session, run: Run, status: str, summary: dict) -> None:
 def fetch_dem(db: Session, user: User | None, *, bbox: list[float], res: float, analysis: bool = False) -> DataRecord:
     grid = demlib.make_dem_grid(bbox, res, analysis)  # valida antes de tocar la red
     tiles = demlib.tiles_for_bbox(grid.bbox)
-    with _exclusive():
+    with _exclusive("dem", 60 + grid.width * grid.height * 4 * 6 / 1e6):
         run = _start_run(db, "dem", {"bbox": list(grid.bbox), "res": res, "tiles": [t.name for t in tiles]})
         tif: Path | None = None
         try:

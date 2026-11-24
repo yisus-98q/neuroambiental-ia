@@ -29,12 +29,14 @@ from sklearn.model_selection import GroupKFold, StratifiedKFold
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
+from app.core import hardware, jobs
 from app.modules.disasters import geology, protocol, terrain_vars
 from app.modules.neuro3d import dem as demlib
 
 MASS_MOVEMENT_KEYWORDS = ("desliz", "derrumbe", "caida", "caída", "huayco", "huaico", "flujo", "avalancha",
                           "reptac", "movimiento", "vuelco", "alud")
 HEURISTIC_SATURATION_DEG = 45.0
+_PROF = hardware.detect_profile()
 MIN_EVENTS = 20
 CODE_NOTE = ("Interpretación NO confirmada por INGEMMET (pendiente su diccionario oficial); el patrón de pendientes "
              "es coherente con 1100 = caídas, 1300 = deslizamientos, 1500 = flujos/huaycos.")
@@ -125,8 +127,9 @@ def _models(seed: int, n_topo: int = 2, geo: bool = False) -> dict:
     out = {
         "regresion_logistica": (lr, list(range(n_topo))),
         "regresion_logistica_base": (lr, [0, 1]),
-        "bosque_aleatorio": (lambda: RandomForestClassifier(n_estimators=100, max_depth=6, min_samples_leaf=5,
-                                                            n_jobs=1, random_state=seed), None),
+        "bosque_aleatorio": (lambda: RandomForestClassifier(n_estimators=_PROF.rf_trees, max_depth=6,
+                                                            min_samples_leaf=5, n_jobs=_PROF.n_jobs,
+                                                            random_state=seed), None),
     }
     if geo:
         out["regresion_logistica_geo"] = (lr, None)
@@ -154,6 +157,7 @@ def _variant(arr, bbox, stack, presences, xy_scale, *, ratio, min_dist_m, blocks
     seeds_auc: dict[str, list[float]] = {k: [] for k in _models(seed, n_topo, geo)}
     first = None
     for s in range(n_seeds):
+        jobs.check_cancel()
         pts, y = build_points(arr, bbox, presences, ratio, min_dist_m, seed + s, elevation_range)
         names = list(stack)
         X = np.column_stack([stack[n][pts[:, 0], pts[:, 1]] for n in names]).astype("float64")
@@ -239,10 +243,14 @@ def evaluate(arr: np.ndarray, bbox, fc: dict, *, ratio: int = 3, min_dist_m: flo
              only_mass_movement: bool = True,
              categorical: dict | None = None) -> tuple[dict, np.ndarray, np.ndarray, np.ndarray]:
     """`categorical`: {capa: (índice de clase por celda, nombres)} rasterizado a la malla del DEM."""
+    global _PROF
+    _PROF = hardware.detect_profile()
+    n_seeds = max(1, min(n_seeds, _PROF.validation_seeds_max))
     presences, skipped = event_cells(fc, arr, bbox, only_mass_movement)
     if len(presences) < MIN_EVENTS:
         raise ValidationError(f"Muy pocos eventos útiles dentro del DEM ({len(presences)}; mínimo {MIN_EVENTS}).")
     stack = terrain_vars.compute(arr, bbox)
+    jobs.check_cancel()
     dxs, dy = demlib._spacing(bbox, arr)
     xy_scale = (float(np.mean(dxs)), float(dy))
     vario = protocol.variogram_range(stack, xy_scale, seed)

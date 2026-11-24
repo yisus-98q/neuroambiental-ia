@@ -15,6 +15,15 @@ from app.neurodata.validators import validate_csv
 from app.core.config import settings
 
 
+def rec_res_snapshot(r: dict) -> dict:
+    """Recursos medidos hasta ahora (el bloque `resources()` aún no terminó)."""
+    import time as _t
+
+    from app.core import hardware
+    return {"pico_proceso_mb": round(hardware.process_peak_bytes() / 2**20, 1),
+            "perfil": hardware.detect_profile().name, "medido_en": round(_t.time(), 0)}
+
+
 class NotFound(Exception):
     pass
 
@@ -76,7 +85,11 @@ def validate(db: Session, user: User | None, *, dem_id: str, inventory_id: str, 
         if not (g.extra or {}).get("geology"):
             raise validation.ValidationError("El GeoJSON indicado no es una capa geológica importada.")
         geo_recs.append(g)
-    with jobs.exclusive():
+    # Estimación medida: ≈164 MB de pico para 1600x1600 celdas (variables del terreno) + modelos.
+    g = (dem_rec.extra or {}).get("grid") or {}
+    cells = int(g["width"]) * int(g["height"]) if g else max(int(dem_rec.file_size or 0) // 4, 10_000)
+    estimate_mb = 100 + cells * 60 / 1e6 * (1.3 if geology_ids else 1.0)
+    with jobs.exclusive("validacion_susceptibilidad", estimate_mb), jobs.resources() as rec_res:
         run = _start(db, "validacion_susceptibilidad", params)
         try:
             arr, bbox = demlib.read_dem(absolute_path(dem_rec))
@@ -103,7 +116,8 @@ def validate(db: Session, user: User | None, *, dem_id: str, inventory_id: str, 
                                         "Columna objetivo: evento (1/0)."),
                             user_id=getattr(user, "id", None))
             report.update({"dataset_record_id": ds.id, "dem_id": dem_id, "inventory_id": inventory_id,
-                           "simulado": simulated})
+                           "simulado": simulated, "recursos": {**rec_res_snapshot(rec_res), "estimacion_mb":
+                                                               round(estimate_mb)}})
             audit(db, "validar_susceptibilidad", user_id=getattr(user, "id", None), target_type="run", target_id=run.id,
                   details={"auc_heuristico": report["ausencias_libres"]["auc_heuristico_pendiente"]}, commit=False)
             run.status, run.finished_at, run.result_summary = "ok", utcnow(), report
