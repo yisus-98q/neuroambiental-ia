@@ -58,6 +58,11 @@ Estado de uso: la API escribe en `users`, `user_sessions`, `audit_logs`, `source
 1. `79e40e3a19e0_esquema_inicial`: 20 tablas y roles semilla.
 2. `efe6f2f7b71a_fase_3_entrenamiento_de_modelos` (depende de la anterior): agrega las columnas nuevas de `ai_models` (modo batch de SQLite) con valores por defecto que cubren los modelos ya registrados. Tiene `downgrade`.
 3. `f9ca7def1c5e_biodiversidad` (depende de la anterior): crea las tablas `species` y `observations` con sus claves foráneas, índices y la restricción `cantidad >= 1`.
+4. `b3d8e2a41c07_motor_de_validacion_cientifica` (depende de la anterior): **solo añade** tres tablas.
+   - `sv_experiments`: pregunta, protocolo, criterios, región de prueba, `protocol_sha256` y estado.
+   - `sv_evaluations`: partición `cv` o `test`, ejecución, modelo, métricas copiadas de la ejecución, resultado de los criterios y SHA del protocolo.
+   - `sv_approvals`: decisión de un revisor por evaluación (restricción única evaluación + revisor).
+   - En la base real se aplicó el 24 nov. 2026, después de una copia en `data/backups/` (excluida de git).
 
 Artefactos de modelos: `data/uploads/models/<id_modelo>/v<versión>.joblib`; `ai_models.artifact_path` es relativo a la carpeta de cargas y `artifact_sha256` guarda su hash.
 

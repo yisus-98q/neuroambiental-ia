@@ -107,7 +107,7 @@ def validate_model(db: Session, admin: User, model: AIModel, evidence: str, *, v
     if m.get("random_split_insufficient"):
         raise ModelStateError("El conjunto de datos es geoespacial y las métricas provienen de un corte aleatorio del "
                               "mismo CSV: no son evidencia suficiente. Hace falta una validación espacial con prueba "
-                              "independiente (protocolo en docs/INFORME_FORTALECIMIENTO_CIENTIFICO.md).")
+                              "independiente: use el SCIENTIFIC VALIDATION ENGINE (/api/validation), que exige criterios previos, una región de prueba sellada y doble aprobación.")
     if model.task == "clasificacion" and m.get("accuracy", 0) <= m.get("baseline_majority", 1):
         raise ModelStateError("El modelo no supera la línea base (predecir siempre la clase mayoritaria): "
                               "no puede validarse.")

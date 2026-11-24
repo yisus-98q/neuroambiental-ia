@@ -173,6 +173,26 @@ Análisis preliminar de sitio sobre un DEM ya obtenido. **No reemplaza evaluacio
 | POST | `/api/construction/site-analysis` | analista | `dem_id` y **un** punto (`point`: `lon`, `lat`) **o** un polígono GeoJSON (máx. ~200 KB), `buffer_m` (0 a 5000; 500 por defecto), `flood` opcional (`lon`, `lat`, `rise_m` 0,5 a 50) y `name`. Devuelve elevación, pendiente, entorno, susceptibilidad heurística (solo pendiente), inundación demostrativa si se pide y observaciones por reglas fijas. 201; 409 si hay otro proceso pesado; 422 si el sitio cae fuera del DEM. |
 | GET | `/api/construction/analyses` | lector | Análisis guardados (con `notice`). |
 
+## NEURODISASTER (`/api/disasters`)
+
+| Método | Ruta | Rol | Descripción |
+|---|---|---|---|
+| POST | `/api/disasters/inventory/import` | analista | Inventario INGEMMET por recorte (`bbox`, máx. 2,5° por lado). Uso interno. |
+| POST | `/api/disasters/geology/import` | analista | `capa` (`litologia` o `geomorfologia`) y `bbox`. Uso interno, sin licencia abierta. |
+| GET | `/api/disasters/inventories`, `/api/disasters/geology`, `/api/disasters/runs` | lector | Inventarios, capas geológicas y ejecuciones. |
+| POST | `/api/disasters/susceptibility/validate` | analista | `dem_id`, `inventory_id`, `geology_ids` (máx. 2), `blocks` (0 = automático por variograma), `n_seeds`, `buffer_m`, `ratio`, `min_dist_m`, `seed`. Validación espacial por proceso. ≈1–2 min. |
+
+## SCIENTIFIC VALIDATION ENGINE (`/api/validation`)
+
+| Método | Ruta | Rol | Descripción |
+|---|---|---|---|
+| GET | `/api/validation/experiments` | lector | Experimentos con su `estado_cientifico`. |
+| POST | `/api/validation/experiments` | analista | Crea el experimento y **congela** su protocolo, sus criterios (`auc_min`, `ic95_inf_min`, `mejora_min`, `referencia`) y su región de prueba (SHA-256). No hay edición. |
+| GET | `/api/validation/experiments/{id}` | lector | Detalle con evaluaciones y decisiones. |
+| POST | `/api/validation/experiments/{id}/evaluations` | analista | `run_id`, `model_ref` («grupo/modelo») y `partition` (`cv` o `test`). Las métricas se leen de la ejecución; rechaza fuga geográfica y una segunda prueba (sellada). |
+| POST | `/api/validation/experiments/{id}/decisions` | admin | Aprobar o rechazar una evaluación `test` que cumple los criterios, con justificación (≥ 20 caracteres). Prohibido para los autores. |
+| POST | `/api/validation/experiments/{id}/retire` | admin | Retira el experimento. |
+
 ## NEUROTRAINING
 
 | Método | Ruta | Rol | Descripción |

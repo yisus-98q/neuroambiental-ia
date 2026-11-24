@@ -27,7 +27,9 @@ def test_eight_specialized_modules_plus_core_systems(client):
     assert {"environmental", "mining", "biodiversity", "terrain", "disasters", "construction", "alerts",
             "neurovoice", "neurodata", "neurotraining",
             # Arquitectura de integración avanzada (contratos, en desarrollo salvo lo implementado)
-            "neurogeo", "neurovision", "neuroindustrial", "neuro3d", "neuroprediction"} == keys
+            "neurogeo", "neurovision", "neuroindustrial", "neuro3d", "neuroprediction",
+            # Fortalecimiento científico
+            "validation"} == keys
 
 
 def test_new_modules_are_contracts_only():

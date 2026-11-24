@@ -14,6 +14,7 @@ from app.models.operations import (
     Run,
 )
 from app.models.territory import Coordinate, Source, Territory
+from app.models.validation import Approval, Evaluation, Experiment  # noqa: F401
 
 __all__ = [
     "AIModel", "Alert", "AlertFollowup", "AuditLog", "Conversation", "ConversationMessage",

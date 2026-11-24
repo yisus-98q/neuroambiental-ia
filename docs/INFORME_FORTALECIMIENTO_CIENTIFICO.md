@@ -291,7 +291,7 @@ La memoria indicada es el pico estimado [I] durante la ejecución. El coste es 0
 | **P1.2** ✅ (falta la máscara de hielo y agua) | Zona de exclusión entre bloques, variograma para el tamaño de bloque, 10 semillas de ausencias, máscara de dominio (hielo y agua) | `validation.py` | scipy (ya instalado) | < 300 MB | Máscara de hielo imperfecta | Prueba de que no hay puntos de prueba dentro de la zona de exclusión | Media ± desviación de las semillas en el informe |
 | **P1.3** ✅ | Métricas completas: PR-AUC, Brier, curva de fiabilidad, matriz y FP/FN con umbral fijado en validación, bootstrap por bloques | `validation.py` | — | < 200 MB | — | Prueba de valores conocidos | Tabla completa en el informe |
 | **P1.4** ✅ (≈35 m) | DEM a resolución nativa (≈30 m) | Uso de `fetch_dem` con res 0,000278° | — | ≈ 1800² × 4 B ≈ 13 MB por banda; < 400 MB en total | Descarga ≈10–20 MB **(autorización)** | — | Pendiente y curvatura a 30 m |
-| **P2** | Scientific Validation Engine (tablas, servicio, API mínima, estados) | `modules/validation/*`, migración, `neurotraining/service.py` | P0.3 | < 100 MB | Migración de esquema (con copia previa de la base) | Pruebas de transiciones, prueba sellada y doble aprobación | No se puede validar sin criterios previos y prueba independiente |
+| **P2** ✅ (mínimo) | Scientific Validation Engine (tablas, servicio, API mínima, estados) | `modules/validation/*`, migración, `neurotraining/service.py` | P0.3 | < 100 MB | Migración de esquema (con copia previa de la base) | Pruebas de transiciones, prueba sellada y doble aprobación | No se puede validar sin criterios previos y prueba independiente |
 | **P3.1** ✅ | Variables derivadas del DEM: curvatura, TPI, distancia a drenaje (D8) | `neuro3d/dem.py`, `validation.py` | P1.4 | < 400 MB | Umbral de cauce | Pruebas sobre un DEM sintético | Variables documentadas y justificadas |
 | P3.2 | NDVI: compuesto de época seca, anillo, % válido y prueba con y sin | `environmental/*`, `validation.py` | P1 | < 500 MB | Fuga temporal (§6.3); descarga ≈20–50 MB **(autorización)** | Prueba del filtro de cobertura | La limitación temporal se declara en el informe |
 | P3.3 ✅ | Litología y geomorfología (consulta por recorte, uso interno) | `disasters/geology.py` (nuevo) | **Autorización de licencia** | < 200 MB | Licencia; códigos sin diccionario | Prueba con fetcher falso | Clases solo según la documentación oficial |
@@ -387,6 +387,19 @@ Razón de frecuencia descriptiva (con todos los eventos): los flujos son 3,8 vec
 - **Circularidad:** «Sedimento» puede contener los depósitos de huaycos anteriores. La geomorfología incluye unidades como abanicos y vertientes coluviales que se cartografían a partir de esos mismos depósitos.
 - **Por eso, la mejora en flujos no prueba capacidad predictiva independiente** y ningún modelo se valida.
 - La geomorfología añade poco y es la más expuesta a la circularidad. **No se recomienda usarla como variable**, solo como comparación.
+
+**P2: Scientific Validation Engine (24 nov. 2026, autorización A6).**
+- **Base de datos:** migración `b3d8e2a41c07`, que solo añade tablas, aplicada tras copiar la base a `data/backups/`. Módulo `validation` registrado en NEUROCORE (16 módulos), API `/api/validation` y panel.
+- **Implementado:**
+  - criterios congelados por SHA-256;
+  - métricas leídas de la ejecución, no escritas a mano;
+  - control de fuga geográfica: una evaluación `cv` no puede usar un DEM que toque la región de prueba, y una `test` debe estar dentro de ella;
+  - prueba sellada: una sola evaluación `test` por protocolo;
+  - doble aprobación de administradores distintos de los autores; cualquier rechazo revoca el estado;
+  - los datos simulados nunca cumplen los criterios.
+- **NEURAL TRAINING** remite al motor cuando el dataset tiene coordenadas.
+- **Pendiente:** versionado formal de datasets y divisiones; vínculo con los artefactos `.joblib`.
+- **Estado real:** ningún experimento puede validarse todavía, porque no hay una región de prueba independiente evaluada (P5).
 
 ### 8.1 Diseño InSAR (Tarea 5)
 

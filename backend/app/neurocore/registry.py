@@ -19,6 +19,7 @@ from app.modules.neurovision.descriptor import DESCRIPTOR as NEUROVISION
 from app.modules.neurotraining.descriptor import DESCRIPTOR as NEUROTRAINING
 from app.modules.neurovoice.descriptor import DESCRIPTOR as NEUROVOICE
 from app.modules.terrain.descriptor import DESCRIPTOR as TERRAIN
+from app.modules.validation.descriptor import DESCRIPTOR as VALIDATION
 from app.neurocore.base import ModuleDescriptor
 from app.neurodata.descriptor import DESCRIPTOR as NEURODATA
 
@@ -47,7 +48,8 @@ def build_registry() -> ModuleRegistry:
     Esto impide dependencias circulares por construcción."""
     reg = ModuleRegistry()
     for d in (NEURODATA, ALERTS, ENVIRONMENTAL, TERRAIN, BIODIVERSITY, NEUROGEO, MINING, DISASTERS,
-              CONSTRUCTION, NEUROTRAINING, NEUROVISION, NEUROINDUSTRIAL, NEURO3D, NEUROPREDICTION, NEUROVOICE):
+              CONSTRUCTION, NEUROTRAINING, NEUROVISION, NEUROINDUSTRIAL, NEURO3D, NEUROPREDICTION, NEUROVOICE,
+              VALIDATION):
         reg.register(d)
     return reg
 

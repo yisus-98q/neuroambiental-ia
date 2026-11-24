@@ -13,6 +13,7 @@ import { Neuro3DLab } from "./Neuro3DLab";
 import { NeurovisionPanel } from "./NeurovisionPanel";
 import { PredictionPanel } from "./PredictionPanel";
 import { TerrainPanel } from "./TerrainPanel";
+import { ValidationPanel } from "./ValidationPanel";
 
 /** Página genérica para los módulos especializados. */
 export function ModulePage({ moduleKey }: { moduleKey: string }) {
@@ -27,6 +28,7 @@ export function ModulePage({ moduleKey }: { moduleKey: string }) {
       {moduleKey === "terrain" && <TerrainPanel />}
       {moduleKey === "construction" && <ConstructionPanel />}
       {moduleKey === "disasters" && <DisasterPanel />}
+      {moduleKey === "validation" && <ValidationPanel />}
       {moduleKey === "neurovision" && <NeurovisionPanel />}
       {moduleKey === "neuro3d" && <Neuro3DLab />}
       {moduleKey === "neuroprediction" && <PredictionPanel />}

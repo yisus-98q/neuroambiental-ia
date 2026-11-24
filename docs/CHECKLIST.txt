@@ -1,7 +1,7 @@
 NEUROAMBIENTAL IA - CHECKLIST DE LO REALIZADO
 Actualizado: 24 nov. 2026
 Proyecto: D:\Proyectos\neuroambiental-ia
-Estado: 168 pruebas pasan y el frontend compila (scripts\comprobar.py)
+Estado: 171 pruebas pasan y el frontend compila (scripts\comprobar.py)
 
 [x] = hecho      [~] = parcial      [ ] = pendiente
 
@@ -97,7 +97,9 @@ AUDITORÍA CIENTÍFICA (24 nov. 2026)
       - flujos: + litología AUC 0,70 → 0,78, con posible circularidad («Sedimento»)
 [ ] Máscara de hielo y agua para las pseudo-ausencias
 [x] P1.4 DEM a ≈35 m descargado (A2); mismas conclusiones que a 110 m
-[ ] P2 Scientific Validation Engine (necesita autorización A6)
+[x] P2 Scientific Validation Engine (A6): migración con copia previa, criterios congelados,
+      prueba sellada, control de fuga geográfica, doble aprobación, panel
+[ ] P5 Región de prueba independiente fuera de Huaraz (necesita autorización A5)
 
 ======================================================================
 C. PENDIENTE
