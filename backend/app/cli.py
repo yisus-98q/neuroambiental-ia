@@ -160,6 +160,17 @@ def import_geology(bbox_text: str, layers: str) -> int:
     return 0
 
 
+def export_manifests(out: str) -> int:
+    """Exporta un manifiesto JSON por dataset (solo metadatos; versionable en Git)."""
+    from app.database.session import SessionLocal
+    from app.neurodata import manifest as mf
+
+    with SessionLocal() as db:
+        paths = mf.export_all(db, Path(out))
+    print(f"{len(paths)} manifiestos escritos en {out}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m app.cli")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -180,6 +191,8 @@ def main(argv: list[str] | None = None) -> int:
     gg = sub.add_parser("importar-geologia", help="Importa litología/geomorfología de INGEMMET (uso interno)")
     gg.add_argument("--bbox", required=True, help="minLon,minLat,maxLon,maxLat")
     gg.add_argument("--capas", default="litologia,geomorfologia")
+    em = sub.add_parser("exportar-manifiestos", help="Escribe un manifiesto JSON por dataset (solo metadatos)")
+    em.add_argument("--salida", default=str(Path(__file__).resolve().parents[2] / "datasets" / "manifiestos"))
     args = parser.parse_args(argv)
     if args.cmd == "migrate":
         migrate()
@@ -187,6 +200,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.cmd == "create-admin":
         return create_admin(args.username, args.password)
+    if args.cmd == "exportar-manifiestos":
+        return export_manifests(args.salida)
     if args.cmd == "importar-geologia":
         return import_geology(args.bbox, args.capas)
     if args.cmd == "descargar-dem":

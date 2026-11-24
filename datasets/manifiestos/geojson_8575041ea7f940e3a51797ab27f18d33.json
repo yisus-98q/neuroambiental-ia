@@ -1,0 +1,91 @@
+{
+  "manifiesto_version": 1,
+  "id": "8575041ea7f940e3a51797ab27f18d33",
+  "titulo": "Litologia INGEMMET · 1104 polígonos · 7 clases",
+  "tipo": "geojson",
+  "formato": "application/geo+json",
+  "sha256": "a362b3e75607c3b5746e56621648478eed186ecd127742a8674f42d56532e201",
+  "tamano_bytes": 1790353,
+  "simulado": false,
+  "estado_validacion": "valido",
+  "calidad_declarada": "sin_evaluar",
+  "fuente": {
+    "nombre": "INGEMMET — Mapa Geológico Integrado 1:50 000 (litología, TIPO_UNIDAD)",
+    "tipo": "archivo",
+    "url": null,
+    "licencia": "INGEMMET (copyright del servicio); sin licencia abierta declarada. Uso interno de investigación autorizado por el usuario; no redistribuir",
+    "terminos_revisados": false
+  },
+  "procedencia": "Consulta por recorte [-77.75, -9.78, -77.25, -9.28] a https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_GEOLOGIA_50K_INTEGRADA/MapServer/7/query (campo TIPO_UNIDAD); geometrías simplificadas ≈20 m en el servidor. Clases con su nombre oficial, sin reinterpretar.",
+  "fechas": {
+    "adquisicion": "2026-11-24T19:30:37.890829",
+    "dato": "desconocida"
+  },
+  "sistema_coordenadas": "EPSG:4326 (WGS84 lon/lat)",
+  "cobertura_bbox": [
+    -77.999997,
+    -9.943609,
+    -77.162189,
+    -9.25
+  ],
+  "resolucion": {
+    "espacial": "desconocida (vectorial o tabular)"
+  },
+  "variables": [],
+  "etiquetas": {
+    "Volcánica": 216,
+    "Sedimento": 407,
+    "Sedimentaria": 184,
+    "Subvolcánica": 69,
+    "Sin denominación": 98,
+    "Plutónica": 89,
+    "(sin dato)": 41
+  },
+  "linaje": [],
+  "transformaciones": [
+    {
+      "ejecucion": "f0a5f00ae23f41e4ab501a035126ecc1",
+      "tipo": "geologia_ingemmet",
+      "estado": "ok",
+      "rol": "produjo",
+      "fecha": "2026-11-24T19:30:18.992591"
+    },
+    {
+      "ejecucion": "b272b66fddf743bfab32376b36d6c5d5",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T19:31:05.470452"
+    },
+    {
+      "ejecucion": "c229d09b8219452790f76373e9d3c0e5",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T19:32:03.190726"
+    },
+    {
+      "ejecucion": "601e9c4adef94f838c91375bead4d4b1",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T19:38:55.608775"
+    }
+  ],
+  "estadisticas_registradas": null,
+  "duplicado_exacto_de": [],
+  "calidad": {
+    "elementos": 1104,
+    "tipos_geometria": {
+      "Polygon": 1087,
+      "MultiPolygon": 17
+    },
+    "propiedades": [
+      "TIPO_UNIDAD"
+    ],
+    "nulos_por_propiedad": {
+      "TIPO_UNIDAD": 41
+    },
+    "geometrias_duplicadas": 0
+  }
+}

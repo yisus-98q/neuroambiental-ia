@@ -32,8 +32,7 @@ LAYERS = {
     "geomorfologia": {"url": f"{BASE}/SERV_GEOMORFOLOGIA/MapServer/0/query", "field": "SUBUNIDAD",
                       "name": "INGEMMET — Geomorfología por región (SUBUNIDAD)"},
 }
-LICENSE = ("INGEMMET (copyright del servicio); sin licencia abierta declarada. Uso interno de investigación "
-           "autorizado por el usuario; no redistribuir")
+LICENSE = "INGEMMET; sin licencia abierta. Uso interno autorizado por el usuario; no redistribuir"   # ≤128
 CHUNK = 100
 MAX_FEATURES = 5000
 SIMPLIFY_DEG = 0.0002

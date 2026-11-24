@@ -1,0 +1,89 @@
+{
+  "manifiesto_version": 1,
+  "id": "c3406d363d254a4aae5de23a3cbb5f26",
+  "titulo": "DEM GLO-30 [-77.750, -9.780, -77.250, -9.280]",
+  "tipo": "raster_dem",
+  "formato": "image/tiff",
+  "sha256": "22d360d29c35dfab2dca510b9656f63b1eb379dd2280b32912519cb6c672e354",
+  "tamano_bytes": 842894,
+  "simulado": false,
+  "estado_validacion": "valido",
+  "calidad_declarada": "media",
+  "fuente": {
+    "nombre": "Copernicus DEM GLO-30 (AWS Open Data)",
+    "tipo": "satelite",
+    "url": "https://registry.opendata.aws/copernicus-dem/",
+    "licencia": "Copernicus DEM: uso libre con atribución",
+    "terminos_revisados": false
+  },
+  "procedencia": "Teselas Copernicus_DSM_COG_10_S10_00_W078_00_DEM leídas por rangos HTTP y remuestreadas (promedio) a una malla EPSG:4326 de 0.001° (500x500 px). Copernicus DEM GLO-30 © DLR e.V. 2010-2014 y © Airbus Defence and Space GmbH 2014-2018, proporcionado bajo COPERNICUS por la Unión Europea y la ESA.",
+  "fechas": {
+    "adquisicion": "2026-11-24T13:52:16.554657",
+    "dato": "desconocida"
+  },
+  "sistema_coordenadas": "EPSG:4326 (WGS84 lon/lat)",
+  "cobertura_bbox": [
+    -77.75,
+    -9.78,
+    -77.25,
+    -9.28
+  ],
+  "resolucion": {
+    "espacial_grados": 0.001,
+    "espacial_m_aprox": 109.8,
+    "malla": "500x500"
+  },
+  "variables": [
+    "m (elevación)"
+  ],
+  "etiquetas": null,
+  "linaje": [],
+  "transformaciones": [
+    {
+      "ejecucion": "39ce95a5c01245bd9d8c7429b82c5bd8",
+      "tipo": "dem",
+      "estado": "ok",
+      "rol": "produjo",
+      "fecha": "2026-11-24T13:49:52.570093"
+    },
+    {
+      "ejecucion": "d33cd6d35fa941ba8faba4826942b27e",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T13:52:16.644804"
+    },
+    {
+      "ejecucion": "bc9d128822e44bc599067b79bb1e528e",
+      "tipo": "escenario_susceptibilidad",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T15:20:12.957410"
+    },
+    {
+      "ejecucion": "75a0e8d2ad1b41ebb31c19a5a31568f2",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T16:22:11.132195"
+    },
+    {
+      "ejecucion": "332ea8ed0067462198eb21f591370e37",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T16:35:31.224100"
+    }
+  ],
+  "estadisticas_registradas": {
+    "min": 2466.0,
+    "max": 6269.3,
+    "mean": 4165.9,
+    "valid_pct": 100.0
+  },
+  "duplicado_exacto_de": [],
+  "calidad": {
+    "validos_pct": 100.0,
+    "nota": "estadísticas calculadas al registrar"
+  }
+}

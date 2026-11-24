@@ -1,0 +1,87 @@
+{
+  "manifiesto_version": 1,
+  "id": "1b4eb8b5ef6b417aa287889a73852812",
+  "titulo": "NDVI 2024-07-16 · MGRS-18LTQ",
+  "tipo": "raster_ndvi",
+  "formato": "image/tiff",
+  "sha256": "9d6f9a70f1937d64ebc7b2e7a5465e0930899bd547e35ac02d69f8c1ab2fc298",
+  "tamano_bytes": 4074049,
+  "simulado": false,
+  "estado_validacion": "valido",
+  "calidad_declarada": "media",
+  "fuente": {
+    "nombre": "Copernicus Sentinel-2 L2A (Earth Search / AWS Open Data)",
+    "tipo": "satelite",
+    "url": "https://registry.opendata.aws/sentinel-2-l2a-cogs/",
+    "licencia": "Copernicus: uso libre con atribución",
+    "terminos_revisados": false
+  },
+  "procedencia": "Escena S2A_18LTQ_20240716_0_L2A (sentinel-2a, nubosidad 0.0 %). Bandas B04/B08 y máscara SCL leídas por recorte y reproyectadas a EPSG:4326 con resolución 0.0003125°. Desplazamiento radiométrico aplicado: 0.0 (con el desplazamiento, 62% de la superficie quedaría con reflectancia ≤ 0: los datos ya vienen corregidos). Contiene datos modificados de Copernicus Sentinel 2024.",
+  "fechas": {
+    "adquisicion": "2026-11-24T20:13:34.743119",
+    "dato": "2024-07-16T15:35:48.572000"
+  },
+  "sistema_coordenadas": "EPSG:4326 (WGS84 lon/lat)",
+  "cobertura_bbox": [
+    -77.75,
+    -9.78,
+    -77.25,
+    -9.28
+  ],
+  "resolucion": {
+    "espacial_grados": 0.0003125,
+    "espacial_m_aprox": 34.3,
+    "malla": "1600x1600"
+  },
+  "variables": [
+    "NDVI (-1 a 1)"
+  ],
+  "etiquetas": null,
+  "linaje": [],
+  "transformaciones": [
+    {
+      "ejecucion": "75ebbec8850c49e4a1f8261d54731dbe",
+      "tipo": "ndvi",
+      "estado": "ok",
+      "rol": "produjo",
+      "fecha": "2026-11-24T20:09:19.076375"
+    },
+    {
+      "ejecucion": "557f364f061446179564e14e06954535",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "error",
+      "rol": "usó",
+      "fecha": "2026-11-24T20:14:56.020848"
+    },
+    {
+      "ejecucion": "235994a91d0d4b71ac8c4e0009652c68",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T20:15:47.636534"
+    }
+  ],
+  "estadisticas_registradas": {
+    "pixels_total": 2472248,
+    "pixels_valid": 2327350,
+    "valid_pct": 94.14,
+    "cloud_shadow_masked_pct": 5.86,
+    "nonpositive_reflectance_pct": 0.0,
+    "snow_pct": 4.64,
+    "water_pct": 0.27,
+    "ndvi_mean": 0.3064,
+    "ndvi_p10": 0.0877,
+    "ndvi_p90": 0.518,
+    "radiometric_offset": {
+      "declared_offset": -0.1,
+      "applied_offset": 0.0,
+      "reason": "con el desplazamiento, 62% de la superficie quedaría con reflectancia ≤ 0: los datos ya vienen corregidos",
+      "nonpositive_fraction_with_offset": 0.621
+    }
+  },
+  "duplicado_exacto_de": [],
+  "calidad": {
+    "validos_pct": 94.14,
+    "nota": "estadísticas calculadas al registrar"
+  }
+}

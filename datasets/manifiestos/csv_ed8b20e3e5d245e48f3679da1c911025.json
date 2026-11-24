@@ -1,0 +1,109 @@
+{
+  "manifiesto_version": 1,
+  "id": "ed8b20e3e5d245e48f3679da1c911025",
+  "titulo": "Dataset susceptibilidad · 181 eventos / 543 pseudo-ausencias (rango de elevación corregido)",
+  "tipo": "csv",
+  "formato": "text/csv",
+  "sha256": "a6a92c5b529f622dfd3c2c284d1ca13cc6608fd63190cb347d4759fec8db8e74",
+  "tamano_bytes": 24422,
+  "simulado": false,
+  "estado_validacion": "valido",
+  "calidad_declarada": "sin_evaluar",
+  "fuente": {
+    "nombre": "INGEMMET — GEOCATMIN Peligros Geológicos del Perú (feb. 2013)",
+    "tipo": "archivo",
+    "url": null,
+    "licencia": "No declarada por el servicio; uso interno de investigación autorizado por el usuario; no redistribuir",
+    "terminos_revisados": false
+  },
+  "procedencia": "Presencias: inventario d47196d8d9ad4b9cb6187b42de80f4e2; pseudo-ausencias aleatorias a ≥ 300.0 m de eventos y dentro del rango de elevación [2766, 4352] m de los eventos (semilla 42); variables del DEM c3406d363d254a4aae5de23a3cbb5f26. Columna objetivo: evento (1/0).",
+  "fechas": {
+    "adquisicion": "2026-11-24T16:36:11.771569",
+    "dato": "desconocida"
+  },
+  "sistema_coordenadas": "EPSG:4326 (WGS84 lon/lat)",
+  "cobertura_bbox": [
+    -77.7495,
+    -9.7785,
+    -77.2515,
+    -9.2825
+  ],
+  "resolucion": {
+    "espacial": "desconocida (vectorial o tabular)"
+  },
+  "variables": [
+    "latitud",
+    "longitud",
+    "pendiente_deg",
+    "elevacion_m",
+    "evento"
+  ],
+  "etiquetas": null,
+  "linaje": [
+    {
+      "id": "c3406d363d254a4aae5de23a3cbb5f26",
+      "titulo": "DEM GLO-30 [-77.750, -9.780, -77.250, -9.280]",
+      "tipo": "raster_dem"
+    },
+    {
+      "id": "d47196d8d9ad4b9cb6187b42de80f4e2",
+      "titulo": "Inventario INGEMMET de peligros geológicos · 181 eventos",
+      "tipo": "geojson"
+    }
+  ],
+  "transformaciones": [
+    {
+      "ejecucion": "332ea8ed0067462198eb21f591370e37",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "ok",
+      "rol": "produjo",
+      "fecha": "2026-11-24T16:35:31.224100"
+    }
+  ],
+  "estadisticas_registradas": null,
+  "duplicado_exacto_de": [
+    "4de63c009551431fa39ab8d99a352df9",
+    "c5bf040afc13482c892ecc23d0f577c3"
+  ],
+  "calidad": {
+    "filas": 724,
+    "columnas": [
+      "latitud",
+      "longitud",
+      "pendiente_deg",
+      "elevacion_m",
+      "evento"
+    ],
+    "faltantes_por_columna": {},
+    "filas_duplicadas": 0,
+    "columnas_numericas": {
+      "latitud": {
+        "min": -9.7785,
+        "max": -9.2825,
+        "mediana": -9.5445
+      },
+      "longitud": {
+        "min": -77.7495,
+        "max": -77.2515,
+        "mediana": -77.5375
+      },
+      "pendiente_deg": {
+        "min": 0.0,
+        "max": 55.327,
+        "mediana": 17.55
+      },
+      "elevacion_m": {
+        "min": 2644.2,
+        "max": 4880.1,
+        "mediana": 3787.4
+      },
+      "evento": {
+        "min": 0.0,
+        "max": 1.0,
+        "mediana": 0.0
+      }
+    },
+    "atipicos_por_columna_iqr3": {},
+    "metodo_atipicos": "fuera de [Q1 − 3·IQR, Q3 + 3·IQR]; señal para revisar, no para borrar"
+  }
+}

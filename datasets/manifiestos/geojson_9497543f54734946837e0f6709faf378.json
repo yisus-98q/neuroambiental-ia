@@ -1,0 +1,84 @@
+{
+  "manifiesto_version": 1,
+  "id": "9497543f54734946837e0f6709faf378",
+  "titulo": "Geomorfologia INGEMMET · 473 polígonos · 17 clases",
+  "tipo": "geojson",
+  "formato": "application/geo+json",
+  "sha256": "647654630f769f5b28f7ac18d8572053c226ae8deafb7284ee2d272a5f5453c3",
+  "tamano_bytes": 1598600,
+  "simulado": false,
+  "estado_validacion": "valido",
+  "calidad_declarada": "sin_evaluar",
+  "fuente": {
+    "nombre": "INGEMMET — Geomorfología por región (SUBUNIDAD)",
+    "tipo": "archivo",
+    "url": null,
+    "licencia": "INGEMMET (copyright del servicio); sin licencia abierta declarada. Uso interno de investigación autorizado por el usuario; no redistribuir",
+    "terminos_revisados": false
+  },
+  "procedencia": "Consulta por recorte [-77.75, -9.78, -77.25, -9.28] a https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_GEOMORFOLOGIA/MapServer/0/query (campo SUBUNIDAD); geometrías simplificadas ≈20 m en el servidor. Clases con su nombre oficial, sin reinterpretar.",
+  "fechas": {
+    "adquisicion": "2026-11-24T19:30:48.486693",
+    "dato": "desconocida"
+  },
+  "sistema_coordenadas": "EPSG:4326 (WGS84 lon/lat)",
+  "cobertura_bbox": [
+    -78.040455,
+    -10.239333,
+    -76.807047,
+    -8.055902
+  ],
+  "resolucion": {
+    "espacial": "desconocida (vectorial o tabular)"
+  },
+  "variables": [],
+  "etiquetas": {
+    "Montaña con cobertura glaciar": 36,
+    "Valle glaciar con laguna": 33,
+    "Abanico de piedemonte": 114,
+    "Montaña en roca intrusiva": 36,
+    "Vertiente glacial o de gelifracción": 16,
+    "Montaña en roca sedimentaria": 23,
+    "Vertiente glacio-fluvial": 20,
+    "Vertiente o piedemonte coluvio-deluvial": 75,
+    "Morrenas": 46,
+    "Montaña estructural en roca sedimentaria": 15,
+    "Terraza aluvial": 15,
+    "Colina y lomada en roca volcánica": 3,
+    "Vertiente coluvial de detritos": 12,
+    "Llanura o planicie inundable": 4,
+    "Montaña estructural en roca intrusiva": 9,
+    "Meseta volcánica lávica": 2,
+    "Montaña en roca volcánica": 14
+  },
+  "linaje": [],
+  "transformaciones": [
+    {
+      "ejecucion": "85839d2e774d495a8d6efd938d75722f",
+      "tipo": "geologia_ingemmet",
+      "estado": "ok",
+      "rol": "produjo",
+      "fecha": "2026-11-24T19:30:37.908304"
+    },
+    {
+      "ejecucion": "c229d09b8219452790f76373e9d3c0e5",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T19:32:03.190726"
+    }
+  ],
+  "estadisticas_registradas": null,
+  "duplicado_exacto_de": [],
+  "calidad": {
+    "elementos": 473,
+    "tipos_geometria": {
+      "Polygon": 473
+    },
+    "propiedades": [
+      "SUBUNIDAD"
+    ],
+    "nulos_por_propiedad": {},
+    "geometrias_duplicadas": 0
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "manifiesto_version": 1,
+  "id": "d47196d8d9ad4b9cb6187b42de80f4e2",
+  "titulo": "Inventario INGEMMET de peligros geológicos · 181 eventos",
+  "tipo": "geojson",
+  "formato": "application/geo+json",
+  "sha256": "4306cb1aaa5d8193a8c26e04ee06aa8b78961cb050f8ca61c700098aaadf9dc0",
+  "tamano_bytes": 79667,
+  "simulado": false,
+  "estado_validacion": "valido",
+  "calidad_declarada": "sin_evaluar",
+  "fuente": {
+    "nombre": "INGEMMET — GEOCATMIN Peligros Geológicos del Perú (feb. 2013)",
+    "tipo": "archivo",
+    "url": null,
+    "licencia": "No declarada por el servicio; uso interno de investigación autorizado por el usuario; no redistribuir",
+    "terminos_revisados": false
+  },
+  "procedencia": "Consulta por recorte [-77.75, -9.78, -77.25, -9.28] al servicio oficial https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_PELIGROS_GEOLOGICOS/MapServer/0/query (GEOCATMIN, feb. 2013). Eventos inventariados en campo y gabinete por INGEMMET. Licencia no declarada: uso interno.",
+  "fechas": {
+    "adquisicion": "2026-11-24T13:49:52.556023",
+    "dato": "desconocida"
+  },
+  "sistema_coordenadas": "EPSG:4326 (WGS84 lon/lat)",
+  "cobertura_bbox": [
+    -77.72977246699998,
+    -9.778701665000028,
+    -77.26378191499998,
+    -9.282727169999987
+  ],
+  "resolucion": {
+    "espacial": "desconocida (vectorial o tabular)"
+  },
+  "variables": [],
+  "etiquetas": {
+    "1000|1100": 33,
+    "1000|1500": 55,
+    "1000|1300": 68,
+    "1000|1700": 8,
+    "1000|1600": 17
+  },
+  "linaje": [],
+  "transformaciones": [
+    {
+      "ejecucion": "6db31a801a9e42c584f19c121f6d5ceb",
+      "tipo": "inventario_ingemmet",
+      "estado": "ok",
+      "rol": "produjo",
+      "fecha": "2026-11-24T13:49:48.714837"
+    },
+    {
+      "ejecucion": "d33cd6d35fa941ba8faba4826942b27e",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T13:52:16.644804"
+    },
+    {
+      "ejecucion": "75a0e8d2ad1b41ebb31c19a5a31568f2",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T16:22:11.132195"
+    },
+    {
+      "ejecucion": "332ea8ed0067462198eb21f591370e37",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T16:35:31.224100"
+    },
+    {
+      "ejecucion": "5c5e36cc2abb4c87b8cc293bf85e0897",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T19:09:20.391929"
+    },
+    {
+      "ejecucion": "5e5d40d05eb14d3494f27ed4bdb8f5f2",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T19:20:55.269542"
+    },
+    {
+      "ejecucion": "12a39ce0a7a845cdb01045b55ac4cd04",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T19:25:48.518957"
+    },
+    {
+      "ejecucion": "b272b66fddf743bfab32376b36d6c5d5",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T19:31:05.470452"
+    },
+    {
+      "ejecucion": "c229d09b8219452790f76373e9d3c0e5",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T19:32:03.190726"
+    },
+    {
+      "ejecucion": "601e9c4adef94f838c91375bead4d4b1",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T19:38:55.608775"
+    },
+    {
+      "ejecucion": "557f364f061446179564e14e06954535",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "error",
+      "rol": "usó",
+      "fecha": "2026-11-24T20:14:56.020848"
+    },
+    {
+      "ejecucion": "235994a91d0d4b71ac8c4e0009652c68",
+      "tipo": "validacion_susceptibilidad",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T20:15:47.636534"
+    }
+  ],
+  "estadisticas_registradas": null,
+  "duplicado_exacto_de": [],
+  "calidad": {
+    "elementos": 181,
+    "tipos_geometria": {
+      "Point": 181
+    },
+    "propiedades": [
+      "AUTOR",
+      "COD_INV",
+      "FECHA",
+      "FUENTE",
+      "NM_DIST",
+      "NM_DPTO",
+      "NM_PROV",
+      "NM_SECTOR",
+      "NOM_PELIGRO",
+      "TIESTU_ANO",
+      "TIP_PELIGRO"
+    ],
+    "nulos_por_propiedad": {
+      "FUENTE": 167,
+      "NM_SECTOR": 4,
+      "NOM_PELIGRO": 10,
+      "AUTOR": 6,
+      "TIESTU_ANO": 6
+    },
+    "geometrias_duplicadas": 0
+  }
+}

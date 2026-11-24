@@ -186,3 +186,22 @@ def sources(_: User = Depends(get_current_user), db: Session = Depends(get_db)) 
 def limits() -> dict:
     return {"max_upload_mb": settings.max_upload_mb, "max_csv_rows": settings.max_csv_rows,
             "allowed_extensions": sorted(ALLOWED_EXTENSIONS)}
+
+
+
+@router.get("/records/{record_id}/manifest")
+def manifest(record_id: str, _: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
+    """Manifiesto del dataset: procedencia, licencia, fechas, CRS, resolución, variables, calidad y linaje."""
+    from app.neurodata import manifest as mf
+    return mf.build(db, _get(db, record_id))
+
+
+@router.get("/catalog")
+def catalog(_: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Catálogo de datasets (manifiestos sin la evaluación de calidad, que lee los archivos)."""
+    from sqlalchemy import select as _select
+
+    from app.models import DataRecord as _DR
+    from app.neurodata import manifest as mf
+    return [mf.build(db, r, with_quality=False)
+            for r in db.scalars(_select(_DR).order_by(_DR.received_at.desc()).limit(500))]
