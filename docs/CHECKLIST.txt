@@ -1,7 +1,7 @@
 NEUROAMBIENTAL IA - CHECKLIST DE LO REALIZADO
 Actualizado: 24 nov. 2026
 Proyecto: D:\Proyectos\neuroambiental-ia
-Estado: 171 pruebas pasan y el frontend compila (scripts\comprobar.py)
+Estado: 186 pruebas pasan y el frontend compila (scripts\comprobar.py)
 
 [x] = hecho      [~] = parcial      [ ] = pendiente
 
@@ -100,6 +100,22 @@ AUDITORÍA CIENTÍFICA (24 nov. 2026)
 [x] P2 Scientific Validation Engine (A6): migración con copia previa, criterios congelados,
       prueba sellada, control de fuga geográfica, doble aprobación, panel
 [ ] P5 Región de prueba independiente fuera de Huaraz (necesita autorización A5)
+
+NEUROAMBIENTAL IA 2.0 (25 nov. 2026) - detalle en docs/INFORME_GENERAL_NEUROAMBIENTAL_IA_2_0.md
+[x] Fase 0  Diagnóstico verificado (equipo de 4 GB; 171 pruebas al inicio)
+[x] GitHub  Repositorio privado yisus-98q/neuroambiental-ia, sincronizado por fase
+[x] Fase 8  Perfiles de hardware, control de memoria, cancelación, recursos
+[x] Fase 4  NDVI evaluado (NO mejora); protocolo e informe de resultados
+[x] Fase 1  Manifiestos de datasets, catálogo, calidad, duplicados
+[x] Fase 2  Entrenamiento reproducible, división espacial, exportación con ficha
+[x] Fase 5  Asistente NEUROVOICE flotante con contexto de pantalla
+[x] Fase 6  Rediseño UI/UX (temas, sidebar, modo rendimiento, fichas de módulo)
+[x] Fase 7  NEUROCORE como centro de coordinación
+[x] Fase 3  Fichas técnicas generadas desde el registro
+[x] Fase 9  Paquete portátil (4,6 MB, 325 archivos, SHA-256 verificados)
+[x] Fase 10 8 scripts BAT probados en Windows
+[ ] Instalar dependencias y probar en el equipo de 32 GB y en el USB real
+[ ] Prueba independiente fuera de Huaraz (único camino a un modelo validado)
 
 ======================================================================
 C. PENDIENTE
