@@ -8,7 +8,7 @@ from app.core import jobs
 from app.core.audit import audit
 from app.models import DataRecord, Run, User
 from app.models.common import utcnow
-from app.modules.disasters import inventory, validation
+from app.modules.disasters import geology, inventory, validation
 from app.modules.neuro3d import dem as demlib
 from app.neurodata.service import absolute_path, store_file
 from app.neurodata.validators import validate_csv
@@ -61,21 +61,33 @@ def _record(db: Session, record_id: str, data_type: str) -> DataRecord:
 
 
 def validate(db: Session, user: User | None, *, dem_id: str, inventory_id: str, ratio: int, min_dist_m: float,
-             blocks: int, seed: int, n_seeds: int = 5, buffer_m: float = 500.0) -> dict:
+             blocks: int, seed: int, n_seeds: int = 5, buffer_m: float = 500.0,
+             geology_ids: list[str] | None = None) -> dict:
     dem_rec = _record(db, dem_id, "raster_dem")
     inv_rec = _record(db, inventory_id, "geojson")
     if not (inv_rec.extra or {}).get("inventory"):
         raise validation.ValidationError("El GeoJSON indicado no es un inventario de eventos importado.")
     params = {"dem_id": dem_id, "inventory_id": inventory_id, "ratio_ausencias": ratio, "distancia_min_m": min_dist_m,
-              "bloques": blocks, "semilla": seed, "semillas": n_seeds, "zona_exclusion_m": buffer_m}
+              "bloques": blocks, "semilla": seed, "semillas": n_seeds, "zona_exclusion_m": buffer_m,
+              "geologia": list(geology_ids or [])}
+    geo_recs = []
+    for gid in geology_ids or []:
+        g = _record(db, gid, "geojson")
+        if not (g.extra or {}).get("geology"):
+            raise validation.ValidationError("El GeoJSON indicado no es una capa geológica importada.")
+        geo_recs.append(g)
     with jobs.exclusive():
         run = _start(db, "validacion_susceptibilidad", params)
         try:
             arr, bbox = demlib.read_dem(absolute_path(dem_rec))
             fc = validation.load_fc(absolute_path(inv_rec))
+            categorical = {}
+            for g in geo_recs:
+                kind = g.extra["geology"]
+                categorical[kind] = geology.rasterize(validation.load_fc(absolute_path(g)), g.extra["field"], arr, bbox)
             report, X, y, pts = validation.evaluate(arr, bbox, fc, ratio=ratio, min_dist_m=min_dist_m,
                                                     blocks=blocks, seed=seed, n_seeds=n_seeds,
-                                                    buffer_m=buffer_m)
+                                                    buffer_m=buffer_m, categorical=categorical)
             raw = validation.dataset_csv(X, y, pts, bbox, arr, report["variables"])
             aj = report["ausencias_mismo_rango_elevacion"]
             simulated = bool(dem_rec.is_simulated or inv_rec.is_simulated)
@@ -115,3 +127,26 @@ def list_inventories(db: Session) -> list[dict]:
              "is_simulated": r.is_simulated, "source": r.source.name, "license": r.source.license,
              "eventos": (r.extra or {}).get("features"), "tipos_peligro": (r.extra or {}).get("tipos_peligro")}
             for r in db.scalars(q) if (r.extra or {}).get("inventory")]
+
+
+def import_geology(db: Session, user: User | None, kind: str, bbox: list[float], fetcher=None) -> DataRecord:
+    with jobs.exclusive():
+        run = _start(db, "geologia_ingemmet", {"capa": kind, "bbox": bbox})
+        try:
+            rec = geology.import_layer(db, user, kind, bbox, fetcher=fetcher)
+            audit(db, "importar_geologia_ingemmet", user_id=getattr(user, "id", None), target_type="data_record",
+                  target_id=rec.id, details={"capa": kind, "bbox": bbox}, commit=False)
+            run.status, run.finished_at = "ok", utcnow()
+            run.result_summary = {"record_id": rec.id, "capa": kind, "clases": rec.extra.get("classes")}
+            db.commit()
+            return rec
+        except Exception as exc:
+            _fail(db, run, exc)
+            raise
+
+
+def list_geology(db: Session) -> list[dict]:
+    q = select(DataRecord).where(DataRecord.data_type == "geojson").order_by(DataRecord.received_at.desc()).limit(200)
+    return [{"id": r.id, "title": r.title, "capa": r.extra.get("geology"), "campo": r.extra.get("field"),
+             "clases": r.extra.get("classes"), "received_at": r.received_at, "license": r.source.license}
+            for r in db.scalars(q) if (r.extra or {}).get("geology")]

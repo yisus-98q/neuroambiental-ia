@@ -1,7 +1,7 @@
 NEUROAMBIENTAL IA - CHECKLIST DE LO REALIZADO
 Actualizado: 24 nov. 2026
 Proyecto: D:\Proyectos\neuroambiental-ia
-Estado: 166 pruebas pasan y el frontend compila (scripts\comprobar.py)
+Estado: 168 pruebas pasan y el frontend compila (scripts\comprobar.py)
 
 [x] = hecho      [~] = parcial      [ ] = pendiente
 
@@ -93,6 +93,8 @@ AUDITORÍA CIENTÍFICA (24 nov. 2026)
 [x] P3.1 Curvatura, TPI y distancia a cauces derivadas del DEM
       - flujos (1500): la distancia a cauce sola discrimina (AUC 0,72)
       - combinar variables no mejora con tan pocos eventos
+[x] P3.3 Litología y geomorfología INGEMMET importadas (A4, uso interno)
+      - flujos: + litología AUC 0,70 → 0,78, con posible circularidad («Sedimento»)
 [ ] Máscara de hielo y agua para las pseudo-ausencias
 [x] P1.4 DEM a ≈35 m descargado (A2); mismas conclusiones que a 110 m
 [ ] P2 Scientific Validation Engine (necesita autorización A6)
@@ -102,7 +104,7 @@ C. PENDIENTE
 ======================================================================
 [ ] Formato decimal con coma en las conclusiones de NEURODISASTER
 [ ] Añadir NDVI (Sentinel-2) como tercera variable del modelo de susceptibilidad
-[ ] Litología y geomorfología (capas INGEMMET; revisar licencia)
+[x] Litología y geomorfología (capas INGEMMET; uso interno, sin licencia abierta)
 [ ] Confirmar con INGEMMET el significado de los subcódigos (1100, 1300, 1500...)
 [ ] Ampliar a todo Áncash por recortes (máx. 2,5° por lado)
 [ ] NEUROGEO, NEUROINDUSTRIAL, NEUROMINING (necesitan datos reales)

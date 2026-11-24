@@ -14,6 +14,7 @@ from app.models import User
 service = lazy("app.modules.disasters.service")
 inventory = lazy("app.modules.disasters.inventory")
 validation = lazy("app.modules.disasters.validation")
+geology = lazy("app.modules.disasters.geology")
 dem = lazy("app.modules.neuro3d.dem")
 
 router = APIRouter(prefix="/api/disasters", tags=["NEURODISASTER"])
@@ -43,6 +44,7 @@ class ValidateIn(BaseModel):
     seed: int = Field(default=42, ge=0, le=10_000)
     n_seeds: int = Field(default=5, ge=1, le=10)
     buffer_m: float = Field(default=500, ge=0, le=5000)
+    geology_ids: list[str] = Field(default_factory=list, max_length=2)
 
 
 def _handle(fn):
@@ -54,7 +56,7 @@ def _handle(fn):
         raise HTTPException(404, str(exc)) from exc
     except (validation.ValidationError, dem.DemError) as exc:
         raise HTTPException(422, str(exc)) from exc
-    except inventory.InventoryError as exc:
+    except (inventory.InventoryError, geology.GeologyError) as exc:
         raise HTTPException(502, str(exc)) from exc
 
 
@@ -71,7 +73,8 @@ def import_inventory(body: InventoryIn, user: User = Depends(require_role("anali
 def validate(body: ValidateIn, user: User = Depends(require_role("analista")), db: Session = Depends(get_db)) -> dict:
     return _handle(lambda: service.validate(db, user, dem_id=body.dem_id, inventory_id=body.inventory_id,
                                             ratio=body.ratio, min_dist_m=body.min_dist_m, blocks=body.blocks,
-                                            seed=body.seed, n_seeds=body.n_seeds, buffer_m=body.buffer_m))
+                                            seed=body.seed, n_seeds=body.n_seeds, buffer_m=body.buffer_m,
+                                            geology_ids=body.geology_ids))
 
 
 @router.get("/runs")
@@ -82,3 +85,20 @@ def runs(_: User = Depends(get_current_user), db: Session = Depends(get_db)) -> 
 @router.get("/inventories")
 def inventories(_: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[dict]:
     return service.list_inventories(db)
+
+
+class GeologyIn(InventoryIn):
+    capa: str = Field(pattern="^(litologia|geomorfologia)$")
+
+
+@router.post("/geology/import", status_code=201)
+def import_geology(body: GeologyIn, user: User = Depends(require_role("analista")),
+                   db: Session = Depends(get_db)) -> dict:
+    rec = _handle(lambda: service.import_geology(db, user, body.capa, body.bbox))
+    return {"id": rec.id, "title": rec.title, "capa": body.capa, "clases": rec.extra.get("classes"),
+            "license": rec.source.license, "is_simulated": rec.is_simulated}
+
+
+@router.get("/geology")
+def geology_layers(_: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[dict]:
+    return service.list_geology(db)

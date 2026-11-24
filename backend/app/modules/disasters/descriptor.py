@@ -11,6 +11,8 @@ DESCRIPTOR = ModuleDescriptor(
             "por recorte", implemented=True),
         cap("validacion_espacial", "Validar índices y modelos de susceptibilidad con eventos reales mediante "
             "validación cruzada espacial por bloques y corrección del sesgo de elevación", implemented=True),
+        cap("capas_geologicas", "Importar litología y geomorfología de INGEMMET por recorte (uso interno) y usarlas "
+            "en la validación", implemented=True),
         cap("amenaza", "Evaluar amenaza con un modelo validado"),
         cap("exposicion", "Evaluar exposición"),
         cap("vulnerabilidad", "Evaluar vulnerabilidad"),
@@ -31,7 +33,9 @@ DESCRIPTOR = ModuleDescriptor(
         "confianza por bloques llegan a 0,43–0,54 y no hay prueba independiente: ningún modelo está validado.",
         "Variables del DEM (≈35 m): pendiente, elevación, curvatura, TPI y distancia a cauces derivados. En flujos "
         "(1500) la distancia a cauce sola discrimina (AUC 0,72); combinar variables no mejora con tan pocos eventos.",
-        "Faltan variables clave (litología, geomorfología, lluvia, cobertura) para un modelo útil.",
+        "Litología y geomorfología de INGEMMET (uso interno): en flujos la litología sube el AUC de 0,70 a 0,78, "
+        "pero la clase «Sedimento» puede contener los depósitos de los propios eventos (circularidad).",
+        "Faltan lluvia y cobertura vegetal; no hay prueba independiente fuera de Huaraz.",
     ],
     keywords=["huayco", "huaico", "inundacion", "deslizamiento", "derrumbe", "incendio", "sequia",
               "sismo", "terremoto", "catastrofe", "desastre", "riesgo", "amenaza", "contaminacion", "fuga",

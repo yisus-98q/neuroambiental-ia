@@ -15,10 +15,14 @@ interface Variant {
   n_presencias: number; n_ausencias: number; auc_heuristico_pendiente: number; auc_solo_elevacion_baja: number;
   regresion_logistica: { espacial: Cv; aleatoria_referencia: Cv }; bosque_aleatorio: { espacial: Cv; aleatoria_referencia: Cv };
   regresion_logistica_base?: { espacial: Cv };
+  regresion_logistica_geo?: { espacial: Cv };
   por_variable?: Record<string, { auc: number; auc_discriminante: number; direccion: string; mediana_eventos: number; mediana_ausencias: number }>;
   elevacion_media_eventos: number; elevacion_media_ausencias: number; rango_elevacion_m?: number[];
 }
-interface Assessment { ausencias_libres: Variant; ausencias_mismo_rango_elevacion: Variant; conclusion_automatica: string[] }
+interface Assessment {
+  ausencias_libres: Variant; ausencias_mismo_rango_elevacion: Variant; conclusion_automatica: string[];
+  geologia_razon_frecuencia?: Record<string, FreqRow[]>;
+}
 interface Report extends Assessment {
   advertencias: string[]; interpretacion_auc: string; descartados: Record<string, number>; dataset_record_id?: string; simulado?: boolean;
   por_proceso?: Record<string, Assessment>; procesos_omitidos_por_pocos_eventos?: Record<string, unknown>; nota_codigos?: string;
@@ -29,6 +33,8 @@ interface Report extends Assessment {
   variables_descripcion?: Record<string, string>;
   interpretacion_metricas?: Record<string, string>;
 }
+interface GeoLayer { id: string; title: string; capa: string; campo: string; clases: Record<string, number>; received_at: string; license: string }
+interface FreqRow { clase: string; pct_area: number; pct_eventos: number; razon_frecuencia: number }
 interface RunRow { id: string; run_type: string; status: string; started_at: string; parameters: Record<string, unknown>; result_summary: (Report & { error?: string }) | null }
 
 const ANCASH_HUARAZ = "-77.75,-9.78,-77.25,-9.28";
@@ -40,6 +46,9 @@ export function DisasterPanel() {
   const terrains = useApi<TerrainLite[]>("/api/neuro3d/terrains");
   const inventories = useApi<Inventory[]>("/api/disasters/inventories");
   const runs = useApi<RunRow[]>("/api/disasters/runs");
+  const geoLayers = useApi<GeoLayer[]>("/api/disasters/geology");
+  const [geoSel, setGeoSel] = useState<string[]>([]);
+  const [capa, setCapa] = useState("litologia");
   const writable = canWrite(session.user());
   const [bbox, setBbox] = useState(ANCASH_HUARAZ);
   const [demId, setDemId] = useState("");
@@ -62,10 +71,20 @@ export function DisasterPanel() {
     } catch (e) { setError((e as Error).message); } finally { setBusy(null); }
   }
 
+  async function importGeo() {
+    setBusy("geo"); setError(null);
+    try {
+      const b = bbox.split(",").map((v) => Number(v.trim()));
+      if (b.length !== 4 || b.some((v) => !Number.isFinite(v))) throw new Error("Recorte inválido: minLon,minLat,maxLon,maxLat.");
+      await post("/api/disasters/geology/import", { capa, bbox: b });
+      geoLayers.reload(); runs.reload();
+    } catch (e) { setError((e as Error).message); } finally { setBusy(null); }
+  }
+
   async function validate() {
     setBusy("validate"); setError(null);
     try {
-      const r = await post<Report>("/api/disasters/susceptibility/validate", { dem_id: demId, inventory_id: invId });
+      const r = await post<Report>("/api/disasters/susceptibility/validate", { dem_id: demId, inventory_id: invId, geology_ids: geoSel });
       setReport(r); runs.reload();
     } catch (e) { setError((e as Error).message); } finally { setBusy(null); }
   }
@@ -82,6 +101,14 @@ export function DisasterPanel() {
             <div className="field"><label htmlFor="dbb">Recorte (minLon,minLat,maxLon,maxLat; máx. 2,5° por lado)</label>
               <input id="dbb" value={bbox} onChange={(e) => setBbox(e.target.value)} style={{ minWidth: 280 }} /></div>
             <button className="btn" disabled={busy !== null} onClick={importInv}>{busy === "import" ? "Consultando INGEMMET…" : "Importar eventos"}</button>
+          </div>
+          <div className="row" style={{ flexWrap: "wrap", gap: 12, alignItems: "flex-end" }}>
+            <div className="field"><label htmlFor="dcapa">Capa geológica INGEMMET (mismo recorte; uso interno, sin licencia abierta)</label>
+              <select id="dcapa" value={capa} onChange={(e) => setCapa(e.target.value)}>
+                <option value="litologia">Litología 1:50 000 (TIPO_UNIDAD)</option>
+                <option value="geomorfologia">Geomorfología (SUBUNIDAD)</option>
+              </select></div>
+            <button className="btn" disabled={busy !== null} onClick={importGeo}>{busy === "geo" ? "Consultando INGEMMET…" : "Importar capa"}</button>
           </div>
         </div>
       )}
@@ -108,7 +135,16 @@ export function DisasterPanel() {
                 <select id="ddem" value={demId} onChange={(e) => setDemId(e.target.value)}>{dems.map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}</select></div>
               <div className="field"><label htmlFor="dinv">Inventario</label>
                 <select id="dinv" value={invId} onChange={(e) => setInvId(e.target.value)}>{invs.map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}</select></div>
-              <button className="btn" disabled={busy !== null || !demId || !invId} onClick={validate}>{busy === "validate" ? "Validando…" : "Validar"}</button>
+              {(geoLayers.data ?? []).length > 0 && (
+                <fieldset className="field" style={{ border: 0, padding: 0 }}><legend className="small">Capas geológicas (opcional, máx. 2)</legend>
+                  {(geoLayers.data ?? []).map((g) => (
+                    <label key={g.id} className="small" style={{ display: "block", fontWeight: 400 }}>
+                      <input type="checkbox" checked={geoSel.includes(g.id)} disabled={!geoSel.includes(g.id) && geoSel.length >= 2}
+                        onChange={(e) => setGeoSel(e.target.checked ? [...geoSel, g.id] : geoSel.filter((x) => x !== g.id))} /> {g.title}
+                    </label>))}
+                </fieldset>
+              )}
+              <button className="btn" disabled={busy !== null || !demId || !invId} onClick={validate}>{busy === "validate" ? "Validando (≈1–2 min)…" : "Validar"}</button>
             </div>
           )}
         </div>
@@ -176,6 +212,10 @@ function AssessmentBlock({ title, a }: { title: string; a: Assessment }) {
       ? [["Regresión logística · solo pendiente y elevación (base)", cv(x.regresion_logistica_base.espacial), cv(y.regresion_logistica_base.espacial)] as [string, string, string]]
       : []),
     ["Regresión logística · AUC espacial por pliegue", cv(lrX), cv(lrY)],
+    ...(x.regresion_logistica_geo && y.regresion_logistica_geo
+      ? [["Regresión logística · topografía + geología", cv(x.regresion_logistica_geo.espacial), cv(y.regresion_logistica_geo.espacial)] as [string, string, string],
+         ["  · IC 95 % (bootstrap de bloques)", ic(x.regresion_logistica_geo.espacial), ic(y.regresion_logistica_geo.espacial)] as [string, string, string]]
+      : []),
     ["  · IC 95 % (bootstrap de bloques)", ic(lrX), ic(lrY)],
     ["  · Variación entre sorteos de ausencias", seeds(lrX), seeds(lrY)],
     ["  · PR-AUC (azar)", `${opt(lrX.pr_auc)} (${opt(lrX.pr_auc_azar)})`, `${opt(lrY.pr_auc)} (${opt(lrY.pr_auc_azar)})`],
@@ -202,6 +242,13 @@ function AssessmentBlock({ title, a }: { title: string; a: Assessment }) {
               <td className="small">{d2(u.mediana_eventos)} / {d2(u.mediana_ausencias)}</td></tr>))}</tbody>
         </table></div>
       )}
+      {a.geologia_razon_frecuencia && Object.entries(a.geologia_razon_frecuencia).map(([capaN, rowsF]) => (
+        <div className="table-wrap" key={capaN}><table>
+          <thead><tr><th>{capaN} (descriptivo, todos los eventos)</th><th>% área</th><th>% eventos</th><th>Razón de frecuencia</th></tr></thead>
+          <tbody>{rowsF.filter((f) => f.pct_area >= 2).map((f) => (
+            <tr key={f.clase}><td className="small">{f.clase}</td><td>{d2(f.pct_area)}</td><td>{d2(f.pct_eventos)}</td><td>{d2(f.razon_frecuencia)}</td></tr>))}</tbody>
+        </table></div>
+      ))}
       <ul className="small" style={{ margin: 0 }}>{a.conclusion_automatica.map((c) => <li key={c}>{c}</li>)}</ul>
     </div>
   );

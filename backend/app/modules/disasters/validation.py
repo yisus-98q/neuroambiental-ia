@@ -29,7 +29,7 @@ from sklearn.model_selection import GroupKFold, StratifiedKFold
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from app.modules.disasters import protocol, terrain_vars
+from app.modules.disasters import geology, protocol, terrain_vars
 from app.modules.neuro3d import dem as demlib
 
 MASS_MOVEMENT_KEYWORDS = ("desliz", "derrumbe", "caida", "caída", "huayco", "huaico", "flujo", "avalancha",
@@ -118,29 +118,47 @@ def _cv_auc(model_factory, X, y, splitter, groups=None) -> dict:
     return {"auc_mean": round(float(np.mean(aucs)), 4), "auc_sd": round(float(np.std(aucs)), 4), "folds": len(aucs)}
 
 
-def _models(seed: int) -> dict:
-    """(fábrica, columnas). «base» = solo pendiente y elevación, para medir el aporte de las variables nuevas."""
+def _models(seed: int, n_topo: int = 2, geo: bool = False) -> dict:
+    """(fábrica, columnas). «base» = solo pendiente y elevación; «regresion_logistica» = toda la topografía;
+    «regresion_logistica_geo» = topografía + clases geológicas (si se pidieron)."""
     lr = lambda: make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000))  # noqa: E731
-    return {
-        "regresion_logistica": (lr, None),
+    out = {
+        "regresion_logistica": (lr, list(range(n_topo))),
         "regresion_logistica_base": (lr, [0, 1]),
         "bosque_aleatorio": (lambda: RandomForestClassifier(n_estimators=100, max_depth=6, min_samples_leaf=5,
                                                             n_jobs=1, random_state=seed), None),
     }
+    if geo:
+        out["regresion_logistica_geo"] = (lr, None)
+    return out
 
 
-CHEAP = ("regresion_logistica", "regresion_logistica_base")
+CHEAP = ("regresion_logistica", "regresion_logistica_base", "regresion_logistica_geo")
+
+
+def _onehot(cats: dict, pts: np.ndarray) -> tuple[np.ndarray, list[str]]:
+    """Columnas 0/1 de las clases geológicas conservadas (la clase de referencia es «otras»)."""
+    cols, names = [], []
+    for kind, (idx, cnames, keep) in cats.items():
+        codes = idx[pts[:, 0], pts[:, 1]]
+        for k in keep:
+            cols.append((codes == k).astype("float64"))
+            names.append(f"{kind}={cnames[k]}")
+    return (np.column_stack(cols) if cols else np.empty((len(pts), 0))), names
 
 
 def _variant(arr, bbox, stack, presences, xy_scale, *, ratio, min_dist_m, blocks, seed, n_seeds, buffer_m,
-             elevation_range):
+             elevation_range, cats=None):
     """Una variante de pseudo-ausencias evaluada con n_seeds sorteos; métricas completas del primero."""
-    seeds_auc: dict[str, list[float]] = {k: [] for k in _models(seed)}
+    n_topo, geo = len(stack), bool(cats)
+    seeds_auc: dict[str, list[float]] = {k: [] for k in _models(seed, n_topo, geo)}
     first = None
     for s in range(n_seeds):
         pts, y = build_points(arr, bbox, presences, ratio, min_dist_m, seed + s, elevation_range)
         names = list(stack)
         X = np.column_stack([stack[n][pts[:, 0], pts[:, 1]] for n in names]).astype("float64")
+        if geo:
+            X = np.column_stack([X, _onehot(cats, pts)[0]])
         ok = np.isfinite(X).all(axis=1)
         X, y, pts = X[ok], y[ok], pts[ok]
         groups = spatial_groups(pts, arr.shape, blocks)
@@ -151,7 +169,7 @@ def _variant(arr, bbox, stack, presences, xy_scale, *, ratio, min_dist_m, blocks
         detail = {}
         # El bosque aleatorio es caro en un equipo de 4 GB: se evalúa con el primer sorteo; la variación entre
         # sorteos de ausencias se mide con la regresión logística (modelo de referencia).
-        models = {n: m for n, m in _models(seed).items() if s == 0 or n in CHEAP}
+        models = {n: m for n, m in _models(seed, n_topo, geo).items() if s == 0 or n in CHEAP}
         for name, (factory, cols) in models.items():
             Xm = X if cols is None else X[:, cols]
             res = protocol.spatial_oof(factory, Xm, y, groups, xy_m, GroupKFold(n_splits=k), buffer_m)
@@ -170,11 +188,13 @@ def _variant(arr, bbox, stack, presences, xy_scale, *, ratio, min_dist_m, blocks
                 "pendiente_media_ausencias": round(float(X[y == 0, 0].mean()), 2),
                 "elevacion_media_eventos": round(float(X[y == 1, 1].mean()), 1),
                 "elevacion_media_ausencias": round(float(X[y == 0, 1].mean()), 1),
-                "por_variable": _univariate(X, y, names),
+                "por_variable": _univariate(X[:, :n_topo], y, names),
             }
             lr = _models(seed)["regresion_logistica"][0]
             first["regresion_logistica"] = {"espacial": detail["regresion_logistica"],
-                                            "aleatoria_referencia": _cv_auc(lr, X, y, rand)}
+                                            "aleatoria_referencia": _cv_auc(lr, X[:, :n_topo], y, rand)}
+            if geo:
+                first["regresion_logistica_geo"] = {"espacial": detail["regresion_logistica_geo"]}
             first["regresion_logistica_base"] = {"espacial": detail["regresion_logistica_base"]}
             # Referencia aleatoria solo con el modelo lineal: basta para mostrar cuánto infla (ahorra memoria/tiempo).
             first["bosque_aleatorio"] = {"espacial": detail["bosque_aleatorio"],
@@ -201,18 +221,24 @@ def _univariate(X: np.ndarray, y: np.ndarray, names: list[str]) -> dict:
     return out
 
 
-def _assess(arr, bbox, stack, presences, xy_scale, **kw):
+def _assess(arr, bbox, stack, presences, xy_scale, cats=None, **kw):
     ev_elev = arr[presences[:, 0], presences[:, 1]]
     band = (float(np.percentile(ev_elev, 5)), float(np.percentile(ev_elev, 95)))
-    libre, _ = _variant(arr, bbox, stack, presences, xy_scale, elevation_range=None, **kw)
-    ajustada, data = _variant(arr, bbox, stack, presences, xy_scale, elevation_range=band, **kw)
-    return {"ausencias_libres": libre, "ausencias_mismo_rango_elevacion": ajustada,
-            "conclusion_automatica": _conclusion(libre, ajustada)}, data
+    libre, _ = _variant(arr, bbox, stack, presences, xy_scale, elevation_range=None, cats=cats, **kw)
+    ajustada, data = _variant(arr, bbox, stack, presences, xy_scale, elevation_range=band, cats=cats, **kw)
+    out = {"ausencias_libres": libre, "ausencias_mismo_rango_elevacion": ajustada,
+           "conclusion_automatica": _conclusion(libre, ajustada)}
+    if cats:
+        out["geologia_razon_frecuencia"] = {k: geology.frequency_ratio(idx, names, presences)
+                                            for k, (idx, names, _) in cats.items()}
+    return out, data
 
 
 def evaluate(arr: np.ndarray, bbox, fc: dict, *, ratio: int = 3, min_dist_m: float = 300.0, blocks: int = 4,
              seed: int = 42, n_seeds: int = 5, buffer_m: float = 500.0, min_por_proceso: int = 30,
-             only_mass_movement: bool = True) -> tuple[dict, np.ndarray, np.ndarray, np.ndarray]:
+             only_mass_movement: bool = True,
+             categorical: dict | None = None) -> tuple[dict, np.ndarray, np.ndarray, np.ndarray]:
+    """`categorical`: {capa: (índice de clase por celda, nombres)} rasterizado a la malla del DEM."""
     presences, skipped = event_cells(fc, arr, bbox, only_mass_movement)
     if len(presences) < MIN_EVENTS:
         raise ValidationError(f"Muy pocos eventos útiles dentro del DEM ({len(presences)}; mínimo {MIN_EVENTS}).")
@@ -225,8 +251,10 @@ def evaluate(arr: np.ndarray, bbox, fc: dict, *, ratio: int = 3, min_dist_m: flo
     blocks_auto = blocks == 0
     if blocks_auto:
         blocks = int(min(8, max(3, extent_m // rango_med))) if rango_med else 4
+    cats = {k: (idx, names, geology.kept_classes(idx, names)) for k, (idx, names) in (categorical or {}).items()}
+    cats = {k: v for k, v in cats.items() if v[2]} or None
     kw = {"ratio": ratio, "min_dist_m": min_dist_m, "blocks": blocks, "seed": seed, "n_seeds": n_seeds,
-          "buffer_m": buffer_m}
+          "buffer_m": buffer_m, "cats": cats}
     todos, (X, y, pts) = _assess(arr, bbox, stack, presences, xy_scale, **kw)
 
     codes: dict[str, int] = {}
@@ -253,6 +281,7 @@ def evaluate(arr: np.ndarray, bbox, fc: dict, *, ratio: int = 3, min_dist_m: flo
     report = {
         "descartados": skipped, "variables": list(stack), "bloques": f"{blocks}x{blocks}",
         "variables_descripcion": {k: terrain_vars.DESCRIPTIONS[k] for k in stack},
+        "geologia_clases_usadas": {k: [names[i] for i in keep] for k, (_, names, keep) in (cats or {}).items()},
         **todos,
         "por_proceso": por_proceso, "procesos_omitidos_por_pocos_eventos": omitidos, "nota_codigos": CODE_NOTE,
         "protocolo": {
@@ -279,6 +308,14 @@ def evaluate(arr: np.ndarray, bbox, fc: dict, *, ratio: int = 3, min_dist_m: flo
             "rango de elevación que los eventos.",
             "Variables solo topográficas (derivadas del DEM): faltan litología, geomorfología, lluvia y cobertura.",
             "La red de cauces se deriva del DEM (no es la red oficial de la ANA) con un umbral de área fijo.",
+            *(["La geomorfología puede ser circular: algunas unidades (p. ej. vertientes coluviales, abanicos) se "
+               "cartografían a partir de depósitos de movimientos en masa; su aporte no prueba capacidad predictiva."]
+              if cats and "geomorfologia" in cats else []),
+            *(["En la litología, la clase de depósitos recientes («Sedimento») puede incluir los depósitos de los "
+               "propios eventos (sobre todo flujos/huaycos): parte de su aporte puede ser circular."]
+              if cats and "litologia" in cats else []),
+            *(["La razón de frecuencia geológica es descriptiva (usa todos los eventos); solo el modelo con "
+               "validación espacial mide capacidad predictiva."] if cats else []),
             "La validación aleatoria se muestra solo como referencia: sobrestima por autocorrelación espacial.",
             "Un buen AUC no autoriza decisiones: la validación final la decide un experto/administrador.",
         ],
@@ -336,9 +373,14 @@ def _conclusion(libre: dict, ajustada: dict) -> list[str]:
         else:
             best = max((u["auc_discriminante"] for u in (ajustada.get("por_variable") or {}).values()), default=0)
             extra = (f" Una sola variable llega a AUC {_d(best)}: combinarlas con tan pocos eventos no ayuda "
-                     "(variables correlacionadas o sobreajuste)." if best > m_aj else "")
+                     "(variables correlacionadas o sobreajuste)." if best > m_aj + 0.02 else "")
             out.append("Las variables nuevas (curvatura, TPI, distancia a cauce) no mejoran el modelo de forma "
                        f"apreciable: AUC {_d(base_aj)} → {_d(m_aj)}.{extra}")
+    geo_aj = (ajustada.get("regresion_logistica_geo") or {}).get("espacial", {}).get("auc_mean")
+    if geo_aj is not None and m_aj is not None:
+        verb = "mejora" if geo_aj >= m_aj + 0.05 else "no mejora de forma apreciable"
+        out.append(f"Añadir las clases geológicas {verb} el modelo topográfico: AUC {_d(m_aj)} → {_d(geo_aj)} "
+                   "(validación espacial, sesgo de altura corregido).")
     if m_aj is not None and m_aj < 0.65:
         out.append("Con pendiente y elevación no se obtiene un modelo de susceptibilidad útil: hacen falta más "
                    "variables (litología, geomorfología, lluvia, cobertura).")

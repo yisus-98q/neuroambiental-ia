@@ -35,6 +35,17 @@
   - está sesgado hacia zonas pobladas y vías;
   - `TIP_PELIGRO` está codificado (el grupo 1000 se trata como movimientos en masa; la correspondencia exacta de los subcódigos está por confirmar con INGEMMET).
 
+### INGEMMET — Litología 1:50 000 y Geomorfología regional — integradas (uso interno)
+
+- **Servicios:** `SERV_GEOLOGIA_50K_INTEGRADA/MapServer/7` (campo `TIPO_UNIDAD`) y `SERV_GEOMORFOLOGIA/MapServer/0` (campo `SUBUNIDAD`), en `geocatmin.ingemmet.gob.pe`.
+- **Licencia:** copyright de INGEMMET, sin licencia abierta declarada. Uso interno de investigación autorizado por el usuario; **no redistribuir**.
+- **Consulta:**
+  - por recorte, primero los OBJECTID y luego lotes de 100;
+  - geometrías simplificadas en el servidor (≈20 m);
+  - solo se aceptan respuestas de ese host.
+- **Uso:** las clases se usan con su nombre oficial, sin reinterpretar.
+- **Advertencias:** posible circularidad con el inventario. La clase «Sedimento» y unidades como abanicos o vertientes coluviales pueden contener los depósitos de los propios eventos.
+
 ## Fuentes públicas candidatas (NO integradas)
 
 La licencia y los términos de uso **deben revisarse antes de usar cualquiera**; lo siguiente es orientativo y puede estar desactualizado o incompleto. La tabla `sources` tiene el campo `terms_reviewed` (falso por defecto) para registrar esa revisión.

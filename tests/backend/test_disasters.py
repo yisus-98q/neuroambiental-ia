@@ -205,3 +205,49 @@ def test_conclusions_rules():
     assert any("INVERSA" in c for c in flows) and not any("SÍ discrimina" in c for c in flows)
     mixed = _conclusion(v(0.49, 0.81, 0.83), v(0.54, 0.70, 0.74))
     assert any("NO discrimina" in c for c in mixed) and any("elevación" in c for c in mixed)
+
+
+def _geology_fc():
+    """Dos polígonos: mitad oeste «Sedimento», mitad este «Volcánica» (nombres oficiales como texto)."""
+    mid = (BBOX[0] + BBOX[2]) / 2
+    def poly(x0, x1, cls):
+        return {"type": "Feature", "properties": {"TIPO_UNIDAD": cls},
+                "geometry": {"type": "Polygon", "coordinates": [[[x0, BBOX[1]], [x1, BBOX[1]], [x1, BBOX[3]],
+                                                                 [x0, BBOX[3]], [x0, BBOX[1]]]]}}
+    return {"type": "FeatureCollection", "features": [poly(BBOX[0], mid, "Sedimento"), poly(mid, BBOX[2], "Volcánica")]}
+
+
+def test_geology_import_rasterize_and_frequency_ratio(client, analyst_h, monkeypatch):
+    from app.modules.disasters import geology
+    monkeypatch.setattr(geology, "fetch_layer", lambda kind, bbox: _geology_fc())
+    r = client.post("/api/disasters/geology/import", headers=analyst_h, json={"capa": "litologia", "bbox": BBOX})
+    assert r.status_code == 201, r.text
+    out = r.json()
+    assert out["clases"] == {"Sedimento": 1, "Volcánica": 1} and "no redistribuir" in out["license"]
+    assert any(g["id"] == out["id"] for g in client.get("/api/disasters/geology", headers=analyst_h).json())
+    # Rasterización a la malla del DEM y razón de frecuencia (todos los eventos al oeste → Sedimento ≈ 2).
+    arr = _dem()
+    idx, names = geology.rasterize(_geology_fc(), "TIPO_UNIDAD", arr, BBOX)
+    assert names == ["(sin dato)", "Sedimento", "Volcánica"]
+    assert idx[:, :95].min() == 1 and idx[:, 105:].max() == 2
+    west = np.array([[r_, c_] for r_, c_ in zip(range(10, 190, 6), range(5, 95, 3))])
+    fr = {x["clase"]: x["razon_frecuencia"] for x in geology.frequency_ratio(idx, names, west)}
+    assert fr["Sedimento"] == 2.0 and fr["Volcánica"] == 0.0
+    # Validación con la capa geológica: aparece el modelo topografía + geología y la advertencia de circularidad.
+    dem_id = _register_dem(arr)
+    rng = np.random.default_rng(9)
+    ev = [(int(a), int(b)) for a, b in zip(rng.integers(5, 195, 50), rng.integers(3, 60, 50))]
+    inv = _import(client, analyst_h, monkeypatch, _events(ev))
+    rep = _validate(client, analyst_h, dem_id, inv["id"], geology_ids=[out["id"]]).json()
+    assert rep["geologia_clases_usadas"] == {"litologia": ["Sedimento", "Volcánica"]}
+    assert "regresion_logistica_geo" in rep["ausencias_mismo_rango_elevacion"]
+    assert any("circular" in w for w in rep["advertencias"])
+    assert any("clases geológicas" in c for c in rep["conclusion_automatica"])
+    # Un inventario no sirve como capa geológica.
+    assert _validate(client, analyst_h, dem_id, inv["id"], geology_ids=[inv["id"]]).status_code == 422
+
+
+def test_geology_refuses_foreign_hosts(monkeypatch):
+    from app.modules.disasters import geology
+    with pytest.raises(geology.GeologyError):
+        geology._get("https://evil.example.com/q", {"f": "json"})

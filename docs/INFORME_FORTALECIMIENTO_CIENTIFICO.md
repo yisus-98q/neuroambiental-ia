@@ -294,7 +294,7 @@ La memoria indicada es el pico estimado [I] durante la ejecución. El coste es 0
 | **P2** | Scientific Validation Engine (tablas, servicio, API mínima, estados) | `modules/validation/*`, migración, `neurotraining/service.py` | P0.3 | < 100 MB | Migración de esquema (con copia previa de la base) | Pruebas de transiciones, prueba sellada y doble aprobación | No se puede validar sin criterios previos y prueba independiente |
 | **P3.1** ✅ | Variables derivadas del DEM: curvatura, TPI, distancia a drenaje (D8) | `neuro3d/dem.py`, `validation.py` | P1.4 | < 400 MB | Umbral de cauce | Pruebas sobre un DEM sintético | Variables documentadas y justificadas |
 | P3.2 | NDVI: compuesto de época seca, anillo, % válido y prueba con y sin | `environmental/*`, `validation.py` | P1 | < 500 MB | Fuga temporal (§6.3); descarga ≈20–50 MB **(autorización)** | Prueba del filtro de cobertura | La limitación temporal se declara en el informe |
-| P3.3 | Litología y geomorfología (consulta por recorte, uso interno) | `disasters/geology.py` (nuevo) | **Autorización de licencia** | < 200 MB | Licencia; códigos sin diccionario | Prueba con fetcher falso | Clases solo según la documentación oficial |
+| P3.3 ✅ | Litología y geomorfología (consulta por recorte, uso interno) | `disasters/geology.py` (nuevo) | **Autorización de licencia** | < 200 MB | Licencia; códigos sin diccionario | Prueba con fetcher falso | Clases solo según la documentación oficial |
 | **P4** | Comparador de modelos: LR, RF, HistGB y MLP con el protocolo P1 | `validation.py` o SVE | P1, P2 | < 500 MB (n_jobs=1) | MLP sin ventaja esperable | Prueba de que todos usan las mismas divisiones | Tabla comparativa con tiempo, memoria y AUC ± IC |
 | **P5** | Prueba independiente fuera de Huaraz | Recorte nuevo | P1–P4; **autorización** (DEM e inventario ≈20 MB) | < 500 MB | Pocos eventos en la región elegida | — | Se evalúa una sola vez y se registra en el SVE |
 | P6 | Diseño InSAR para NEUROTERRAIN (solo documento) | `docs/DISENO_INSAR.md` | — | — | — | — | Ver §8.1 |
@@ -363,6 +363,30 @@ Lectura:
 - **Combinar las variables no mejora** con 33–68 eventos (variables correlacionadas o sobreajuste). Con estos datos, un índice de una sola variable por proceso es más honesto que un modelo multivariable.
 - **Ningún modelo está validado.** Falta la prueba independiente fuera de Huaraz (P5).
 - La red de cauces derivada no es la oficial de la ANA.
+
+**P3.3: litología y geomorfología de INGEMMET (24 nov. 2026, autorización A4; uso interno, sin redistribuir).**
+
+Capas importadas para el recorte de Huaraz (≈3,4 MB):
+- **Litología** del Mapa Geológico Integrado 1:50 000, campo `TIPO_UNIDAD`: 1104 polígonos y 7 clases.
+- **Geomorfología** regional, campo `SUBUNIDAD`: 473 polígonos y 17 clases.
+
+Se usan los nombres oficiales tal como los publica el servicio, sin reinterpretar. Las clases con menos del 2 % del área se agrupan en «otras».
+
+Regresión logística con validación espacial y franja de altura. «Topografía» son las 5 variables del DEM:
+
+| Grupo | Topografía | + litología | + litología + geomorfología |
+|---|---|---|---|
+| Todos | 0,74 | 0,73 | 0,77 |
+| 1100 (probables caídas) | 0,74 | 0,72 | 0,76 |
+| 1300 (probables deslizamientos) | 0,67 | 0,67 | 0,69 |
+| 1500 (probables flujos) | 0,70 | **0,78** (IC 0,67–0,84) | 0,74 |
+
+Razón de frecuencia descriptiva (con todos los eventos): los flujos son 3,8 veces más frecuentes en la clase «Sedimento» (depósitos recientes).
+
+**Advertencias:**
+- **Circularidad:** «Sedimento» puede contener los depósitos de huaycos anteriores. La geomorfología incluye unidades como abanicos y vertientes coluviales que se cartografían a partir de esos mismos depósitos.
+- **Por eso, la mejora en flujos no prueba capacidad predictiva independiente** y ningún modelo se valida.
+- La geomorfología añade poco y es la más expuesta a la circularidad. **No se recomienda usarla como variable**, solo como comparación.
 
 ### 8.1 Diseño InSAR (Tarea 5)
 

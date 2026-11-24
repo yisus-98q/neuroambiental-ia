@@ -49,8 +49,8 @@ def test_generic_single_variable_conclusion():
         return {"auc_heuristico_pendiente": h, "auc_solo_elevacion_baja": e, "por_variable": pv,
                 "regresion_logistica": {"espacial": {"auc_mean": m, "auc_ic95_bloques": None}},
                 "regresion_logistica_base": {"espacial": {"auc_mean": base}}}
-    pv = {"dist_cauce_m": {"auc": 0.28, "auc_discriminante": 0.72, "direccion": "menor en eventos",
+    pv = {"dist_cauce_m": {"auc": 0.24, "auc_discriminante": 0.76, "direccion": "menor en eventos",
                            "mediana_eventos": 90.0, "mediana_ausencias": 260.0}}
     out = _conclusion(var(0.40, 0.80, 0.75, 0.78, pv), var(0.42, 0.66, 0.70, 0.67, pv))
     assert any("«dist_cauce_m» sola SÍ discrimina" in c and "menor en eventos" in c for c in out)
-    assert any("no mejoran" in c and "0,72" in c for c in out)
+    assert any("no mejoran" in c and "0,76" in c for c in out)
