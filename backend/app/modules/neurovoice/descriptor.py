@@ -16,6 +16,8 @@ DESCRIPTOR = ModuleDescriptor(
             "servidores de Google, con consentimiento previo)", implemented=True),
         cap("sintesis_voz", "Respuestas habladas con las voces del navegador (local), interrumpibles",
             implemented=True),
+        cap("asistente_flotante", "Asistente flotante en toda la plataforma con el contexto de la pantalla, estados "
+            "de escucha/proceso/respuesta, volumen y voz activable", implemented=True),
         cap("modelo_lenguaje", "Comprensión con modelo de lenguaje"),
         cap("otros_idiomas", "Inglés, quechua, aimara, portugués"),
         cap("acciones_sensibles", "Ejecutar análisis o simulaciones por voz con confirmación"),

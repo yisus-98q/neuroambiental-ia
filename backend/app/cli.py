@@ -171,6 +171,36 @@ def export_manifests(out: str) -> int:
     return 0
 
 
+def export_fact_sheets(out: str) -> int:
+    """Genera las fichas técnicas de los módulos DESDE el registro de NEUROCORE (no a mano)."""
+    from app.neurocore.registry import build_registry
+
+    lines = ["# Fichas técnicas de los módulos", "",
+             "Generado automáticamente desde el registro de NEUROCORE (`python -m app.cli exportar-fichas`).",
+             "Lo que aquí figura como implementado es exactamente lo que declara el código; nada se edita a mano.", ""]
+    reg = build_registry()
+    lines += ["| Módulo | Estado | Capacidades |", "|---|---|---|"]
+    for m in reg.all():
+        imp = sum(c.implemented for c in m.capabilities)
+        lines.append(f"| {m.codename or m.name} | {m.status.value} | {imp}/{len(m.capabilities)} |")
+    for m in reg.all():
+        lines += ["", f"## {m.codename or m.name} ({m.name})", "", m.description, "",
+                  f"- **Estado:** {m.status.value} · **versión** {m.version} · **API:** `{m.api_prefix or 'sin API propia'}`",
+                  f"- **Datos que usa:** {' · '.join(m.inputs) or '—'}",
+                  f"- **Resultados que produce:** {' · '.join(m.outputs) or '—'}",
+                  f"- **Depende de:** {', '.join(m.dependencies) or 'ninguno'}", "", "**Implementado:**", ""]
+        imp = [c for c in m.capabilities if c.implemented]
+        lines += [f"- {c.description}" for c in imp] or ["- Nada todavía (solo contrato)."]
+        lines += ["", "**Pendiente:**", ""]
+        pend = [c for c in m.capabilities if not c.implemented]
+        lines += [f"- {c.description}" for c in pend] or ["- Nada declarado."]
+        if m.limitations:
+            lines += ["", "**Limitaciones:**", ""] + [f"- {l}" for l in m.limitations]
+    Path(out).write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"Fichas de {len(reg.all())} módulos escritas en {out}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m app.cli")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -193,6 +223,8 @@ def main(argv: list[str] | None = None) -> int:
     gg.add_argument("--capas", default="litologia,geomorfologia")
     em = sub.add_parser("exportar-manifiestos", help="Escribe un manifiesto JSON por dataset (solo metadatos)")
     em.add_argument("--salida", default=str(Path(__file__).resolve().parents[2] / "datasets" / "manifiestos"))
+    ef = sub.add_parser("exportar-fichas", help="Genera docs/FICHAS_TECNICAS_MODULOS.md desde el registro")
+    ef.add_argument("--salida", default=str(Path(__file__).resolve().parents[2] / "docs" / "FICHAS_TECNICAS_MODULOS.md"))
     args = parser.parse_args(argv)
     if args.cmd == "migrate":
         migrate()
@@ -200,6 +232,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.cmd == "create-admin":
         return create_admin(args.username, args.password)
+    if args.cmd == "exportar-fichas":
+        return export_fact_sheets(args.salida)
     if args.cmd == "exportar-manifiestos":
         return export_manifests(args.salida)
     if args.cmd == "importar-geologia":

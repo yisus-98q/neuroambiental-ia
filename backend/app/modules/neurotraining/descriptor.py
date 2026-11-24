@@ -21,6 +21,10 @@ DESCRIPTOR = ModuleDescriptor(
             implemented=True),
         cap("prediccion", "Predicción sobre nuevos CSV, marcada como experimental si el modelo no está validado",
             implemented=True),
+        cap("reproducibilidad", "Semilla, hiperparámetros, versiones y SHA-256 del dataset registrados; reproducción "
+            "verificable y exportación del modelo con su ficha (model_card.json)", implemented=True),
+        cap("division_espacial", "División de prueba por bloques geográficos y algoritmos condicionados al tamaño de "
+            "los datos (HistGradientBoosting ≥ 200 filas, MLP ≥ 1000 filas)", implemented=True),
         cap("redes_neuronales", "Redes neuronales (PyTorch) para imágenes y series: requiere autorización y hardware"),
         cap("datasets_imagenes", "Datasets de imágenes con anotaciones (Dataset Manager)"),
         cap("reanudar_entrenamiento", "Reanudar entrenamientos largos por épocas"),
