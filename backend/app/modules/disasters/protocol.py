@@ -103,3 +103,38 @@ def summarize(res: dict, y: np.ndarray, groups: np.ndarray, seed: int) -> dict:
         "excluidos_por_zona_de_exclusion": res["removed_by_buffer"],
         "umbral": "Youden, elegido con el entrenamiento de cada pliegue",
     }
+
+
+def variogram_range(stack: dict, xy_scale: tuple[float, float], seed: int, n: int = 1500, bins: int = 20) -> dict:
+    """Alcance práctico de la autocorrelación de cada variable (semivariograma empírico sobre n celdas al azar):
+    primer intervalo de distancia donde la semivarianza alcanza el 95 % de su meseta. Sirve para elegir un
+    tamaño de bloque >= al alcance (Roberts et al., 2017; Valavi et al., 2019)."""
+    any_arr = next(iter(stack.values()))
+    h, w = any_arr.shape
+    rng = np.random.default_rng(seed)
+    idx = rng.choice(h * w, size=min(n, h * w), replace=False)
+    r, c = np.divmod(idx, w)
+    xy = np.c_[c * xy_scale[0], r * xy_scale[1]]
+    iu = np.triu_indices(len(idx), k=1)
+    d = np.sqrt(((xy[:, None, :] - xy[None, :, :]) ** 2).sum(-1))[iu].astype("float32")
+    dmax = float(d.max()) / 2
+    edges = np.linspace(0, dmax, bins + 1)
+    which = np.digitize(d, edges) - 1
+    del d
+    centers = (edges[:-1] + edges[1:]) / 2
+    out = {}
+    for name, a in stack.items():
+        v = a[r, c].astype("float64")
+        if not np.isfinite(v).all() or v.std() == 0:
+            continue
+        v = (v - v.mean()) / v.std()
+        g = (0.5 * (v[:, None] - v[None, :]) ** 2)[iu].astype("float32")
+        sums = np.bincount(np.clip(which, 0, bins), weights=g, minlength=bins + 1)[:bins]
+        cnts = np.bincount(np.clip(which, 0, bins), minlength=bins + 1)[:bins]
+        gam = np.where(cnts > 0, sums / np.maximum(cnts, 1), np.nan)
+        sill = float(np.nanmax(gam))
+        reach = np.flatnonzero(gam >= 0.95 * sill)
+        out[name] = {"alcance_m": round(float(centers[reach[0]]), 0), "meseta": round(sill, 3),
+                     "alcanza_meseta": bool(reach[0] < bins - 1)}
+        del g
+    return out

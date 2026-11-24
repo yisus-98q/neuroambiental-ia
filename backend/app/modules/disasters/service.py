@@ -76,7 +76,7 @@ def validate(db: Session, user: User | None, *, dem_id: str, inventory_id: str, 
             report, X, y, pts = validation.evaluate(arr, bbox, fc, ratio=ratio, min_dist_m=min_dist_m,
                                                     blocks=blocks, seed=seed, n_seeds=n_seeds,
                                                     buffer_m=buffer_m)
-            raw = validation.dataset_csv(X, y, pts, bbox, arr)
+            raw = validation.dataset_csv(X, y, pts, bbox, arr, report["variables"])
             aj = report["ausencias_mismo_rango_elevacion"]
             simulated = bool(dem_rec.is_simulated or inv_rec.is_simulated)
             ds = store_file(db, raw=raw, extension=".csv", original_name="susceptibilidad_entrenamiento.csv",

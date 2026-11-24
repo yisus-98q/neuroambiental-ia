@@ -288,11 +288,11 @@ La memoria indicada es el pico estimado [I] durante la ejecución. El coste es 0
 | **P0.3** ✅ | NEURAL TRAINING: avisar o bloquear coordenadas como variables; marcar «corte aleatorio» como insuficiente para validar datos con coordenadas | `trainer.py`, `service.py` | — | — | Cambia el comportamiento de validación (no hay modelos validados) | Prueba de rechazo y aviso | Imposible validar con métricas de corte aleatorio si el dataset es geoespacial |
 | P0.4 ✅ | Coma decimal en las conclusiones | `disasters/validation.py`, `DisasterPanel.tsx` | — | — | — | Ajustar pruebas | — |
 | **P1.1** ✅ | Validación por tipo de proceso (n ≥ 30) | `disasters/validation.py`, API y panel | P0 | < 300 MB | Pocos eventos por tipo, con intervalos amplios | Pruebas sintéticas por tipo | Informe separado para 1100, 1300 y 1500 |
-| **P1.2** ✅ (falta el variograma y la máscara) | Zona de exclusión entre bloques, variograma para el tamaño de bloque, 10 semillas de ausencias, máscara de dominio (hielo y agua) | `validation.py` | scipy (ya instalado) | < 300 MB | Máscara de hielo imperfecta | Prueba de que no hay puntos de prueba dentro de la zona de exclusión | Media ± desviación de las semillas en el informe |
+| **P1.2** ✅ (falta la máscara de hielo y agua) | Zona de exclusión entre bloques, variograma para el tamaño de bloque, 10 semillas de ausencias, máscara de dominio (hielo y agua) | `validation.py` | scipy (ya instalado) | < 300 MB | Máscara de hielo imperfecta | Prueba de que no hay puntos de prueba dentro de la zona de exclusión | Media ± desviación de las semillas en el informe |
 | **P1.3** ✅ | Métricas completas: PR-AUC, Brier, curva de fiabilidad, matriz y FP/FN con umbral fijado en validación, bootstrap por bloques | `validation.py` | — | < 200 MB | — | Prueba de valores conocidos | Tabla completa en el informe |
 | **P1.4** ✅ (≈35 m) | DEM a resolución nativa (≈30 m) | Uso de `fetch_dem` con res 0,000278° | — | ≈ 1800² × 4 B ≈ 13 MB por banda; < 400 MB en total | Descarga ≈10–20 MB **(autorización)** | — | Pendiente y curvatura a 30 m |
 | **P2** | Scientific Validation Engine (tablas, servicio, API mínima, estados) | `modules/validation/*`, migración, `neurotraining/service.py` | P0.3 | < 100 MB | Migración de esquema (con copia previa de la base) | Pruebas de transiciones, prueba sellada y doble aprobación | No se puede validar sin criterios previos y prueba independiente |
-| **P3.1** | Variables derivadas del DEM: curvatura, TPI, distancia a drenaje (D8) | `neuro3d/dem.py`, `validation.py` | P1.4 | < 400 MB | Umbral de cauce | Pruebas sobre un DEM sintético | Variables documentadas y justificadas |
+| **P3.1** ✅ | Variables derivadas del DEM: curvatura, TPI, distancia a drenaje (D8) | `neuro3d/dem.py`, `validation.py` | P1.4 | < 400 MB | Umbral de cauce | Pruebas sobre un DEM sintético | Variables documentadas y justificadas |
 | P3.2 | NDVI: compuesto de época seca, anillo, % válido y prueba con y sin | `environmental/*`, `validation.py` | P1 | < 500 MB | Fuga temporal (§6.3); descarga ≈20–50 MB **(autorización)** | Prueba del filtro de cobertura | La limitación temporal se declara en el informe |
 | P3.3 | Litología y geomorfología (consulta por recorte, uso interno) | `disasters/geology.py` (nuevo) | **Autorización de licencia** | < 200 MB | Licencia; códigos sin diccionario | Prueba con fetcher falso | Clases solo según la documentación oficial |
 | **P4** | Comparador de modelos: LR, RF, HistGB y MLP con el protocolo P1 | `validation.py` o SVE | P1, P2 | < 500 MB (n_jobs=1) | MLP sin ventaja esperable | Prueba de que todos usan las mismas divisiones | Tabla comparativa con tiempo, memoria y AUC ± IC |
@@ -336,6 +336,33 @@ Lectura:
 | 1500 | 0,40 → 0,42 | 0,70 → 0,73 |
 
 - **Las conclusiones no dependen de la resolución.** Las pendientes medianas de los eventos suben (en 1100, de 26,7° a 29,3°), pero la capacidad de discriminar no mejora.
+
+**P3.1 y P1.2: variables del DEM y bloques por variograma (24 nov. 2026).**
+
+Variables nuevas, todas derivadas del DEM de ≈35 m y sin datos adicionales:
+- curvatura (laplaciano suavizado);
+- TPI en un radio de 300 m;
+- distancia a la red de cauces derivada del DEM: relleno priority-flood, D8 y área drenada ≥ 0,25 km², con la hidrología calculada a ≈70 m para caber en 4 GB.
+
+Bloques automáticos:
+- Se calcula el alcance práctico del semivariograma de cada variable sobre 1500 celdas.
+- Alcances: pendiente 31 km, elevación 20 km, distancia a cauce 16 km, curvatura y TPI 2,9 km. La mediana es 16 km.
+- Resultado: bloques de 3×3 de ≈18 km, que cubren el alcance mediano.
+
+Modelo base = regresión logística solo con pendiente y elevación. Modelo completo = regresión logística con las cinco variables. Todo con la franja de altura:
+
+| Grupo | Base → completo | Mejor variable sola |
+|---|---|---|
+| Todos | 0,73 → 0,74 | — |
+| 1100 (probables caídas) | 0,70 → 0,74 | pendiente 0,73 (mayor en eventos) |
+| 1300 (probables deslizamientos) | 0,68 → 0,67 | — |
+| 1500 (probables flujos) | 0,67 → 0,70 | **distancia a cauce 0,72** (menor en eventos: mediana 69 m frente a 195 m) |
+
+Lectura:
+- Cada tipo de proceso responde a la variable que predice la física: las caídas a la pendiente y los flujos a la cercanía a los cauces.
+- **Combinar las variables no mejora** con 33–68 eventos (variables correlacionadas o sobreajuste). Con estos datos, un índice de una sola variable por proceso es más honesto que un modelo multivariable.
+- **Ningún modelo está validado.** Falta la prueba independiente fuera de Huaraz (P5).
+- La red de cauces derivada no es la oficial de la ANA.
 
 ### 8.1 Diseño InSAR (Tarea 5)
 

@@ -117,7 +117,7 @@ def import_ingemmet(bbox_text: str, res: float, dem_id: str | None, validate: bo
             dem_id = neuro3d.fetch_dem(db, None, bbox=bbox, res=res).id
             print(f"DEM: {dem_id}")
         rep = disasters.validate(db, None, dem_id=dem_id, inventory_id=inv.id, ratio=3, min_dist_m=300.0,
-                                 blocks=4, seed=42)
+                                 blocks=0, seed=42)
         keys = ("ausencias_libres", "ausencias_mismo_rango_elevacion", "conclusion_automatica", "dataset_record_id")
         print(json.dumps({k: rep[k] for k in keys}, ensure_ascii=False, indent=1, default=str))
     return 0

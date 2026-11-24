@@ -29,6 +29,8 @@ DESCRIPTOR = ModuleDescriptor(
         "proceso (códigos sin diccionario oficial): 1100 (probables caídas) AUC 0,75 con la pendiente sola tras "
         "corregir el sesgo de altura; 1500 (probables flujos) relación inversa (0,38). Los intervalos de "
         "confianza por bloques llegan a 0,43–0,54 y no hay prueba independiente: ningún modelo está validado.",
+        "Variables del DEM (≈35 m): pendiente, elevación, curvatura, TPI y distancia a cauces derivados. En flujos "
+        "(1500) la distancia a cauce sola discrimina (AUC 0,72); combinar variables no mejora con tan pocos eventos.",
         "Faltan variables clave (litología, geomorfología, lluvia, cobertura) para un modelo útil.",
     ],
     keywords=["huayco", "huaico", "inundacion", "deslizamiento", "derrumbe", "incendio", "sequia",

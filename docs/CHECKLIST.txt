@@ -1,7 +1,7 @@
 NEUROAMBIENTAL IA - CHECKLIST DE LO REALIZADO
 Actualizado: 24 nov. 2026
 Proyecto: D:\Proyectos\neuroambiental-ia
-Estado: 161 pruebas pasan y el frontend compila (scripts\comprobar.py)
+Estado: 166 pruebas pasan y el frontend compila (scripts\comprobar.py)
 
 [x] = hecho      [~] = parcial      [ ] = pendiente
 
@@ -89,7 +89,11 @@ AUDITORÍA CIENTÍFICA (24 nov. 2026)
 [x] P1.1 Validación por tipo de proceso (1100 / 1300 / 1500)
 [x] P1.2 Zona de exclusión de 500 m entre bloques y 5 sorteos de pseudo-ausencias
 [x] P1.3 PR-AUC, Brier, matriz de confusión, precisión/recall/F1, IC 95 % por bloques
-[ ] P1.2 Variograma para el tamaño de bloque y máscara de hielo/agua
+[x] P1.2 Tamaño de bloque automático por variograma (3x3 de ≈18 km en Huaraz)
+[x] P3.1 Curvatura, TPI y distancia a cauces derivadas del DEM
+      - flujos (1500): la distancia a cauce sola discrimina (AUC 0,72)
+      - combinar variables no mejora con tan pocos eventos
+[ ] Máscara de hielo y agua para las pseudo-ausencias
 [x] P1.4 DEM a ≈35 m descargado (A2); mismas conclusiones que a 110 m
 [ ] P2 Scientific Validation Engine (necesita autorización A6)
 

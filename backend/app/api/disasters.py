@@ -39,7 +39,7 @@ class ValidateIn(BaseModel):
     inventory_id: str = Field(min_length=32, max_length=32)
     ratio: int = Field(default=3, ge=1, le=10)
     min_dist_m: float = Field(default=300, ge=50, le=5000)
-    blocks: int = Field(default=4, ge=2, le=8)
+    blocks: int = Field(default=0, ge=0, le=8)   # 0 = automático por variograma
     seed: int = Field(default=42, ge=0, le=10_000)
     n_seeds: int = Field(default=5, ge=1, le=10)
     buffer_m: float = Field(default=500, ge=0, le=5000)

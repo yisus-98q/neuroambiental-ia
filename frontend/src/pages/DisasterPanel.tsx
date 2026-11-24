@@ -14,13 +14,19 @@ interface Cv {
 interface Variant {
   n_presencias: number; n_ausencias: number; auc_heuristico_pendiente: number; auc_solo_elevacion_baja: number;
   regresion_logistica: { espacial: Cv; aleatoria_referencia: Cv }; bosque_aleatorio: { espacial: Cv; aleatoria_referencia: Cv };
+  regresion_logistica_base?: { espacial: Cv };
+  por_variable?: Record<string, { auc: number; auc_discriminante: number; direccion: string; mediana_eventos: number; mediana_ausencias: number }>;
   elevacion_media_eventos: number; elevacion_media_ausencias: number; rango_elevacion_m?: number[];
 }
 interface Assessment { ausencias_libres: Variant; ausencias_mismo_rango_elevacion: Variant; conclusion_automatica: string[] }
 interface Report extends Assessment {
   advertencias: string[]; interpretacion_auc: string; descartados: Record<string, number>; dataset_record_id?: string; simulado?: boolean;
   por_proceso?: Record<string, Assessment>; procesos_omitidos_por_pocos_eventos?: Record<string, unknown>; nota_codigos?: string;
-  protocolo?: { tamano_bloque_km: number[]; zona_exclusion_m: number; semillas_ausencias: number; pendiente: string[] };
+  protocolo?: {
+    tamano_bloque_km: number[]; zona_exclusion_m: number; semillas_ausencias: number; pendiente: string[];
+    bloques_automaticos?: boolean; variograma?: { alcance_mediano_m: number | null; bloque_cubre_alcance: boolean };
+  };
+  variables_descripcion?: Record<string, string>;
   interpretacion_metricas?: Record<string, string>;
 }
 interface RunRow { id: string; run_type: string; status: string; started_at: string; parameters: Record<string, unknown>; result_summary: (Report & { error?: string }) | null }
@@ -133,7 +139,10 @@ function ReportCard({ r }: { r: Report }) {
       <p className="small" style={{ margin: 0 }}>{r.interpretacion_auc}</p>
       {p && <p className="small muted" style={{ margin: 0 }}>Protocolo: bloques de ≈{p.tamano_bloque_km.map((v) => d2(v)).join(" × ")} km,
         zona de exclusión de {p.zona_exclusion_m} m entre entrenamiento y prueba, {p.semillas_ausencias} sorteos de pseudo-ausencias.
-        Pendiente de mejorar: {p.pendiente.join("; ")}.</p>}
+        {p.variograma?.alcance_mediano_m != null && <> Bloques {p.bloques_automaticos ? "elegidos automáticamente" : "fijados a mano"}; alcance
+        mediano del variograma de las variables ≈{d2(p.variograma.alcance_mediano_m / 1000)} km ({p.variograma.bloque_cubre_alcance ? "el bloque lo cubre" : "el bloque NO lo cubre: puede haber fuga espacial"}).</>}
+        {" "}Pendiente de mejorar: {p.pendiente.join("; ")}.</p>}
+      {r.variables_descripcion && <ul className="small muted" style={{ margin: 0 }}>{Object.entries(r.variables_descripcion).map(([k, v]) => <li key={k}><strong>{k}</strong>: {v}</li>)}</ul>}
       <AssessmentBlock title="Todos los movimientos en masa" a={r} />
       {r.por_proceso && Object.keys(r.por_proceso).length > 0 && (
         <>
@@ -163,6 +172,9 @@ function AssessmentBlock({ title, a }: { title: string; a: Assessment }) {
   const rows: [string, string, string][] = [
     ["Índice heurístico (solo pendiente)", d2(x.auc_heuristico_pendiente), d2(y.auc_heuristico_pendiente)],
     ["Solo elevación", d2(x.auc_solo_elevacion_baja), d2(y.auc_solo_elevacion_baja)],
+    ...(x.regresion_logistica_base && y.regresion_logistica_base
+      ? [["Regresión logística · solo pendiente y elevación (base)", cv(x.regresion_logistica_base.espacial), cv(y.regresion_logistica_base.espacial)] as [string, string, string]]
+      : []),
     ["Regresión logística · AUC espacial por pliegue", cv(lrX), cv(lrY)],
     ["  · IC 95 % (bootstrap de bloques)", ic(lrX), ic(lrY)],
     ["  · Variación entre sorteos de ausencias", seeds(lrX), seeds(lrY)],
@@ -182,6 +194,14 @@ function AssessmentBlock({ title, a }: { title: string; a: Assessment }) {
         <thead><tr><th>Métrica</th><th>Ausencias libres</th><th>Ausencias en la franja de altura {y.rango_elevacion_m ? `${y.rango_elevacion_m[0]}–${y.rango_elevacion_m[1]} m` : ""}</th></tr></thead>
         <tbody>{rows.map(([k, v1, v2]) => <tr key={k}><td className="small" style={{ whiteSpace: "pre" }}>{k}</td><td>{v1}</td><td>{v2}</td></tr>)}</tbody>
       </table></div>
+      {y.por_variable && (
+        <div className="table-wrap"><table>
+          <thead><tr><th>Variable sola (franja de altura)</th><th>AUC</th><th>Dirección</th><th>Mediana eventos / ausencias</th></tr></thead>
+          <tbody>{Object.entries(y.por_variable).map(([k, u]) => (
+            <tr key={k}><td className="small">{k}</td><td>{d2(u.auc_discriminante)}</td><td className="small">{u.direccion}</td>
+              <td className="small">{d2(u.mediana_eventos)} / {d2(u.mediana_ausencias)}</td></tr>))}</tbody>
+        </table></div>
+      )}
       <ul className="small" style={{ margin: 0 }}>{a.conclusion_automatica.map((c) => <li key={c}>{c}</li>)}</ul>
     </div>
   );

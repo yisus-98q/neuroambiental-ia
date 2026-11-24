@@ -29,7 +29,7 @@ from sklearn.model_selection import GroupKFold, StratifiedKFold
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from app.modules.disasters import protocol
+from app.modules.disasters import protocol, terrain_vars
 from app.modules.neuro3d import dem as demlib
 
 MASS_MOVEMENT_KEYWORDS = ("desliz", "derrumbe", "caida", "caída", "huayco", "huaico", "flujo", "avalancha",
@@ -119,21 +119,28 @@ def _cv_auc(model_factory, X, y, splitter, groups=None) -> dict:
 
 
 def _models(seed: int) -> dict:
+    """(fábrica, columnas). «base» = solo pendiente y elevación, para medir el aporte de las variables nuevas."""
+    lr = lambda: make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000))  # noqa: E731
     return {
-        "regresion_logistica": lambda: make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000)),
-        "bosque_aleatorio": lambda: RandomForestClassifier(n_estimators=100, max_depth=6, min_samples_leaf=5,
-                                                           n_jobs=1, random_state=seed),
+        "regresion_logistica": (lr, None),
+        "regresion_logistica_base": (lr, [0, 1]),
+        "bosque_aleatorio": (lambda: RandomForestClassifier(n_estimators=100, max_depth=6, min_samples_leaf=5,
+                                                            n_jobs=1, random_state=seed), None),
     }
 
 
-def _variant(arr, bbox, slope, presences, xy_scale, *, ratio, min_dist_m, blocks, seed, n_seeds, buffer_m,
+CHEAP = ("regresion_logistica", "regresion_logistica_base")
+
+
+def _variant(arr, bbox, stack, presences, xy_scale, *, ratio, min_dist_m, blocks, seed, n_seeds, buffer_m,
              elevation_range):
     """Una variante de pseudo-ausencias evaluada con n_seeds sorteos; métricas completas del primero."""
     seeds_auc: dict[str, list[float]] = {k: [] for k in _models(seed)}
     first = None
     for s in range(n_seeds):
         pts, y = build_points(arr, bbox, presences, ratio, min_dist_m, seed + s, elevation_range)
-        X = np.c_[slope[pts[:, 0], pts[:, 1]], arr[pts[:, 0], pts[:, 1]]].astype("float64")
+        names = list(stack)
+        X = np.column_stack([stack[n][pts[:, 0], pts[:, 1]] for n in names]).astype("float64")
         ok = np.isfinite(X).all(axis=1)
         X, y, pts = X[ok], y[ok], pts[ok]
         groups = spatial_groups(pts, arr.shape, blocks)
@@ -144,9 +151,10 @@ def _variant(arr, bbox, slope, presences, xy_scale, *, ratio, min_dist_m, blocks
         detail = {}
         # El bosque aleatorio es caro en un equipo de 4 GB: se evalúa con el primer sorteo; la variación entre
         # sorteos de ausencias se mide con la regresión logística (modelo de referencia).
-        models = _models(seed) if s == 0 else {"regresion_logistica": _models(seed)["regresion_logistica"]}
-        for name, factory in models.items():
-            res = protocol.spatial_oof(factory, X, y, groups, xy_m, GroupKFold(n_splits=k), buffer_m)
+        models = {n: m for n, m in _models(seed).items() if s == 0 or n in CHEAP}
+        for name, (factory, cols) in models.items():
+            Xm = X if cols is None else X[:, cols]
+            res = protocol.spatial_oof(factory, Xm, y, groups, xy_m, GroupKFold(n_splits=k), buffer_m)
             summ = protocol.summarize(res, y, groups, seed)
             if summ["auc_mean"] is not None:
                 seeds_auc[name].append(summ["auc_mean"])
@@ -162,10 +170,12 @@ def _variant(arr, bbox, slope, presences, xy_scale, *, ratio, min_dist_m, blocks
                 "pendiente_media_ausencias": round(float(X[y == 0, 0].mean()), 2),
                 "elevacion_media_eventos": round(float(X[y == 1, 1].mean()), 1),
                 "elevacion_media_ausencias": round(float(X[y == 0, 1].mean()), 1),
+                "por_variable": _univariate(X, y, names),
             }
-            lr = _models(seed)["regresion_logistica"]
+            lr = _models(seed)["regresion_logistica"][0]
             first["regresion_logistica"] = {"espacial": detail["regresion_logistica"],
                                             "aleatoria_referencia": _cv_auc(lr, X, y, rand)}
+            first["regresion_logistica_base"] = {"espacial": detail["regresion_logistica_base"]}
             # Referencia aleatoria solo con el modelo lineal: basta para mostrar cuánto infla (ahorra memoria/tiempo).
             first["bosque_aleatorio"] = {"espacial": detail["bosque_aleatorio"],
                                          "aleatoria_referencia": {"auc_mean": None, "auc_sd": None, "folds": 0}}
@@ -179,11 +189,23 @@ def _variant(arr, bbox, slope, presences, xy_scale, *, ratio, min_dist_m, blocks
     return first, data
 
 
-def _assess(arr, bbox, slope, presences, xy_scale, **kw):
+def _univariate(X: np.ndarray, y: np.ndarray, names: list[str]) -> dict:
+    """AUC de cada variable sola (sin entrenar) y su dirección: qué distingue a los eventos."""
+    out = {}
+    for i, n in enumerate(names):
+        a = float(roc_auc_score(y, X[:, i]))
+        out[n] = {"auc": round(a, 4), "auc_discriminante": round(max(a, 1 - a), 4),
+                  "direccion": "mayor en eventos" if a >= 0.5 else "menor en eventos",
+                  "mediana_eventos": round(float(np.median(X[y == 1, i])), 2),
+                  "mediana_ausencias": round(float(np.median(X[y == 0, i])), 2)}
+    return out
+
+
+def _assess(arr, bbox, stack, presences, xy_scale, **kw):
     ev_elev = arr[presences[:, 0], presences[:, 1]]
     band = (float(np.percentile(ev_elev, 5)), float(np.percentile(ev_elev, 95)))
-    libre, _ = _variant(arr, bbox, slope, presences, xy_scale, elevation_range=None, **kw)
-    ajustada, data = _variant(arr, bbox, slope, presences, xy_scale, elevation_range=band, **kw)
+    libre, _ = _variant(arr, bbox, stack, presences, xy_scale, elevation_range=None, **kw)
+    ajustada, data = _variant(arr, bbox, stack, presences, xy_scale, elevation_range=band, **kw)
     return {"ausencias_libres": libre, "ausencias_mismo_rango_elevacion": ajustada,
             "conclusion_automatica": _conclusion(libre, ajustada)}, data
 
@@ -194,12 +216,18 @@ def evaluate(arr: np.ndarray, bbox, fc: dict, *, ratio: int = 3, min_dist_m: flo
     presences, skipped = event_cells(fc, arr, bbox, only_mass_movement)
     if len(presences) < MIN_EVENTS:
         raise ValidationError(f"Muy pocos eventos útiles dentro del DEM ({len(presences)}; mínimo {MIN_EVENTS}).")
-    slope = demlib.slope_deg(arr, bbox)
+    stack = terrain_vars.compute(arr, bbox)
     dxs, dy = demlib._spacing(bbox, arr)
     xy_scale = (float(np.mean(dxs)), float(dy))
+    vario = protocol.variogram_range(stack, xy_scale, seed)
+    extent_m = min(arr.shape[1] * xy_scale[0], arr.shape[0] * xy_scale[1])
+    rango_med = float(np.median([v["alcance_m"] for v in vario.values()])) if vario else None
+    blocks_auto = blocks == 0
+    if blocks_auto:
+        blocks = int(min(8, max(3, extent_m // rango_med))) if rango_med else 4
     kw = {"ratio": ratio, "min_dist_m": min_dist_m, "blocks": blocks, "seed": seed, "n_seeds": n_seeds,
           "buffer_m": buffer_m}
-    todos, (X, y, pts) = _assess(arr, bbox, slope, presences, xy_scale, **kw)
+    todos, (X, y, pts) = _assess(arr, bbox, stack, presences, xy_scale, **kw)
 
     codes: dict[str, int] = {}
     for f in fc.get("features", []):
@@ -217,20 +245,25 @@ def evaluate(arr: np.ndarray, bbox, fc: dict, *, ratio: int = 3, min_dist_m: flo
             omitidos[code] = len(cells)
             continue
         try:
-            por_proceso[code], _ = _assess(arr, bbox, slope, cells, xy_scale, **kw)
+            por_proceso[code], _ = _assess(arr, bbox, stack, cells, xy_scale, **kw)
         except ValidationError as exc:
             omitidos[code] = f"{len(cells)} ({exc})"
     block_km = [round((bbox[2] - bbox[0]) * demlib.M_PER_DEG_LON * math.cos(math.radians((bbox[1] + bbox[3]) / 2))
                       / blocks / 1000, 1), round((bbox[3] - bbox[1]) * demlib.M_PER_DEG_LAT / blocks / 1000, 1)]
     report = {
-        "descartados": skipped, "variables": ["pendiente_deg", "elevacion_m"], "bloques": f"{blocks}x{blocks}",
+        "descartados": skipped, "variables": list(stack), "bloques": f"{blocks}x{blocks}",
+        "variables_descripcion": {k: terrain_vars.DESCRIPTIONS[k] for k in stack},
         **todos,
         "por_proceso": por_proceso, "procesos_omitidos_por_pocos_eventos": omitidos, "nota_codigos": CODE_NOTE,
         "protocolo": {
-            "tamano_bloque_km": block_km, "zona_exclusion_m": buffer_m, "semillas_ausencias": n_seeds,
+            "tamano_bloque_km": block_km, "bloques_automaticos": blocks_auto,
+            "variograma": {"por_variable": vario, "alcance_mediano_m": rango_med,
+                           "bloque_cubre_alcance": bool(rango_med is not None
+                                                         and min(block_km) * 1000 >= rango_med)},
+            "zona_exclusion_m": buffer_m, "semillas_ausencias": n_seeds,
             "semilla_base": seed, "ratio_ausencias": ratio, "distancia_min_ausencias_m": min_dist_m,
             "min_eventos_por_proceso": min_por_proceso,
-            "pendiente": ["tamaño de bloque no derivado de un variograma", "sin máscara de hielo ni agua",
+            "pendiente": ["sin máscara de hielo ni agua",
                           "sin prueba independiente fuera del recorte", "DEM remuestreado (no a 30 m nativos)"],
         },
         "interpretacion_auc": "0,5 = azar; 0,7–0,8 aceptable; > 0,8 bueno (referencia común, no un umbral oficial).",
@@ -244,7 +277,8 @@ def evaluate(arr: np.ndarray, bbox, fc: dict, *, ratio: int = 3, min_dist_m: flo
             "El inventario se concentra donde hay población y vías: la elevación puede reflejar ese sesgo de "
             "muestreo y no el peligro físico. Por eso se informa también la variante con ausencias en el mismo "
             "rango de elevación que los eventos.",
-            "Solo dos variables (pendiente y elevación): faltan litología, geomorfología, lluvia y cobertura.",
+            "Variables solo topográficas (derivadas del DEM): faltan litología, geomorfología, lluvia y cobertura.",
+            "La red de cauces se deriva del DEM (no es la red oficial de la ANA) con un umbral de área fijo.",
             "La validación aleatoria se muestra solo como referencia: sobrestima por autocorrelación espacial.",
             "Un buen AUC no autoriza decisiones: la validación final la decide un experto/administrador.",
         ],
@@ -272,6 +306,12 @@ def _conclusion(libre: dict, ajustada: dict) -> list[str]:
         out.append(f"Con el sesgo de altura corregido, la pendiente sola SÍ discrimina estos eventos (AUC {_d(h_aj)}, "
                    "sin entrenar): coherente con procesos de laderas empinadas. Sigue sin validar (falta una prueba "
                    "independiente fuera del recorte).")
+    for name, u in (ajustada.get("por_variable") or {}).items():
+        if name in ("pendiente_deg", "elevacion_m") or u["auc_discriminante"] < 0.7:
+            continue
+        out.append(f"Con el sesgo de altura corregido, «{name}» sola SÍ discrimina estos eventos (AUC "
+                   f"{_d(u['auc_discriminante'])}, {u['direccion']}: mediana {_d(u['mediana_eventos'])} frente a "
+                   f"{_d(u['mediana_ausencias'])}). Sin entrenar (solo se elige la dirección); sigue sin validar.")
     e_libre, e_aj = libre["auc_solo_elevacion_baja"], ajustada["auc_solo_elevacion_baja"]
     m_libre = libre["regresion_logistica"]["espacial"]["auc_mean"]
     m_aj = ajustada["regresion_logistica"]["espacial"]["auc_mean"]
@@ -281,25 +321,41 @@ def _conclusion(libre: dict, ajustada: dict) -> list[str]:
                    "que refleje dónde se hizo el inventario más que el peligro físico.")
     if m_aj is not None and e_aj >= m_aj - 0.05:
         out.append(f"Incluso con el sesgo corregido, el modelo (AUC {_d(m_aj)}) apenas supera a la elevación sola "
-                   f"(AUC {_d(e_aj)}): la pendiente casi no aporta información con estos datos.")
+                   f"(AUC {_d(e_aj)}): las demás variables casi no aportan información con estos datos.")
     ic = ajustada["regresion_logistica"]["espacial"].get("auc_ic95_bloques")
     if ic and ic[0] <= 0.6:
         out.append(f"El intervalo de confianza del AUC (bloques) llega a {_d(ic[0])}: la evidencia es débil o inestable.")
+    base_aj = (ajustada.get("regresion_logistica_base") or {}).get("espacial", {}).get("auc_mean")
+    if base_aj is not None and m_aj is not None:
+        if m_aj >= base_aj + 0.05:
+            top = sorted((ajustada.get("por_variable") or {}).items(),
+                         key=lambda kv: -kv[1]["auc_discriminante"])[:2]
+            names = ", ".join(f"{k} ({v['direccion']}, AUC {_d(v['auc_discriminante'])})" for k, v in top)
+            out.append(f"Las variables derivadas del DEM mejoran el modelo: AUC {_d(base_aj)} → {_d(m_aj)} "
+                       f"(sesgo corregido). Las más discriminantes: {names}.")
+        else:
+            best = max((u["auc_discriminante"] for u in (ajustada.get("por_variable") or {}).values()), default=0)
+            extra = (f" Una sola variable llega a AUC {_d(best)}: combinarlas con tan pocos eventos no ayuda "
+                     "(variables correlacionadas o sobreajuste)." if best > m_aj else "")
+            out.append("Las variables nuevas (curvatura, TPI, distancia a cauce) no mejoran el modelo de forma "
+                       f"apreciable: AUC {_d(base_aj)} → {_d(m_aj)}.{extra}")
     if m_aj is not None and m_aj < 0.65:
         out.append("Con pendiente y elevación no se obtiene un modelo de susceptibilidad útil: hacen falta más "
                    "variables (litología, geomorfología, lluvia, cobertura).")
     return out or ["Sin conclusiones automáticas: revisar las métricas con criterio experto."]
 
 
-def dataset_csv(X: np.ndarray, y: np.ndarray, pts: np.ndarray, bbox, arr: np.ndarray) -> bytes:
-    """CSV para NEUROTRAINING (lat, lon, pendiente, elevación, evento)."""
+def dataset_csv(X: np.ndarray, y: np.ndarray, pts: np.ndarray, bbox, arr: np.ndarray,
+                names: list[str] | None = None) -> bytes:
+    """CSV para NEUROTRAINING (lat, lon, variables del terreno, evento)."""
+    names = names or ["pendiente_deg", "elevacion_m"]
     dlon, dlat = demlib.cell_size(bbox, arr)
     buf = io.StringIO()
     wr = csv.writer(buf)
-    wr.writerow(["latitud", "longitud", "pendiente_deg", "elevacion_m", "evento"])
-    for (r, c), (s, e), lab in zip(pts, X, y):
+    wr.writerow(["latitud", "longitud", *names, "evento"])
+    for (r, c), row, lab in zip(pts, X, y):
         wr.writerow([round(bbox[3] - (r + 0.5) * dlat, 6), round(bbox[0] + (c + 0.5) * dlon, 6),
-                     round(float(s), 3), round(float(e), 1), int(lab)])
+                     *[round(float(v), 3) for v in row], int(lab)])
     return buf.getvalue().encode("utf-8")
 
 
