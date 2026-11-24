@@ -31,6 +31,9 @@ DESCRIPTIONS = {
     "tpi_m": f"Posición topográfica (m): elevación menos la media en ≈{TPI_RADIUS_M:.0f} m; negativo = fondo de valle.",
     "dist_cauce_m": f"Distancia (m) a la red de cauces derivada del DEM (área drenada ≥ {CHANNEL_AREA_KM2} km², "
                     f"hidrología a ≈{HYDRO_TARGET_M:.0f} m).",
+    "ndvi_anillo": "NDVI medio (Sentinel-2) en un anillo de 100–300 m alrededor de la celda; sin dato si menos del "
+                   "60 % de los píxeles del anillo son válidos (nubes, nieve, agua). Es la cobertura ACTUAL, posterior "
+                   "a la mayoría de los eventos: no es la condición previa.",
 }
 
 _OFFS = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
@@ -128,3 +131,20 @@ def compute(arr: np.ndarray, bbox) -> dict[str, np.ndarray]:
     ci = np.minimum(np.arange(w) // f, wc - 1)
     out["dist_cauce_m"] = dist_c[np.ix_(ri, ci)]
     return out
+
+
+def ring_mean(values: np.ndarray, dx: float, dy: float, inner_m: float = 100.0, outer_m: float = 300.0,
+              min_valid: float = 0.6) -> np.ndarray:
+    """Media de los píxeles válidos (finitos) en un anillo; NaN si la fracción válida es < min_valid."""
+    rx, ry = int(math.ceil(outer_m / dx)), int(math.ceil(outer_m / dy))
+    yy, xx = np.mgrid[-ry:ry + 1, -rx:rx + 1]
+    d = np.hypot(xx * dx, yy * dy)
+    kernel = ((d >= inner_m) & (d <= outer_m)).astype("float32")
+    valid = np.isfinite(values)
+    v = np.where(valid, values, 0).astype("float32")
+    s = ndimage.convolve(v, kernel, mode="constant", cval=0.0)
+    n = ndimage.convolve(valid.astype("float32"), kernel, mode="constant", cval=0.0)
+    frac = n / kernel.sum()
+    with np.errstate(invalid="ignore", divide="ignore"):
+        out = np.where(frac >= min_valid, s / np.maximum(n, 1), np.nan)
+    return out.astype("float32")

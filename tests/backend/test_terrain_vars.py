@@ -54,3 +54,13 @@ def test_generic_single_variable_conclusion():
     out = _conclusion(var(0.40, 0.80, 0.75, 0.78, pv), var(0.42, 0.66, 0.70, 0.67, pv))
     assert any("«dist_cauce_m» sola SÍ discrimina" in c and "menor en eventos" in c for c in out)
     assert any("no mejoran" in c and "0,76" in c for c in out)
+
+
+def test_ring_mean_ignores_invalid_pixels_and_requires_coverage():
+    v = np.full((41, 41), 0.5, dtype="float32")
+    v[20, 20] = 0.9                                   # el centro NO entra en el anillo
+    m = tv.ring_mean(v, 30.0, 30.0, inner_m=60, outer_m=150)
+    assert abs(m[20, 20] - 0.5) < 1e-6
+    v[:, :25] = np.nan                                # más de la mitad del anillo sin dato
+    m = tv.ring_mean(v, 30.0, 30.0, inner_m=60, outer_m=150, min_valid=0.6)
+    assert np.isnan(m[20, 20])

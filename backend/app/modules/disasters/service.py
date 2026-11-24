@@ -62,6 +62,22 @@ def import_inventory(db: Session, user: User | None, bbox: list[float], fetcher=
             raise
 
 
+def _ndvi_ring(ndvi_rec: DataRecord, arr, bbox):
+    """NDVI en anillo, exigiendo la MISMA malla que el DEM (no se remuestrea en silencio)."""
+    import numpy as np
+
+    from app.modules.disasters import terrain_vars
+    from app.modules.environmental import raster as envraster
+    nd, _ = envraster.read_ndvi(absolute_path(ndvi_rec))   # descala (int16 / 10000) y pone NaN en nodata
+    g = (ndvi_rec.extra or {}).get("grid") or {}
+    same = nd.shape == arr.shape and g.get("bbox") and all(abs(a - b) < 1e-6 for a, b in zip(g["bbox"], bbox))
+    if not same:
+        raise validation.ValidationError("El NDVI debe calcularse sobre la misma malla que el DEM (mismo recorte y "
+                                         "resolución) para compararlos celda a celda.")
+    dxs, dy = demlib._spacing(bbox, arr)
+    return terrain_vars.ring_mean(nd, float(np.mean(dxs)), float(dy))
+
+
 def _record(db: Session, record_id: str, data_type: str) -> DataRecord:
     rec = db.get(DataRecord, record_id)
     if rec is None or rec.data_type != data_type or not rec.file_path:
@@ -71,14 +87,15 @@ def _record(db: Session, record_id: str, data_type: str) -> DataRecord:
 
 def validate(db: Session, user: User | None, *, dem_id: str, inventory_id: str, ratio: int, min_dist_m: float,
              blocks: int, seed: int, n_seeds: int = 5, buffer_m: float = 500.0,
-             geology_ids: list[str] | None = None) -> dict:
+             geology_ids: list[str] | None = None, ndvi_id: str | None = None) -> dict:
     dem_rec = _record(db, dem_id, "raster_dem")
     inv_rec = _record(db, inventory_id, "geojson")
     if not (inv_rec.extra or {}).get("inventory"):
         raise validation.ValidationError("El GeoJSON indicado no es un inventario de eventos importado.")
     params = {"dem_id": dem_id, "inventory_id": inventory_id, "ratio_ausencias": ratio, "distancia_min_m": min_dist_m,
               "bloques": blocks, "semilla": seed, "semillas": n_seeds, "zona_exclusion_m": buffer_m,
-              "geologia": list(geology_ids or [])}
+              "geologia": list(geology_ids or []), "ndvi_id": ndvi_id}
+    ndvi_rec = _record(db, ndvi_id, "raster_ndvi") if ndvi_id else None
     geo_recs = []
     for gid in geology_ids or []:
         g = _record(db, gid, "geojson")
@@ -98,9 +115,18 @@ def validate(db: Session, user: User | None, *, dem_id: str, inventory_id: str, 
             for g in geo_recs:
                 kind = g.extra["geology"]
                 categorical[kind] = geology.rasterize(validation.load_fc(absolute_path(g)), g.extra["field"], arr, bbox)
+            extra_layers = {}
+            if ndvi_rec is not None:
+                extra_layers["ndvi_anillo"] = _ndvi_ring(ndvi_rec, arr, bbox)
             report, X, y, pts = validation.evaluate(arr, bbox, fc, ratio=ratio, min_dist_m=min_dist_m,
                                                     blocks=blocks, seed=seed, n_seeds=n_seeds,
-                                                    buffer_m=buffer_m, categorical=categorical)
+                                                    buffer_m=buffer_m, categorical=categorical,
+                                                    extra_layers=extra_layers)
+            if ndvi_rec is not None:
+                report["ndvi"] = {"id": ndvi_rec.id, "titulo": ndvi_rec.title,
+                                  "fecha": ndvi_rec.observed_at.isoformat() if ndvi_rec.observed_at else None,
+                                  "escena": (ndvi_rec.extra or {}).get("scene_id"),
+                                  "valido_pct": ((ndvi_rec.extra or {}).get("stats") or {}).get("valid_pct")}
             raw = validation.dataset_csv(X, y, pts, bbox, arr, report["variables"])
             aj = report["ausencias_mismo_rango_elevacion"]
             simulated = bool(dem_rec.is_simulated or inv_rec.is_simulated)

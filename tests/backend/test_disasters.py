@@ -251,3 +251,38 @@ def test_geology_refuses_foreign_hosts(monkeypatch):
     from app.modules.disasters import geology
     with pytest.raises(geology.GeologyError):
         geology._get("https://evil.example.com/q", {"f": "json"})
+
+
+def test_ndvi_candidate_is_compared_on_the_same_points(client, analyst_h, monkeypatch):
+    from app.modules.environmental import raster as envraster
+    arr = _dem()
+    dem_id = _register_dem(arr)
+    # NDVI en la MISMA malla, con una franja sin dato (nubes) para comprobar que se descartan los mismos puntos.
+    nd = (0.2 + 0.4 * np.random.default_rng(3).random(arr.shape)).astype("float32")
+    nd[:, 150:] = np.nan
+    rel = Path("terrain") / "test" / f"ndvi_{np.random.default_rng().integers(1e9)}.tif"
+    grid = envraster.Grid(tuple(BBOX), RES, N, N)
+    envraster.write_ndvi(settings.uploads_dir / rel, nd, grid)
+    with SessionLocal() as db:
+        src = get_or_create_source(db, "NDVI de prueba", "satelite")
+        rec = DataRecord(source_id=src.id, data_type="raster_ndvi", title="NDVI prueba", bbox=BBOX, is_simulated=True,
+                         file_path=rel.as_posix(), validation_status="valido",
+                         extra={"grid": {"bbox": BBOX, "res": RES, "width": N, "height": N}})
+        db.add(rec)
+        db.commit()
+        ndvi_id = rec.id
+    rng = np.random.default_rng(4)
+    ev = [(int(a), int(b)) for a, b in zip(rng.integers(5, 195, 60), rng.integers(3, 197, 60))]
+    inv = _import(client, analyst_h, monkeypatch, _events(ev))
+    rep = _validate(client, analyst_h, dem_id, inv["id"], ndvi_id=ndvi_id).json()
+    v = rep["ausencias_mismo_rango_elevacion"]
+    assert "ndvi_anillo" in rep["variables"] and "ndvi_anillo" in v["por_variable"]
+    assert "regresion_logistica_ndvi" in v and v["puntos_sin_dato_descartados"]["eventos"] > 0
+    assert any("NDVI" in c for c in rep["conclusion_automatica"])
+    assert any("posterior a los eventos" in w for w in rep["advertencias"])
+    # Un NDVI de otra malla se rechaza: no se remuestrea en silencio.
+    with SessionLocal() as db:
+        bad = db.get(DataRecord, ndvi_id)
+        bad.extra = {"grid": {"bbox": [0, 0, 1, 1], "res": RES, "width": N, "height": N}}
+        db.commit()
+    assert _validate(client, analyst_h, dem_id, inv["id"], ndvi_id=ndvi_id).status_code == 422

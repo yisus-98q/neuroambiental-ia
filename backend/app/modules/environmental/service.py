@@ -89,7 +89,7 @@ def _finish_run(db: Session, run: Run, status: str, summary: dict) -> None:
     db.commit()
 
 
-def compute_ndvi(db: Session, user: User, *, item_id: str, bbox: list[float], res: float) -> DataRecord:
+def compute_ndvi(db: Session, user: User | None, *, item_id: str, bbox: list[float], res: float) -> DataRecord:
     grid = raster.make_grid(bbox, res)  # valida el área antes de tocar la red
     with _exclusive():
         run = _start_run(db, "ndvi", {"item_id": item_id, "bbox": list(grid.bbox), "res": res})
@@ -138,11 +138,11 @@ def compute_ndvi(db: Session, user: User, *, item_id: str, bbox: list[float], re
                        "cloud_cover": scene.cloud_cover, "grid": {"bbox": list(grid.bbox), "res": res,
                        "width": grid.width, "height": grid.height}, "stats": stats,
                        "download": dict(opener.stats), "preview": png.name, "uncertainty": NDVI_UNCERTAINTY},
-                created_by=user.id,
+                created_by=getattr(user, "id", None),
             )
             db.add(record)
             db.flush()
-            audit(db, "ndvi_sentinel2", user_id=user.id, target_type="data_record", target_id=record.id,
+            audit(db, "ndvi_sentinel2", user_id=getattr(user, "id", None), target_type="data_record", target_id=record.id,
                   details={"escena": scene.id, "bytes": opener.stats.get("bytes", 0)}, commit=False)
             _finish_run(db, run, "ok", {"record_id": record.id, **stats, "download": dict(opener.stats)})
             return record
@@ -194,7 +194,7 @@ def compute_change(db: Session, user: User, *, before_id: str, after_id: str, th
                 sha256=_sha256(tif),
                 extra={"kind": "cambio", "before": rb.id, "after": ra.id, "stats": stats, "preview": png.name,
                        "uncertainty": CHANGE_UNCERTAINTY, "validated": False},
-                created_by=user.id,
+                created_by=getattr(user, "id", None),
             )
             db.add(record)
             db.flush()

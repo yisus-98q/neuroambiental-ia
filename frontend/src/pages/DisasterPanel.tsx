@@ -16,6 +16,8 @@ interface Variant {
   regresion_logistica: { espacial: Cv; aleatoria_referencia: Cv }; bosque_aleatorio: { espacial: Cv; aleatoria_referencia: Cv };
   regresion_logistica_base?: { espacial: Cv };
   regresion_logistica_geo?: { espacial: Cv };
+  regresion_logistica_ndvi?: { espacial: Cv };
+  puntos_sin_dato_descartados?: { eventos: number; ausencias: number };
   por_variable?: Record<string, { auc: number; auc_discriminante: number; direccion: string; mediana_eventos: number; mediana_ausencias: number }>;
   elevacion_media_eventos: number; elevacion_media_ausencias: number; rango_elevacion_m?: number[];
 }
@@ -48,6 +50,8 @@ export function DisasterPanel() {
   const runs = useApi<RunRow[]>("/api/disasters/runs");
   const geoLayers = useApi<GeoLayer[]>("/api/disasters/geology");
   const [geoSel, setGeoSel] = useState<string[]>([]);
+  const ndvis = useApi<{ id: string; title: string; bbox: number[] }[]>("/api/neurodata/records?data_type=raster_ndvi");
+  const [ndviId, setNdviId] = useState("");
   const [capa, setCapa] = useState("litologia");
   const writable = canWrite(session.user());
   const [bbox, setBbox] = useState(ANCASH_HUARAZ);
@@ -84,7 +88,7 @@ export function DisasterPanel() {
   async function validate() {
     setBusy("validate"); setError(null);
     try {
-      const r = await post<Report>("/api/disasters/susceptibility/validate", { dem_id: demId, inventory_id: invId, geology_ids: geoSel });
+      const r = await post<Report>("/api/disasters/susceptibility/validate", { dem_id: demId, inventory_id: invId, geology_ids: geoSel, ndvi_id: ndviId || null });
       setReport(r); runs.reload();
     } catch (e) { setError((e as Error).message); } finally { setBusy(null); }
   }
@@ -143,6 +147,12 @@ export function DisasterPanel() {
                         onChange={(e) => setGeoSel(e.target.checked ? [...geoSel, g.id] : geoSel.filter((x) => x !== g.id))} /> {g.title}
                     </label>))}
                 </fieldset>
+              )}
+              {(ndvis.data ?? []).length > 0 && (
+                <div className="field"><label htmlFor="dndvi">NDVI candidato (opcional; misma malla que el DEM)</label>
+                  <select id="dndvi" value={ndviId} onChange={(e) => setNdviId(e.target.value)}>
+                    <option value="">Sin NDVI</option>{(ndvis.data ?? []).map((n) => <option key={n.id} value={n.id}>{n.title}</option>)}
+                  </select></div>
               )}
               <button className="btn" disabled={busy !== null || !demId || !invId} onClick={validate}>{busy === "validate" ? "Validando (≈1–2 min)…" : "Validar"}</button>
             </div>
@@ -212,6 +222,10 @@ function AssessmentBlock({ title, a }: { title: string; a: Assessment }) {
       ? [["Regresión logística · solo pendiente y elevación (base)", cv(x.regresion_logistica_base.espacial), cv(y.regresion_logistica_base.espacial)] as [string, string, string]]
       : []),
     ["Regresión logística · AUC espacial por pliegue", cv(lrX), cv(lrY)],
+    ...(x.regresion_logistica_ndvi && y.regresion_logistica_ndvi
+      ? [["Regresión logística · topografía + NDVI (mismos puntos)", cv(x.regresion_logistica_ndvi.espacial), cv(y.regresion_logistica_ndvi.espacial)] as [string, string, string],
+         ["  · IC 95 % (bootstrap de bloques)", ic(x.regresion_logistica_ndvi.espacial), ic(y.regresion_logistica_ndvi.espacial)] as [string, string, string]]
+      : []),
     ...(x.regresion_logistica_geo && y.regresion_logistica_geo
       ? [["Regresión logística · topografía + geología", cv(x.regresion_logistica_geo.espacial), cv(y.regresion_logistica_geo.espacial)] as [string, string, string],
          ["  · IC 95 % (bootstrap de bloques)", ic(x.regresion_logistica_geo.espacial), ic(y.regresion_logistica_geo.espacial)] as [string, string, string]]

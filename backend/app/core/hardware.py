@@ -46,6 +46,14 @@ def memory_bytes() -> tuple[int, int]:
         return 0, 0
 
 
+def _current_process():
+    """Pseudo-identificador del proceso actual como puntero (en 64 bits, el int por defecto de ctypes lo trunca)."""
+    k32 = ctypes.windll.kernel32
+    k32.GetCurrentProcess.restype = ctypes.c_void_p
+    ctypes.windll.psapi.GetProcessMemoryInfo.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_ulong]
+    return k32.GetCurrentProcess()
+
+
 def process_peak_bytes() -> int:
     """Pico de memoria del proceso (working set en Windows, ru_maxrss en POSIX); 0 si no se puede leer."""
     if sys.platform == "win32":
@@ -58,8 +66,7 @@ def process_peak_bytes() -> int:
         pmc = PMC()
         pmc.cb = ctypes.sizeof(PMC)
         try:
-            h = ctypes.windll.kernel32.GetCurrentProcess()
-            if ctypes.windll.psapi.GetProcessMemoryInfo(h, ctypes.byref(pmc), pmc.cb):
+            if ctypes.windll.psapi.GetProcessMemoryInfo(_current_process(), ctypes.byref(pmc), pmc.cb):
                 return int(pmc.PeakWorkingSetSize)
         except (AttributeError, OSError):
             return 0
@@ -90,8 +97,7 @@ def _win_current() -> int:
     pmc = PMC()
     pmc.cb = ctypes.sizeof(PMC)
     try:
-        if ctypes.windll.psapi.GetProcessMemoryInfo(ctypes.windll.kernel32.GetCurrentProcess(), ctypes.byref(pmc),
-                                                    pmc.cb):
+        if ctypes.windll.psapi.GetProcessMemoryInfo(_current_process(), ctypes.byref(pmc), pmc.cb):
             return int(pmc.WorkingSetSize)
     except (AttributeError, OSError):
         pass

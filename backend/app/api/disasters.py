@@ -45,6 +45,7 @@ class ValidateIn(BaseModel):
     n_seeds: int = Field(default=5, ge=1, le=10)
     buffer_m: float = Field(default=500, ge=0, le=5000)
     geology_ids: list[str] = Field(default_factory=list, max_length=2)
+    ndvi_id: str | None = Field(default=None, min_length=32, max_length=32)
 
 
 def _handle(fn):
@@ -74,7 +75,7 @@ def validate(body: ValidateIn, user: User = Depends(require_role("analista")), d
     return _handle(lambda: service.validate(db, user, dem_id=body.dem_id, inventory_id=body.inventory_id,
                                             ratio=body.ratio, min_dist_m=body.min_dist_m, blocks=body.blocks,
                                             seed=body.seed, n_seeds=body.n_seeds, buffer_m=body.buffer_m,
-                                            geology_ids=body.geology_ids))
+                                            geology_ids=body.geology_ids, ndvi_id=body.ndvi_id))
 
 
 @router.get("/runs")
