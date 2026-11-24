@@ -62,7 +62,7 @@ def fetch_events(bbox: list[float]) -> dict:
     return {"type": "FeatureCollection", "features": features}
 
 
-def import_events(db: Session, user: User, bbox: list[float], fetcher=fetch_events) -> DataRecord:
+def import_events(db: Session, user: User | None, bbox: list[float], fetcher=fetch_events) -> DataRecord:
     fc = fetcher(bbox)
     if not fc["features"]:
         raise InventoryError("INGEMMET no devolvió eventos para esa área.")
@@ -80,6 +80,6 @@ def import_events(db: Session, user: User, bbox: list[float], fetcher=fetch_even
         observed_at=None, is_simulated=False,
         provenance=(f"Consulta por recorte {bbox} al servicio oficial {SERVICE} (GEOCATMIN, feb. 2013). "
                     "Eventos inventariados en campo y gabinete por INGEMMET. Licencia no declarada: uso interno."),
-        user_id=user.id,
+        user_id=getattr(user, "id", None),
     )
     return rec

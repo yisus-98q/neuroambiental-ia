@@ -123,3 +123,14 @@ def test_inventory_refuses_foreign_hosts(monkeypatch):
     monkeypatch.setattr(inventory, "SERVICE", "https://evil.example.com/x")
     with pytest.raises(inventory.InventoryError):
         inventory._get({"f": "json"})
+
+
+def test_cli_imports_as_system_without_user(monkeypatch, client):
+    from app import cli
+    monkeypatch.setattr(inventory, "fetch_events", lambda bbox: _events([(10, 20), (40, 50)]))
+    assert cli.main(["importar-ingemmet", "--bbox=-77.5,-9.5,-77.3,-9.3"]) == 0
+    assert cli.main(["importar-ingemmet", "--bbox=-80,-12,-76,-8"]) == 2
+    with SessionLocal() as db:
+        rec = db.query(DataRecord).filter(DataRecord.title.like("Inventario INGEMMET%")).order_by(
+            DataRecord.received_at.desc()).first()
+        assert rec.created_by is None and rec.is_simulated is False

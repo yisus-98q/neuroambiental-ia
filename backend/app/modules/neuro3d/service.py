@@ -95,7 +95,7 @@ def _finish_run(db: Session, run: Run, status: str, summary: dict) -> None:
     db.commit()
 
 
-def fetch_dem(db: Session, user: User, *, bbox: list[float], res: float) -> DataRecord:
+def fetch_dem(db: Session, user: User | None, *, bbox: list[float], res: float) -> DataRecord:
     grid = demlib.make_dem_grid(bbox, res)  # valida antes de tocar la red
     tiles = demlib.tiles_for_bbox(grid.bbox)
     with _exclusive():
@@ -137,11 +137,11 @@ def fetch_dem(db: Session, user: User, *, bbox: list[float], res: float) -> Data
                        "grid": {"bbox": list(grid.bbox), "res": grid.res, "width": grid.width,
                                 "height": grid.height},
                        "download": dict(opener.stats), "attribution": ATTRIBUTION},
-                created_by=user.id,
+                created_by=getattr(user, "id", None),
             )
             db.add(record)
             db.flush()
-            audit(db, "dem_glo30", user_id=user.id, target_type="data_record", target_id=record.id,
+            audit(db, "dem_glo30", user_id=getattr(user, "id", None), target_type="data_record", target_id=record.id,
                   details={"teselas": used, "bytes": opener.stats.get("bytes", 0)}, commit=False)
             _finish_run(db, run, "ok", {"record_id": record.id, **stats, "download": dict(opener.stats)})
             return record

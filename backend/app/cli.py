@@ -95,6 +95,34 @@ def load_samples(username: str) -> int:
     return 0
 
 
+def import_ingemmet(bbox_text: str, res: float, dem_id: str | None, validate: bool) -> int:
+    """Importa el inventario INGEMMET (y opcionalmente DEM + validación) como acción del sistema (CLI, sin usuario)."""
+    import json
+
+    from app.database.session import SessionLocal
+    from app.modules.disasters import service as disasters
+    from app.modules.neuro3d import service as neuro3d
+
+    bbox = [float(v) for v in bbox_text.split(",")]
+    if len(bbox) != 4 or not (bbox[0] < bbox[2] and bbox[1] < bbox[3]) or max(bbox[2] - bbox[0], bbox[3] - bbox[1]) > 2.5:
+        print("bbox inválido: minLon,minLat,maxLon,maxLat (máx. 2,5° por lado).")
+        return 2
+    with SessionLocal() as db:
+        inv = disasters.import_inventory(db, None, bbox)
+        print(f"Inventario: {inv.id} · {inv.extra.get('features')} eventos · {inv.extra.get('tipos_peligro')}")
+        if not validate:
+            return 0
+        if dem_id is None:
+            print("Descargando DEM Copernicus GLO-30 (puede tardar varios minutos)…")
+            dem_id = neuro3d.fetch_dem(db, None, bbox=bbox, res=res).id
+            print(f"DEM: {dem_id}")
+        rep = disasters.validate(db, None, dem_id=dem_id, inventory_id=inv.id, ratio=3, min_dist_m=300.0,
+                                 blocks=4, seed=42)
+        keys = ("ausencias_libres", "ausencias_mismo_rango_elevacion", "conclusion_automatica", "dataset_record_id")
+        print(json.dumps({k: rep[k] for k in keys}, ensure_ascii=False, indent=1, default=str))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m app.cli")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -104,6 +132,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--password", help="Evite usarlo: queda en el historial. Use el prompt o NEURO_ADMIN_PASSWORD.")
     s = sub.add_parser("load-samples", help="Carga los datos de muestra (marcados como simulados)")
     s.add_argument("--username", default="admin")
+    g = sub.add_parser("importar-ingemmet", help="Importa el inventario INGEMMET de un recorte (uso interno)")
+    g.add_argument("--bbox", required=True, help="minLon,minLat,maxLon,maxLat")
+    g.add_argument("--validar", action="store_true", help="Descarga/usa un DEM y valida la susceptibilidad")
+    g.add_argument("--dem-id", default=None, help="DEM ya registrado (si no, se descarga)")
+    g.add_argument("--res", type=float, default=0.001, help="Resolución del DEM en grados")
     args = parser.parse_args(argv)
     if args.cmd == "migrate":
         migrate()
@@ -111,6 +144,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.cmd == "create-admin":
         return create_admin(args.username, args.password)
+    if args.cmd == "importar-ingemmet":
+        return import_ingemmet(args.bbox, args.res, args.dem_id, args.validar)
     return load_samples(args.username)
 
 

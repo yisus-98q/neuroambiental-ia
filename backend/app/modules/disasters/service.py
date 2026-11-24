@@ -36,12 +36,12 @@ def _fail(db: Session, run: Run, exc: Exception) -> None:
     db.commit()
 
 
-def import_inventory(db: Session, user: User, bbox: list[float], fetcher=None) -> DataRecord:
+def import_inventory(db: Session, user: User | None, bbox: list[float], fetcher=None) -> DataRecord:
     with jobs.exclusive():
         run = _start(db, "inventario_ingemmet", {"bbox": bbox})
         try:
             rec = inventory.import_events(db, user, bbox, fetcher=fetcher or inventory.fetch_events)
-            audit(db, "importar_inventario_ingemmet", user_id=user.id, target_type="data_record", target_id=rec.id,
+            audit(db, "importar_inventario_ingemmet", user_id=getattr(user, "id", None), target_type="data_record", target_id=rec.id,
                   details={"eventos": rec.extra.get("features"), "bbox": bbox}, commit=False)
             run.status, run.finished_at = "ok", utcnow()
             run.result_summary = {"record_id": rec.id, "eventos": rec.extra.get("features"),
@@ -60,7 +60,7 @@ def _record(db: Session, record_id: str, data_type: str) -> DataRecord:
     return rec
 
 
-def validate(db: Session, user: User, *, dem_id: str, inventory_id: str, ratio: int, min_dist_m: float,
+def validate(db: Session, user: User | None, *, dem_id: str, inventory_id: str, ratio: int, min_dist_m: float,
              blocks: int, seed: int) -> dict:
     dem_rec = _record(db, dem_id, "raster_dem")
     inv_rec = _record(db, inventory_id, "geojson")
@@ -88,10 +88,10 @@ def validate(db: Session, user: User, *, dem_id: str, inventory_id: str, ratio: 
                                         f"{min_dist_m} m de eventos y dentro del rango de elevación {aj['rango_elevacion_m']} m "
                                         f"de los eventos (semilla {seed}); variables del DEM {dem_rec.id}. "
                                         "Columna objetivo: evento (1/0)."),
-                            user_id=user.id)
+                            user_id=getattr(user, "id", None))
             report.update({"dataset_record_id": ds.id, "dem_id": dem_id, "inventory_id": inventory_id,
                            "simulado": simulated})
-            audit(db, "validar_susceptibilidad", user_id=user.id, target_type="run", target_id=run.id,
+            audit(db, "validar_susceptibilidad", user_id=getattr(user, "id", None), target_type="run", target_id=run.id,
                   details={"auc_heuristico": report["ausencias_libres"]["auc_heuristico_pendiente"]}, commit=False)
             run.status, run.finished_at, run.result_summary = "ok", utcnow(), report
             db.commit()
