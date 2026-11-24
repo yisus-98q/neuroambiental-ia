@@ -61,7 +61,7 @@ def _import(client, h, monkeypatch, fc):
 
 def _validate(client, h, dem_id, inv_id, **kw):
     return client.post("/api/disasters/susceptibility/validate", headers=h,
-                       json={"dem_id": dem_id, "inventory_id": inv_id, "blocks": 4, **kw})
+                       json={"dem_id": dem_id, "inventory_id": inv_id, "blocks": 4, "n_seeds": 2, **kw})
 
 
 def test_import_registers_source_license_and_types(client, analyst_h, monkeypatch):
@@ -89,6 +89,13 @@ def test_heuristic_discriminates_when_events_are_on_steep_slopes(client, analyst
     assert rep["ausencias_libres"]["auc_heuristico_pendiente"] > 0.75      # eventos en flancos empinados
     assert rep["ausencias_libres"]["regresion_logistica"]["espacial"]["folds"] >= 3
     assert "rango_elevacion_m" in rep["ausencias_mismo_rango_elevacion"]
+    esp = rep["ausencias_libres"]["regresion_logistica"]["espacial"]
+    for key in ("auc_agrupado", "auc_ic95_bloques", "pr_auc", "pr_auc_azar", "brier", "confusion", "precision",
+                "recall", "f1", "por_pliegue", "auc_semillas", "excluidos_por_zona_de_exclusion"):
+        assert key in esp, key
+    c = esp["confusion"]
+    assert c["vp"] + c["fn"] == rep["ausencias_libres"]["n_presencias"]
+    assert esp["auc_semillas"]["n"] == 2 and rep["protocolo"]["zona_exclusion_m"] == 500
     assert rep["dataset_record_id"] and rep["simulado"] is True            # el DEM de prueba es simulado
     ds = client.get(f"/api/neurodata/records/{rep['dataset_record_id']}", headers=analyst_h).json()
     assert ds["data_type"] == "csv" and "evento" in ds["extra"]["columns"]
@@ -100,8 +107,8 @@ def test_flat_valley_events_flag_the_heuristic_as_useless(client, analyst_h, mon
     flat = [(int(r), int(c)) for r, c in zip(rng.integers(5, 195, 60), rng.integers(96, 104, 60))]
     inv = _import(client, analyst_h, monkeypatch, _events(flat))
     rep = _validate(client, analyst_h, dem_id, inv["id"]).json()
-    assert rep["ausencias_libres"]["auc_heuristico_pendiente"] < 0.5
-    assert any("NO discrimina" in c for c in rep["conclusion_automatica"])
+    assert rep["ausencias_libres"]["auc_heuristico_pendiente"] < 0.4
+    assert any("INVERSA" in c for c in rep["conclusion_automatica"])
 
 
 def test_validation_errors_permissions_and_lock(client, analyst_h, reader_h, monkeypatch):
@@ -134,3 +141,67 @@ def test_cli_imports_as_system_without_user(monkeypatch, client):
         rec = db.query(DataRecord).filter(DataRecord.title.like("Inventario INGEMMET%")).order_by(
             DataRecord.received_at.desc()).first()
         assert rec.created_by is None and rec.is_simulated is False
+
+
+def test_validation_by_process_type_separates_falls_and_flows(client, analyst_h, monkeypatch):
+    dem_id = _register_dem(_dem())
+    rng = np.random.default_rng(5)
+    steep = [(int(r), int(c)) for r, c in zip(rng.integers(5, 195, 40), rng.choice(
+        np.r_[np.arange(3, 30), np.arange(170, 197)], 40))]
+    flat = [(int(r), int(c)) for r, c in zip(rng.integers(5, 195, 40), rng.integers(96, 104, 40))]
+    fc = _events(steep, code="1000|1100")
+    fc["features"] += _events(flat, code="1000|1500")["features"]
+    fc["features"] += _events([(10, 10), (20, 20)], code="1000|1700")["features"]   # muy pocos: se omite
+    inv = _import(client, analyst_h, monkeypatch, fc)
+    rep = _validate(client, analyst_h, dem_id, inv["id"]).json()
+    pp = rep["por_proceso"]
+    assert set(pp) == {"1000|1100", "1000|1500"} and "1000|1700" in rep["procesos_omitidos_por_pocos_eventos"]
+    assert pp["1000|1100"]["ausencias_libres"]["auc_heuristico_pendiente"] > 0.7
+    assert pp["1000|1500"]["ausencias_libres"]["auc_heuristico_pendiente"] < 0.4
+    assert any("INVERSA" in c for c in pp["1000|1500"]["conclusion_automatica"])
+    assert "NO confirmada" in rep["nota_codigos"]
+
+
+def test_exclusion_zone_removes_training_points_near_test_points():
+    from sklearn.model_selection import GroupKFold
+
+    from app.modules.disasters import protocol
+
+    class Spy:
+        seen: list = []
+
+        def fit(self, X, y):
+            Spy.seen.append(X[:, 0].copy())
+            return self
+
+        def predict_proba(self, X):
+            return np.c_[1 - X[:, 1], X[:, 1]]
+
+    rng = np.random.default_rng(0)
+    n = 200
+    xy = rng.random((n, 2)) * 10_000
+    y = (rng.random(n) < 0.3).astype(int)
+    X = np.c_[np.arange(n), rng.random(n)]
+    groups = (xy[:, 0] // 2500).astype(int)
+    splitter = GroupKFold(n_splits=4)
+    res = protocol.spatial_oof(lambda: Spy(), X, y, groups, xy, splitter, buffer_m=800)
+    assert res["removed_by_buffer"] > 0
+    for (tr, te), used in zip(splitter.split(X, y, groups), Spy.seen):
+        used = used.astype(int)
+        d = np.sqrt(((xy[used][:, None, :] - xy[te][None, :, :]) ** 2).sum(-1)).min()
+        assert d >= 800
+
+
+def test_conclusions_rules():
+    from app.modules.disasters.validation import _conclusion
+
+    def v(h, e, m, ic=None):
+        return {"auc_heuristico_pendiente": h, "auc_solo_elevacion_baja": e,
+                "regresion_logistica": {"espacial": {"auc_mean": m, "auc_ic95_bloques": ic}}}
+    falls = _conclusion(v(0.69, 0.73, 0.81), v(0.75, 0.54, 0.71, [0.53, 0.80]))
+    assert any("SÍ discrimina" in c and "0,75" in c for c in falls)
+    assert any("llega a 0,53" in c for c in falls)
+    flows = _conclusion(v(0.38, 0.79, 0.79), v(0.40, 0.66, 0.70))
+    assert any("INVERSA" in c for c in flows) and not any("SÍ discrimina" in c for c in flows)
+    mixed = _conclusion(v(0.49, 0.81, 0.83), v(0.54, 0.70, 0.74))
+    assert any("NO discrimina" in c for c in mixed) and any("elevación" in c for c in mixed)

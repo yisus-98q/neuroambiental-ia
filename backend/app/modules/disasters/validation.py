@@ -1,15 +1,17 @@
-"""Validación de la susceptibilidad a movimientos en masa con el inventario REAL de INGEMMET.
+"""Validación de la susceptibilidad con el inventario REAL de INGEMMET (protocolo del informe científico, §6).
 
-Método (deliberadamente sencillo y verificable):
-1. Presencias: eventos del inventario (tipos de movimiento en masa) dentro del DEM.
-2. Ausencias: celdas aleatorias del DEM con dato y a ≥ `min_dist_m` de todo evento (pseudo-ausencias;
-   «sin evento inventariado» NO significa «sin peligro»: el inventario es incompleto).
-3. Variables: pendiente (°) y elevación (m) del DEM GLO-30.
-4. Evaluación con VALIDACIÓN CRUZADA ESPACIAL por bloques (GroupKFold): los puntos de prueba están en
-   bloques geográficos distintos a los de entrenamiento, para no inflar las métricas por autocorrelación.
-   Se informa también la validación aleatoria, solo para mostrar cuánto la infla.
-5. El índice heurístico (pendiente/45°) se evalúa SIN entrenar: su AUC es una validación directa.
-Nada aquí convierte un modelo en «validado»: eso lo decide un administrador con esta evidencia.
+1. Presencias: eventos del inventario dentro del DEM (una celda por evento). Se evalúan TODOS juntos y, además,
+   POR TIPO DE PROCESO (código TIP_PELIGRO con ≥ `min_por_proceso` eventos): mezclar caídas y flujos anula la
+   señal de la pendiente. El significado de cada código NO está confirmado por INGEMMET.
+2. Pseudo-ausencias: celdas aleatorias a ≥ `min_dist_m` de todo evento («sin evento inventariado» ≠ «sin
+   peligro»). Dos variantes: libres y en la misma franja de altura que los eventos (sesgo de muestreo). Se
+   repiten con `n_semillas` sorteos y se informa la dispersión.
+3. Variables: pendiente (°) y elevación (m) del DEM. El índice heurístico (pendiente/45°) se evalúa sin entrenar.
+4. Validación cruzada espacial por bloques con zona de exclusión, métricas fuera de pliegue (AUC por pliegue,
+   AUC agrupado con IC95 por bootstrap de bloques, PR-AUC, Brier, matriz de confusión con umbral elegido en
+   entrenamiento). La validación aleatoria se muestra solo como referencia de cuánto infla.
+Limitaciones conocidas: tamaño de bloque fijo (no derivado de un variograma); sin máscara de hielo/agua;
+sin prueba independiente fuera del recorte. Nada aquí declara un modelo «validado».
 """
 from __future__ import annotations
 
@@ -27,11 +29,15 @@ from sklearn.model_selection import GroupKFold, StratifiedKFold
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
+from app.modules.disasters import protocol
 from app.modules.neuro3d import dem as demlib
 
 MASS_MOVEMENT_KEYWORDS = ("desliz", "derrumbe", "caida", "caída", "huayco", "huaico", "flujo", "avalancha",
                           "reptac", "movimiento", "vuelco", "alud")
 HEURISTIC_SATURATION_DEG = 45.0
+MIN_EVENTS = 20
+CODE_NOTE = ("Interpretación NO confirmada por INGEMMET (pendiente su diccionario oficial); el patrón de pendientes "
+             "es coherente con 1100 = caídas, 1300 = deslizamientos, 1500 = flujos/huaycos.")
 
 
 class ValidationError(ValueError):
@@ -39,10 +45,8 @@ class ValidationError(ValueError):
 
 
 def _is_mass_movement(props: dict) -> bool:
-    """INGEMMET codifica el tipo (p. ej. «1000|1300»). El grupo 1000 corresponde a movimientos en masa en la
-    clasificación del Proyecto Multinacional Andino que usa INGEMMET (1100 caídas, 1300 deslizamientos,
-    1500 flujos —incluye huaycos—…; correspondencia exacta a confirmar con INGEMMET). También se aceptan
-    descripciones en texto por si otra fuente usa nombres."""
+    """INGEMMET codifica el tipo (p. ej. «1000|1300»); el grupo 1000 se trata como movimientos en masa
+    (correspondencia a confirmar con INGEMMET). También se aceptan descripciones en texto."""
     code = str(props.get("TIP_PELIGRO") or "")
     if code.split("|")[0] == "1000":
         return True
@@ -50,15 +54,18 @@ def _is_mass_movement(props: dict) -> bool:
     return any(k in text for k in MASS_MOVEMENT_KEYWORDS)
 
 
-def event_cells(fc: dict, arr: np.ndarray, bbox, only_mass_movement: bool = True) -> tuple[np.ndarray, dict]:
+def event_cells(fc: dict, arr: np.ndarray, bbox, only_mass_movement: bool = True,
+                code: str | None = None) -> tuple[np.ndarray, dict]:
     h, w = arr.shape
     dlon, dlat = demlib.cell_size(bbox, arr)
     cells, skipped = set(), {"fuera_del_dem": 0, "otro_tipo": 0, "sin_dato": 0}
     for f in fc.get("features", []):
-        g = f.get("geometry") or {}
+        g, props = f.get("geometry") or {}, f.get("properties") or {}
         if g.get("type") != "Point":
             continue
-        if only_mass_movement and not _is_mass_movement(f.get("properties") or {}):
+        if code is not None and str(props.get("TIP_PELIGRO") or "") != code:
+            continue
+        if only_mass_movement and not _is_mass_movement(props):
             skipped["otro_tipo"] += 1
             continue
         lon, lat = g["coordinates"][:2]
@@ -74,15 +81,14 @@ def event_cells(fc: dict, arr: np.ndarray, bbox, only_mass_movement: bool = True
 
 def build_points(arr: np.ndarray, bbox, presences: np.ndarray, ratio: int, min_dist_m: float, seed: int,
                  elevation_range: tuple[float, float] | None = None):
-    if len(presences) < 20:
-        raise ValidationError(f"Muy pocos eventos útiles dentro del DEM ({len(presences)}; mínimo 20).")
+    if len(presences) < MIN_EVENTS:
+        raise ValidationError(f"Muy pocos eventos útiles dentro del DEM ({len(presences)}; mínimo {MIN_EVENTS}).")
     mask = np.zeros(arr.shape, dtype=bool)
     mask[presences[:, 0], presences[:, 1]] = True
     dx = float(np.mean(demlib._spacing(bbox, arr)[0]))
     dist_cells = ndimage.distance_transform_edt(~mask)
     eligible = np.isfinite(arr) & (dist_cells * dx >= min_dist_m)
     if elevation_range is not None:
-        # Corrección del sesgo de muestreo del inventario: ausencias solo en el rango de elevación de los eventos.
         with np.errstate(invalid="ignore"):
             eligible &= (arr >= elevation_range[0]) & (arr <= elevation_range[1])
     cand = np.argwhere(eligible)
@@ -91,9 +97,7 @@ def build_points(arr: np.ndarray, bbox, presences: np.ndarray, ratio: int, min_d
         raise ValidationError("No hay suficientes celdas lejos de los eventos para generar ausencias.")
     rng = np.random.default_rng(seed)
     absences = cand[rng.choice(len(cand), size=n_abs, replace=False)]
-    pts = np.vstack([presences, absences])
-    y = np.r_[np.ones(len(presences), int), np.zeros(n_abs, int)]
-    return pts, y
+    return np.vstack([presences, absences]), np.r_[np.ones(len(presences), int), np.zeros(n_abs, int)]
 
 
 def spatial_groups(pts: np.ndarray, shape: tuple[int, int], blocks: int) -> np.ndarray:
@@ -114,17 +118,21 @@ def _cv_auc(model_factory, X, y, splitter, groups=None) -> dict:
     return {"auc_mean": round(float(np.mean(aucs)), 4), "auc_sd": round(float(np.std(aucs)), 4), "folds": len(aucs)}
 
 
-def evaluate(arr: np.ndarray, bbox, fc: dict, *, ratio: int = 3, min_dist_m: float = 300.0, blocks: int = 4,
-             seed: int = 42, only_mass_movement: bool = True) -> tuple[dict, np.ndarray, np.ndarray, np.ndarray]:
-    presences, skipped = event_cells(fc, arr, bbox, only_mass_movement)
-    if len(presences) < 20:
-        raise ValidationError(f"Muy pocos eventos útiles dentro del DEM ({len(presences)}; mínimo 20).")
-    slope = demlib.slope_deg(arr, bbox)
-    ev_elev = arr[presences[:, 0], presences[:, 1]]
-    band = (float(np.percentile(ev_elev, 5)), float(np.percentile(ev_elev, 95)))
+def _models(seed: int) -> dict:
+    return {
+        "regresion_logistica": lambda: make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000)),
+        "bosque_aleatorio": lambda: RandomForestClassifier(n_estimators=100, max_depth=6, min_samples_leaf=5,
+                                                           n_jobs=1, random_state=seed),
+    }
 
-    def assess(elevation_range):
-        pts, y = build_points(arr, bbox, presences, ratio, min_dist_m, seed, elevation_range)
+
+def _variant(arr, bbox, slope, presences, xy_scale, *, ratio, min_dist_m, blocks, seed, n_seeds, buffer_m,
+             elevation_range):
+    """Una variante de pseudo-ausencias evaluada con n_seeds sorteos; métricas completas del primero."""
+    seeds_auc: dict[str, list[float]] = {k: [] for k in _models(seed)}
+    first = None
+    for s in range(n_seeds):
+        pts, y = build_points(arr, bbox, presences, ratio, min_dist_m, seed + s, elevation_range)
         X = np.c_[slope[pts[:, 0], pts[:, 1]], arr[pts[:, 0], pts[:, 1]]].astype("float64")
         ok = np.isfinite(X).all(axis=1)
         X, y, pts = X[ok], y[ok], pts[ok]
@@ -132,34 +140,105 @@ def evaluate(arr: np.ndarray, bbox, fc: dict, *, ratio: int = 3, min_dist_m: flo
         k = min(5, len(set(groups.tolist())))
         if k < 3:
             raise ValidationError("El área es demasiado pequeña para una validación espacial por bloques.")
-        logistic = lambda: make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000))  # noqa: E731
-        forest = lambda: RandomForestClassifier(n_estimators=200, max_depth=6, min_samples_leaf=5,  # noqa: E731
-                                                n_jobs=1, random_state=seed)
-        spatial, rand = GroupKFold(n_splits=k), StratifiedKFold(n_splits=5, shuffle=True, random_state=seed)
-        res = {
-            "n_presencias": int(y.sum()), "n_ausencias": int(len(y) - y.sum()), "folds_espaciales": k,
-            "auc_heuristico_pendiente": round(float(roc_auc_score(y, np.clip(X[:, 0] / HEURISTIC_SATURATION_DEG,
-                                                                            0, 1))), 4),
-            "auc_solo_elevacion_baja": round(float(roc_auc_score(y, -X[:, 1])), 4),
-            "regresion_logistica": {"espacial": _cv_auc(logistic, X, y, spatial, groups),
-                                    "aleatoria_referencia": _cv_auc(logistic, X, y, rand)},
-            "bosque_aleatorio": {"espacial": _cv_auc(forest, X, y, spatial, groups),
-                                 "aleatoria_referencia": _cv_auc(forest, X, y, rand)},
-            "pendiente_media_eventos": round(float(X[y == 1, 0].mean()), 2),
-            "pendiente_media_ausencias": round(float(X[y == 0, 0].mean()), 2),
-            "elevacion_media_eventos": round(float(X[y == 1, 1].mean()), 1),
-            "elevacion_media_ausencias": round(float(X[y == 0, 1].mean()), 1),
-        }
-        return res, X, y, pts
+        xy_m = np.c_[pts[:, 1] * xy_scale[0], pts[:, 0] * xy_scale[1]]
+        detail = {}
+        # El bosque aleatorio es caro en un equipo de 4 GB: se evalúa con el primer sorteo; la variación entre
+        # sorteos de ausencias se mide con la regresión logística (modelo de referencia).
+        models = _models(seed) if s == 0 else {"regresion_logistica": _models(seed)["regresion_logistica"]}
+        for name, factory in models.items():
+            res = protocol.spatial_oof(factory, X, y, groups, xy_m, GroupKFold(n_splits=k), buffer_m)
+            summ = protocol.summarize(res, y, groups, seed)
+            if summ["auc_mean"] is not None:
+                seeds_auc[name].append(summ["auc_mean"])
+            detail[name] = summ
+        if first is None:
+            rand = StratifiedKFold(n_splits=5, shuffle=True, random_state=seed)
+            first = {
+                "n_presencias": int(y.sum()), "n_ausencias": int(len(y) - y.sum()), "folds_espaciales": k,
+                "auc_heuristico_pendiente": round(float(roc_auc_score(
+                    y, np.clip(X[:, 0] / HEURISTIC_SATURATION_DEG, 0, 1))), 4),
+                "auc_solo_elevacion_baja": round(float(roc_auc_score(y, -X[:, 1])), 4),
+                "pendiente_media_eventos": round(float(X[y == 1, 0].mean()), 2),
+                "pendiente_media_ausencias": round(float(X[y == 0, 0].mean()), 2),
+                "elevacion_media_eventos": round(float(X[y == 1, 1].mean()), 1),
+                "elevacion_media_ausencias": round(float(X[y == 0, 1].mean()), 1),
+            }
+            lr = _models(seed)["regresion_logistica"]
+            first["regresion_logistica"] = {"espacial": detail["regresion_logistica"],
+                                            "aleatoria_referencia": _cv_auc(lr, X, y, rand)}
+            # Referencia aleatoria solo con el modelo lineal: basta para mostrar cuánto infla (ahorra memoria/tiempo).
+            first["bosque_aleatorio"] = {"espacial": detail["bosque_aleatorio"],
+                                         "aleatoria_referencia": {"auc_mean": None, "auc_sd": None, "folds": 0}}
+            data = (X, y, pts)
+    for name, vals in seeds_auc.items():
+        first[name]["espacial"]["auc_semillas"] = {
+            "media": round(float(np.mean(vals)), 4) if vals else None,
+            "sd": round(float(np.std(vals)), 4) if vals else None, "n": len(vals)}
+    if elevation_range is not None:
+        first["rango_elevacion_m"] = [round(elevation_range[0]), round(elevation_range[1])]
+    return first, data
 
-    libre, _, _, _ = assess(None)
-    ajustada, X, y, pts = assess(band)
+
+def _assess(arr, bbox, slope, presences, xy_scale, **kw):
+    ev_elev = arr[presences[:, 0], presences[:, 1]]
+    band = (float(np.percentile(ev_elev, 5)), float(np.percentile(ev_elev, 95)))
+    libre, _ = _variant(arr, bbox, slope, presences, xy_scale, elevation_range=None, **kw)
+    ajustada, data = _variant(arr, bbox, slope, presences, xy_scale, elevation_range=band, **kw)
+    return {"ausencias_libres": libre, "ausencias_mismo_rango_elevacion": ajustada,
+            "conclusion_automatica": _conclusion(libre, ajustada)}, data
+
+
+def evaluate(arr: np.ndarray, bbox, fc: dict, *, ratio: int = 3, min_dist_m: float = 300.0, blocks: int = 4,
+             seed: int = 42, n_seeds: int = 5, buffer_m: float = 500.0, min_por_proceso: int = 30,
+             only_mass_movement: bool = True) -> tuple[dict, np.ndarray, np.ndarray, np.ndarray]:
+    presences, skipped = event_cells(fc, arr, bbox, only_mass_movement)
+    if len(presences) < MIN_EVENTS:
+        raise ValidationError(f"Muy pocos eventos útiles dentro del DEM ({len(presences)}; mínimo {MIN_EVENTS}).")
+    slope = demlib.slope_deg(arr, bbox)
+    dxs, dy = demlib._spacing(bbox, arr)
+    xy_scale = (float(np.mean(dxs)), float(dy))
+    kw = {"ratio": ratio, "min_dist_m": min_dist_m, "blocks": blocks, "seed": seed, "n_seeds": n_seeds,
+          "buffer_m": buffer_m}
+    todos, (X, y, pts) = _assess(arr, bbox, slope, presences, xy_scale, **kw)
+
+    codes: dict[str, int] = {}
+    for f in fc.get("features", []):
+        p = f.get("properties") or {}
+        if not only_mass_movement or _is_mass_movement(p):
+            c = str(p.get("TIP_PELIGRO") or "")
+            codes[c] = codes.get(c, 0) + 1
+    por_proceso, omitidos = {}, {}
+    for code, n in sorted(codes.items()):
+        if len(codes) == 1:
+            omitidos[code] = "único tipo presente: idéntico a «todos»"
+            break
+        cells, _ = event_cells(fc, arr, bbox, only_mass_movement, code=code)
+        if len(cells) < max(min_por_proceso, MIN_EVENTS):
+            omitidos[code] = len(cells)
+            continue
+        try:
+            por_proceso[code], _ = _assess(arr, bbox, slope, cells, xy_scale, **kw)
+        except ValidationError as exc:
+            omitidos[code] = f"{len(cells)} ({exc})"
+    block_km = [round((bbox[2] - bbox[0]) * demlib.M_PER_DEG_LON * math.cos(math.radians((bbox[1] + bbox[3]) / 2))
+                      / blocks / 1000, 1), round((bbox[3] - bbox[1]) * demlib.M_PER_DEG_LAT / blocks / 1000, 1)]
     report = {
         "descartados": skipped, "variables": ["pendiente_deg", "elevacion_m"], "bloques": f"{blocks}x{blocks}",
-        "ausencias_libres": libre,
-        "ausencias_mismo_rango_elevacion": {**ajustada, "rango_elevacion_m": [round(band[0]), round(band[1])]},
-        "conclusion_automatica": _conclusion(libre, ajustada),
+        **todos,
+        "por_proceso": por_proceso, "procesos_omitidos_por_pocos_eventos": omitidos, "nota_codigos": CODE_NOTE,
+        "protocolo": {
+            "tamano_bloque_km": block_km, "zona_exclusion_m": buffer_m, "semillas_ausencias": n_seeds,
+            "semilla_base": seed, "ratio_ausencias": ratio, "distancia_min_ausencias_m": min_dist_m,
+            "min_eventos_por_proceso": min_por_proceso,
+            "pendiente": ["tamaño de bloque no derivado de un variograma", "sin máscara de hielo ni agua",
+                          "sin prueba independiente fuera del recorte", "DEM remuestreado (no a 30 m nativos)"],
+        },
         "interpretacion_auc": "0,5 = azar; 0,7–0,8 aceptable; > 0,8 bueno (referencia común, no un umbral oficial).",
+        "interpretacion_metricas": {
+            "pr_auc": "Depende de la proporción eventos/ausencias; compárela con su valor de azar (pr_auc_azar).",
+            "brier": "Con pseudo-ausencias la escala de probabilidad es arbitraria: solo vale para comparar modelos.",
+            "confusion": "Con pseudo-ausencias, un falso positivo puede ser un evento no inventariado.",
+        },
         "advertencias": [
             "Las ausencias son pseudo-ausencias: el inventario es incompleto (sin evento inventariado ≠ sin peligro).",
             "El inventario se concentra donde hay población y vías: la elevación puede reflejar ese sesgo de "
@@ -170,7 +249,7 @@ def evaluate(arr: np.ndarray, bbox, fc: dict, *, ratio: int = 3, min_dist_m: flo
             "Un buen AUC no autoriza decisiones: la validación final la decide un experto/administrador.",
         ],
     }
-    return report, X, y, pts   # el dataset exportado usa la variante con sesgo de elevación corregido
+    return report, X, y, pts   # el dataset exportado: todos los procesos, variante con franja de elevación
 
 
 def _d(v) -> str:
@@ -181,19 +260,31 @@ def _d(v) -> str:
 def _conclusion(libre: dict, ajustada: dict) -> list[str]:
     out = []
     h = libre["auc_heuristico_pendiente"]
-    if h < 0.6:
+    if h < 0.4:
+        out.append(f"Relación INVERSA con la pendiente (AUC {_d(h)}): estos eventos están en terreno más llano que las "
+                   "ausencias (coherente con depósitos de flujos en cauces y abanicos). El índice heurístico los "
+                   "clasifica al revés.")
+    elif h < 0.6:
         out.append(f"El índice heurístico por pendiente NO discrimina los eventos inventariados (AUC {_d(h)}): no debe "
                    "usarse como indicador de susceptibilidad en esta área.")
+    h_aj = ajustada["auc_heuristico_pendiente"]
+    if h_aj >= 0.7:
+        out.append(f"Con el sesgo de altura corregido, la pendiente sola SÍ discrimina estos eventos (AUC {_d(h_aj)}, "
+                   "sin entrenar): coherente con procesos de laderas empinadas. Sigue sin validar (falta una prueba "
+                   "independiente fuera del recorte).")
     e_libre, e_aj = libre["auc_solo_elevacion_baja"], ajustada["auc_solo_elevacion_baja"]
     m_libre = libre["regresion_logistica"]["espacial"]["auc_mean"]
     m_aj = ajustada["regresion_logistica"]["espacial"]["auc_mean"]
     if e_libre >= 0.7 and m_aj is not None and m_libre is not None and m_aj < m_libre - 0.05:
         out.append(f"El buen resultado con ausencias libres (AUC espacial {_d(m_libre)}) depende sobre todo de la "
-                   f"elevación (AUC solo elevación {_d(e_libre)}); al corregir ese sesgo baja a {_d(m_aj)}: es probable que "
-                   "refleje dónde se hizo el inventario más que el peligro físico.")
+                   f"elevación (AUC solo elevación {_d(e_libre)}); al corregir ese sesgo baja a {_d(m_aj)}: es probable "
+                   "que refleje dónde se hizo el inventario más que el peligro físico.")
     if m_aj is not None and e_aj >= m_aj - 0.05:
         out.append(f"Incluso con el sesgo corregido, el modelo (AUC {_d(m_aj)}) apenas supera a la elevación sola "
                    f"(AUC {_d(e_aj)}): la pendiente casi no aporta información con estos datos.")
+    ic = ajustada["regresion_logistica"]["espacial"].get("auc_ic95_bloques")
+    if ic and ic[0] <= 0.6:
+        out.append(f"El intervalo de confianza del AUC (bloques) llega a {_d(ic[0])}: la evidencia es débil o inestable.")
     if m_aj is not None and m_aj < 0.65:
         out.append("Con pendiente y elevación no se obtiene un modelo de susceptibilidad útil: hacen falta más "
                    "variables (litología, geomorfología, lluvia, cobertura).")

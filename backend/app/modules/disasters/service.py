@@ -61,20 +61,21 @@ def _record(db: Session, record_id: str, data_type: str) -> DataRecord:
 
 
 def validate(db: Session, user: User | None, *, dem_id: str, inventory_id: str, ratio: int, min_dist_m: float,
-             blocks: int, seed: int) -> dict:
+             blocks: int, seed: int, n_seeds: int = 5, buffer_m: float = 500.0) -> dict:
     dem_rec = _record(db, dem_id, "raster_dem")
     inv_rec = _record(db, inventory_id, "geojson")
     if not (inv_rec.extra or {}).get("inventory"):
         raise validation.ValidationError("El GeoJSON indicado no es un inventario de eventos importado.")
     params = {"dem_id": dem_id, "inventory_id": inventory_id, "ratio_ausencias": ratio, "distancia_min_m": min_dist_m,
-              "bloques": blocks, "semilla": seed}
+              "bloques": blocks, "semilla": seed, "semillas": n_seeds, "zona_exclusion_m": buffer_m}
     with jobs.exclusive():
         run = _start(db, "validacion_susceptibilidad", params)
         try:
             arr, bbox = demlib.read_dem(absolute_path(dem_rec))
             fc = validation.load_fc(absolute_path(inv_rec))
             report, X, y, pts = validation.evaluate(arr, bbox, fc, ratio=ratio, min_dist_m=min_dist_m,
-                                                    blocks=blocks, seed=seed)
+                                                    blocks=blocks, seed=seed, n_seeds=n_seeds,
+                                                    buffer_m=buffer_m)
             raw = validation.dataset_csv(X, y, pts, bbox, arr)
             aj = report["ausencias_mismo_rango_elevacion"]
             simulated = bool(dem_rec.is_simulated or inv_rec.is_simulated)

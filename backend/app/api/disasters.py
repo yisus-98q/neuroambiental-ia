@@ -41,6 +41,8 @@ class ValidateIn(BaseModel):
     min_dist_m: float = Field(default=300, ge=50, le=5000)
     blocks: int = Field(default=4, ge=2, le=8)
     seed: int = Field(default=42, ge=0, le=10_000)
+    n_seeds: int = Field(default=5, ge=1, le=10)
+    buffer_m: float = Field(default=500, ge=0, le=5000)
 
 
 def _handle(fn):
@@ -69,7 +71,7 @@ def import_inventory(body: InventoryIn, user: User = Depends(require_role("anali
 def validate(body: ValidateIn, user: User = Depends(require_role("analista")), db: Session = Depends(get_db)) -> dict:
     return _handle(lambda: service.validate(db, user, dem_id=body.dem_id, inventory_id=body.inventory_id,
                                             ratio=body.ratio, min_dist_m=body.min_dist_m, blocks=body.blocks,
-                                            seed=body.seed))
+                                            seed=body.seed, n_seeds=body.n_seeds, buffer_m=body.buffer_m))
 
 
 @router.get("/runs")

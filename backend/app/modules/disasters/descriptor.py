@@ -25,9 +25,10 @@ DESCRIPTOR = ModuleDescriptor(
         "Inventario INGEMMET incompleto y concentrado donde hay población y vías (sesgo de muestreo); la fecha del "
         "evento es desconocida (FECHA parece la del estudio: 2007 en la mayoría); "
         "licencia no declarada por el servicio: uso interno de investigación autorizado por el usuario.",
-        "Resultado real en Huaraz (181 movimientos en masa): la pendiente sola no discrimina (AUC 0,49); "
-        "pendiente + elevación da AUC espacial ~0,74 tras corregir el sesgo de elevación, explicado casi solo "
-        "por la elevación. Ningún modelo de susceptibilidad está validado para uso operativo.",
+        "Resultado real en Huaraz (181 eventos): mezclando procesos, la pendiente no discrimina (AUC 0,49). Por "
+        "proceso (códigos sin diccionario oficial): 1100 (probables caídas) AUC 0,75 con la pendiente sola tras "
+        "corregir el sesgo de altura; 1500 (probables flujos) relación inversa (0,38). Los intervalos de "
+        "confianza por bloques llegan a 0,43–0,54 y no hay prueba independiente: ningún modelo está validado.",
         "Faltan variables clave (litología, geomorfología, lluvia, cobertura) para un modelo útil.",
     ],
     keywords=["huayco", "huaico", "inundacion", "deslizamiento", "derrumbe", "incendio", "sequia",

@@ -1,7 +1,7 @@
 NEUROAMBIENTAL IA - CHECKLIST DE LO REALIZADO
 Actualizado: 24 nov. 2026
 Proyecto: D:\Proyectos\neuroambiental-ia
-Estado: 155 pruebas pasan y el frontend compila (scripts\comprobar.py)
+Estado: 161 pruebas pasan y el frontend compila (scripts\comprobar.py)
 
 [x] = hecho      [~] = parcial      [ ] = pendiente
 
@@ -79,6 +79,19 @@ FASE 10 - NEURODISASTER con datos REALES (fdbb175, d35015d, 110ccb6)
 [x] Comando: python -m app.cli importar-ingemmet --bbox=... --validar
 [x] Datos de Huaraz importados en la base real de la aplicación
 [x] Administrador creado por el usuario
+
+AUDITORÍA CIENTÍFICA (24 nov. 2026)
+[x] Informe: docs/INFORME_FORTALECIMIENTO_CIENTIFICO.md
+[x] P0.1 Se retira «2013» como fecha del inventario (FECHA no es la fecha del evento)
+[x] P0.2 NEUROVOICE: escenarios fuera del conteo de datos reales; explica la validación real
+[x] P0.3 NEURAL TRAINING: datasets con coordenadas no se validan con un corte aleatorio
+[x] P0.4 Coma decimal en NEURODISASTER
+[x] P1.1 Validación por tipo de proceso (1100 / 1300 / 1500)
+[x] P1.2 Zona de exclusión de 500 m entre bloques y 5 sorteos de pseudo-ausencias
+[x] P1.3 PR-AUC, Brier, matriz de confusión, precisión/recall/F1, IC 95 % por bloques
+[ ] P1.2 Variograma para el tamaño de bloque y máscara de hielo/agua
+[ ] P1.4 DEM a 30 m (necesita autorización A2)
+[ ] P2 Scientific Validation Engine (necesita autorización A6)
 
 ======================================================================
 C. PENDIENTE

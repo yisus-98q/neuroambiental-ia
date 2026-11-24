@@ -5,15 +5,23 @@ import { useApi } from "../services/useApi";
 
 interface TerrainLite { id: string; title: string; bbox: number[] }
 interface Inventory { id: string; title: string; bbox: number[]; received_at: string; source: string; license: string; eventos: number; tipos_peligro: Record<string, number> }
-interface Cv { auc_mean: number | null; auc_sd: number | null; folds: number }
+interface Conf { vp: number; fp: number; fn: number; vn: number }
+interface Cv {
+  auc_mean: number | null; auc_sd: number | null; folds: number;
+  auc_ic95_bloques?: number[] | null; pr_auc?: number; pr_auc_azar?: number; brier?: number; confusion?: Conf;
+  precision?: number; recall?: number; f1?: number; auc_semillas?: { media: number | null; sd: number | null; n: number };
+}
 interface Variant {
   n_presencias: number; n_ausencias: number; auc_heuristico_pendiente: number; auc_solo_elevacion_baja: number;
   regresion_logistica: { espacial: Cv; aleatoria_referencia: Cv }; bosque_aleatorio: { espacial: Cv; aleatoria_referencia: Cv };
   elevacion_media_eventos: number; elevacion_media_ausencias: number; rango_elevacion_m?: number[];
 }
-interface Report {
-  ausencias_libres: Variant; ausencias_mismo_rango_elevacion: Variant; conclusion_automatica: string[];
+interface Assessment { ausencias_libres: Variant; ausencias_mismo_rango_elevacion: Variant; conclusion_automatica: string[] }
+interface Report extends Assessment {
   advertencias: string[]; interpretacion_auc: string; descartados: Record<string, number>; dataset_record_id?: string; simulado?: boolean;
+  por_proceso?: Record<string, Assessment>; procesos_omitidos_por_pocos_eventos?: Record<string, unknown>; nota_codigos?: string;
+  protocolo?: { tamano_bloque_km: number[]; zona_exclusion_m: number; semillas_ausencias: number; pendiente: string[] };
+  interpretacion_metricas?: Record<string, string>;
 }
 interface RunRow { id: string; run_type: string; status: string; started_at: string; parameters: Record<string, unknown>; result_summary: (Report & { error?: string }) | null }
 
@@ -118,27 +126,63 @@ export function DisasterPanel() {
 }
 
 function ReportCard({ r }: { r: Report }) {
-  const a = r.ausencias_libres, b = r.ausencias_mismo_rango_elevacion;
-  const rows: [string, string, string][] = [
-    ["Índice heurístico (solo pendiente)", d2(a.auc_heuristico_pendiente), d2(b.auc_heuristico_pendiente)],
-    ["Solo elevación", d2(a.auc_solo_elevacion_baja), d2(b.auc_solo_elevacion_baja)],
-    ["Regresión logística · validación espacial", cv(a.regresion_logistica.espacial), cv(b.regresion_logistica.espacial)],
-    ["Bosque aleatorio · validación espacial", cv(a.bosque_aleatorio.espacial), cv(b.bosque_aleatorio.espacial)],
-    ["Regresión logística · aleatoria (solo referencia)", cv(a.regresion_logistica.aleatoria_referencia), cv(b.regresion_logistica.aleatoria_referencia)],
-  ];
+  const p = r.protocolo;
   return (
     <div className="card stack">
       <h2>Informe de validación {r.simulado && <span className="badge badge-sim">SIMULADO</span>}</h2>
-      <p className="small" style={{ margin: 0 }}>{a.n_presencias} eventos y {a.n_ausencias} pseudo-ausencias. {r.interpretacion_auc}</p>
-      <div className="table-wrap"><table>
-        <thead><tr><th>AUC</th><th>Ausencias libres</th><th>Ausencias en el rango de elevación {b.rango_elevacion_m ? `${b.rango_elevacion_m[0]}–${b.rango_elevacion_m[1]} m` : ""}</th></tr></thead>
-        <tbody>{rows.map(([k, x, y]) => <tr key={k}><td className="small">{k}</td><td>{x}</td><td>{y}</td></tr>)}</tbody>
-      </table></div>
-      <div><strong className="small">Conclusiones automáticas</strong>
-        <ul className="small">{r.conclusion_automatica.map((c) => <li key={c}>{c}</li>)}</ul></div>
+      <p className="small" style={{ margin: 0 }}>{r.interpretacion_auc}</p>
+      {p && <p className="small muted" style={{ margin: 0 }}>Protocolo: bloques de ≈{p.tamano_bloque_km.map((v) => d2(v)).join(" × ")} km,
+        zona de exclusión de {p.zona_exclusion_m} m entre entrenamiento y prueba, {p.semillas_ausencias} sorteos de pseudo-ausencias.
+        Pendiente de mejorar: {p.pendiente.join("; ")}.</p>}
+      <AssessmentBlock title="Todos los movimientos en masa" a={r} />
+      {r.por_proceso && Object.keys(r.por_proceso).length > 0 && (
+        <>
+          <h3 style={{ margin: "8px 0 0" }}>Por tipo de proceso (código INGEMMET)</h3>
+          {r.nota_codigos && <p className="small muted" style={{ margin: 0 }}>{r.nota_codigos}</p>}
+          {Object.entries(r.por_proceso).map(([code, a]) => <AssessmentBlock key={code} title={`Código ${code}`} a={a} />)}
+        </>
+      )}
+      {r.procesos_omitidos_por_pocos_eventos && Object.keys(r.procesos_omitidos_por_pocos_eventos).length > 0 && (
+        <p className="small muted" style={{ margin: 0 }}>Omitidos por pocos eventos: {Object.entries(r.procesos_omitidos_por_pocos_eventos).map(([k, v]) => `${k} (${String(v)})`).join(", ")}.</p>
+      )}
+      {r.interpretacion_metricas && <ul className="small muted" style={{ margin: 0 }}>{Object.entries(r.interpretacion_metricas).map(([k, v]) => <li key={k}><strong>{k}</strong>: {v}</li>)}</ul>}
       <Notice kind="info"><ul className="small" style={{ margin: 0 }}>{r.advertencias.map((w) => <li key={w}>{w}</li>)}</ul></Notice>
       {r.dataset_record_id && <p className="small muted" style={{ margin: 0 }}>Dataset para NEURAL TRAINING registrado en NEURODATA (columna objetivo «evento»).
-        Ningún modelo queda validado automáticamente.</p>}
+        Tiene coordenadas: NEURAL TRAINING no permitirá validar un modelo con un corte aleatorio. Ningún modelo queda validado automáticamente.</p>}
+    </div>
+  );
+}
+
+function AssessmentBlock({ title, a }: { title: string; a: Assessment }) {
+  const x = a.ausencias_libres, y = a.ausencias_mismo_rango_elevacion;
+  const ic = (c: Cv) => (c.auc_ic95_bloques ? `${d2(c.auc_ic95_bloques[0])}–${d2(c.auc_ic95_bloques[1])}` : "—");
+  const seeds = (c: Cv) => (c.auc_semillas?.media == null ? "—" : `${d2(c.auc_semillas.media)} ± ${d2(c.auc_semillas.sd ?? 0)} (n=${c.auc_semillas.n})`);
+  const opt = (v?: number) => (v == null ? "—" : d2(v));
+  const conf = (c: Cv) => (c.confusion ? `VP ${c.confusion.vp} · FP ${c.confusion.fp} · FN ${c.confusion.fn} · VN ${c.confusion.vn}` : "—");
+  const lrX = x.regresion_logistica.espacial, lrY = y.regresion_logistica.espacial;
+  const rows: [string, string, string][] = [
+    ["Índice heurístico (solo pendiente)", d2(x.auc_heuristico_pendiente), d2(y.auc_heuristico_pendiente)],
+    ["Solo elevación", d2(x.auc_solo_elevacion_baja), d2(y.auc_solo_elevacion_baja)],
+    ["Regresión logística · AUC espacial por pliegue", cv(lrX), cv(lrY)],
+    ["  · IC 95 % (bootstrap de bloques)", ic(lrX), ic(lrY)],
+    ["  · Variación entre sorteos de ausencias", seeds(lrX), seeds(lrY)],
+    ["  · PR-AUC (azar)", `${opt(lrX.pr_auc)} (${opt(lrX.pr_auc_azar)})`, `${opt(lrY.pr_auc)} (${opt(lrY.pr_auc_azar)})`],
+    ["  · Precisión / recall / F1", `${opt(lrX.precision)} / ${opt(lrX.recall)} / ${opt(lrX.f1)}`, `${opt(lrY.precision)} / ${opt(lrY.recall)} / ${opt(lrY.f1)}`],
+    ["  · Matriz de confusión", conf(lrX), conf(lrY)],
+    ["  · Brier (solo comparativo)", opt(lrX.brier), opt(lrY.brier)],
+    ["Bosque aleatorio · AUC espacial por pliegue", cv(x.bosque_aleatorio.espacial), cv(y.bosque_aleatorio.espacial)],
+    ["  · IC 95 % (bootstrap de bloques)", ic(x.bosque_aleatorio.espacial), ic(y.bosque_aleatorio.espacial)],
+    ["Regresión logística · aleatoria (solo referencia)", cv(x.regresion_logistica.aleatoria_referencia), cv(y.regresion_logistica.aleatoria_referencia)],
+  ];
+  return (
+    <div className="stack" style={{ borderTop: "1px solid var(--border, #ddd)", paddingTop: 8 }}>
+      <strong>{title}</strong>
+      <p className="small" style={{ margin: 0 }}>{x.n_presencias} eventos y {x.n_ausencias} pseudo-ausencias por sorteo.</p>
+      <div className="table-wrap"><table>
+        <thead><tr><th>Métrica</th><th>Ausencias libres</th><th>Ausencias en la franja de altura {y.rango_elevacion_m ? `${y.rango_elevacion_m[0]}–${y.rango_elevacion_m[1]} m` : ""}</th></tr></thead>
+        <tbody>{rows.map(([k, v1, v2]) => <tr key={k}><td className="small" style={{ whiteSpace: "pre" }}>{k}</td><td>{v1}</td><td>{v2}</td></tr>)}</tbody>
+      </table></div>
+      <ul className="small" style={{ margin: 0 }}>{a.conclusion_automatica.map((c) => <li key={c}>{c}</li>)}</ul>
     </div>
   );
 }
