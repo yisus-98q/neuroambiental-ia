@@ -24,7 +24,7 @@ DESCRIPTOR = ModuleDescriptor(
     limitations=[
         "Las simulaciones son aproximaciones demostrativas: no son simulaciones geotécnicas ni hidráulicas.",
         "El DEM tiene ~100 m de resolución por defecto y errores verticales de varios metros; no sustituye un levantamiento.",
-        "La susceptibilidad es un índice heurístico (pendiente/45° y 1−NDVI) NO calibrado ni validado con inventarios de eventos; no predice deslizamientos ni fechas.",
+        "La susceptibilidad es un índice heurístico (pendiente/45° y 1−NDVI) NO calibrado; no predice deslizamientos ni fechas. Evaluado con el inventario real de INGEMMET (181 movimientos en masa, Huaraz): la pendiente sola NO discrimina los eventos (AUC 0,49, igual al azar). No usar como indicador de susceptibilidad.",
         "La inundación es un modelo de bañera: ignora caudal, cauce, rugosidad, tiempo y drenaje; no es una simulación hidráulica y se trunca en el borde del DEM.",
         "Los escenarios son hipotéticos y se rotulan SIMULACIÓN; el comparador no guarda resultados. Las capas de NDVI/cambio se remuestrean a la malla del DEM (≈100 m) y no confirman deforestación ni daño.",
         "La trayectoria D8 no rellena depresiones: un pozo de ruido del DEM puede detenerla; si se detiene junto "

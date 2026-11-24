@@ -29,8 +29,8 @@ from app.neurodata.service import absolute_path, get_or_create_source
 KIND_SUSC, KIND_FLOOD = "susceptibilidad", "inundacion_demostrativa"
 RUN_SUSC, RUN_FLOOD = "escenario_susceptibilidad", "escenario_inundacion"
 BANNER = "SIMULACIÓN — escenario hipotético, no es una predicción"
-SUSC_DISCLAIMER = ("Índice heurístico NO calibrado ni validado con inventarios de eventos; "
-                   "no predice deslizamientos ni fechas.")
+SUSC_DISCLAIMER = ("Índice heurístico NO calibrado; no predice deslizamientos ni fechas. "
+                   "Evaluado con el inventario real de INGEMMET (181 movimientos en masa, Huaraz): la pendiente sola NO discrimina los eventos (AUC 0,49, igual al azar). No usar como indicador de susceptibilidad.")
 FLOOD_DISCLAIMER = ("Modelo de bañera simplificado (lámina de agua local alrededor del punto, banda ±subida): "
                     "ignora caudal, cauce, rugosidad, tiempo y drenaje, y no representa el flujo aguas abajo; "
                     "no es una simulación hidráulica.")

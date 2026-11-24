@@ -266,7 +266,7 @@ interface CompareOut {
   scenarios: { label: string; kind: string; params: Record<string, number>; metrics: Metrics; disclaimer: string }[];
 }
 type SimKind = "susceptibilidad" | "inundacion_demostrativa";
-const SUSC_TXT = "Índice heurístico NO calibrado ni validado con inventarios de eventos; no predice deslizamientos ni fechas.";
+const SUSC_TXT = "Índice heurístico NO calibrado; no predice deslizamientos ni fechas. Evaluado con el inventario real de INGEMMET (181 movimientos en masa, Huaraz): la pendiente sola NO discrimina los eventos (AUC 0,49, igual al azar). No usar como indicador de susceptibilidad.";
 const FLOOD_TXT = "Modelo de bañera simplificado: ignora caudal, cauce, rugosidad, tiempo y drenaje; no es una simulación hidráulica.";
 const overlaps = (a: number[] | null, b: number[]) => !!a && a.length === 4 && a[2] > b[0] && a[0] < b[2] && a[3] > b[1] && a[1] < b[3];
 

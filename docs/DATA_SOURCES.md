@@ -21,6 +21,19 @@
 - **Nieve.** Se mantiene como válida; en zonas andinas altera el NDVI (el porcentaje de nieve se informa en las estadísticas).
 - **Salidas.** `data/uploads/rasters/AAAA/MM/<id>_ndvi.tif` (int16, NDVI x 10000, sin dato = -32768), `<id>_cambio.tif` (clases 1 disminución, 2 aumento, 0 sin cambio, 255 sin dato) y un PNG RGBA de vista previa con el mismo nombre. Se registran como `data_records` de tipo `raster_ndvi` y `raster_cambio`.
 
+### INGEMMET — GEOCATMIN «Peligros Geológicos del Perú» (feb. 2013) — integrada (uso interno)
+
+- **Servicio:** `geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_PELIGROS_GEOLOGICOS/MapServer/0`. Es un servicio público, sin cuenta y sin costo.
+- **Consulta:**
+  - por recorte, con un máximo de 2,5° por lado;
+  - primero se piden los OBJECTID y luego los eventos en lotes de 1000, porque el servidor no admite `resultOffset`;
+  - solo se aceptan respuestas de ese host.
+- **Licencia:** **no declarada** (`copyrightText` vacío). El usuario autorizó el uso **interno de investigación**, citando a INGEMMET y **sin redistribuir**.
+- **Limitaciones:**
+  - el inventario es de 2013 y está incompleto;
+  - está sesgado hacia zonas pobladas y vías;
+  - `TIP_PELIGRO` está codificado (el grupo 1000 se trata como movimientos en masa; la correspondencia exacta de los subcódigos está por confirmar con INGEMMET).
+
 ## Fuentes públicas candidatas (NO integradas)
 
 La licencia y los términos de uso **deben revisarse antes de usar cualquiera**; lo siguiente es orientativo y puede estar desactualizado o incompleto. La tabla `sources` tiene el campo `terms_reviewed` (falso por defecto) para registrar esa revisión.

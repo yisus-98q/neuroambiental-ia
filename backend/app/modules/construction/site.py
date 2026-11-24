@@ -24,8 +24,8 @@ from app.modules.neuro3d.dem import DemError
 from app.neurodata.service import absolute_path, get_or_create_source
 
 NOTICE = "No reemplaza evaluaciones profesionales ni autorizaciones oficiales."
-HEURISTIC_NOTE = ("La clase de susceptibilidad es un índice heurístico (solo pendiente, pesos por defecto) NO calibrado "
-                  "ni validado con inventarios de eventos; no predice deslizamientos.")
+HEURISTIC_NOTE = ("La clase de susceptibilidad es un índice heurístico (solo pendiente, pesos por defecto) NO calibrado; "
+                  "no predice deslizamientos. Evaluado con el inventario real de INGEMMET (181 movimientos en masa, Huaraz): la pendiente sola NO discrimina los eventos (AUC 0,49, igual al azar). No usar como indicador de susceptibilidad.")
 MAX_VERTICES = 5000
 MAX_BUFFER_M = 5000.0
 RUN_TYPE = "analisis_sitio"

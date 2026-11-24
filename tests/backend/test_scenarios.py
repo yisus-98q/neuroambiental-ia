@@ -88,7 +88,7 @@ def test_susceptibility_classes_follow_slope(client, analyst_h, slopes_dem):
     rec = r.json()
     ex = rec["extra"]
     assert rec["data_type"] == "raster_escenario" and ex["kind"] == "susceptibilidad"
-    assert "NO calibrado ni validado" in ex["disclaimer"] and "SIMULACIÓN" in rec["banner"]
+    assert "NO calibrado" in ex["disclaimer"] and "INGEMMET" in ex["disclaimer"] and "SIMULACIÓN" in rec["banner"]
     by = {c["class"]: c for c in ex["stats"]["classes"]}
     # 5° → 0.11 (bajo); 40° → 0.89 (alto); mitad y mitad aproximadamente; ninguna celda media salvo la transición.
     assert by[1]["pct"] == pytest.approx(50, abs=3) and by[3]["pct"] == pytest.approx(50, abs=3)

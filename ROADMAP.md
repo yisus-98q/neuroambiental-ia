@@ -86,6 +86,32 @@ Tres módulos pasaron de contrato a funciones reales y básicas; ninguno usa mod
 
 Además: NEURO 3D LAB queda 6/6 declaradas (capas NDVI/cambio sobre el terreno) y el mapa decide el contorno «simulado» **por punto** (propiedad `is_simulated` de cada elemento). Detalle en [docs/API.md](docs/API.md), [docs/DATABASE.md](docs/DATABASE.md) y [docs/INTEGRACION_NEUROCORE.md](docs/INTEGRACION_NEUROCORE.md). 146 pruebas de backend en total.
 
+## Fase 10 (hecha en lo implementado): validación con eventos REALES (NEURODISASTER)
+
+Primera evaluación de la plataforma contra datos reales de campo.
+
+- **Fuente:** inventario de peligros geológicos de INGEMMET (GEOCATMIN, feb. 2013), importado por recorte desde el servicio oficial (`POST /api/disasters/inventory/import`). La licencia no está declarada en el servicio, así que se usa **solo internamente para investigación**, citando la fuente y sin redistribuir.
+- **Método** (`POST /api/disasters/susceptibility/validate`):
+  - presencias tomadas del inventario y pseudo-ausencias a ≥ 300 m;
+  - variables: pendiente y elevación del DEM GLO-30;
+  - **validación cruzada espacial por bloques**; la aleatoria solo se muestra como referencia;
+  - una segunda variante con ausencias en el **mismo rango de elevación** que los eventos, para corregir el sesgo de muestreo;
+  - conclusiones automáticas conservadoras.
+- **Resultado real** (Huaraz, recorte de 0,5° × 0,5°, 181 movimientos en masa):
+
+| Indicador | Ausencias libres | Mismo rango de elevación |
+|---|---|---|
+| Índice heurístico (solo pendiente) | AUC **0,49** (azar) | 0,54 |
+| Solo elevación | 0,81 | 0,70 |
+| Regresión logística (pendiente + elevación), espacial | 0,83 ± 0,06 | **0,74 ± 0,09** |
+| Bosque aleatorio, espacial | 0,82 ± 0,06 | 0,74 ± 0,08 |
+
+- **Lectura honesta:**
+  - El índice heurístico de pendiente que usaban 3D LAB y NEUROCONSTRUCTION **no discrimina** los eventos inventariados. Sus avisos ahora lo dicen expresamente.
+  - El AUC alto se explica casi solo por la elevación, que probablemente refleja dónde se hizo el inventario (valles poblados y vías) y no el peligro físico.
+  - **Ningún modelo de susceptibilidad queda validado.** Hacen falta litología, geomorfología, lluvia y cobertura.
+- El dataset generado (CSV con la columna `evento`) puede entrenarse en NEURAL TRAINING. La validación final sigue siendo de un administrador, con evidencia y siempre por encima del valor de referencia.
+
 ## Fase 4 (propuesta): escala y voz
 
 | Elemento | RAM estimada | Riesgos |

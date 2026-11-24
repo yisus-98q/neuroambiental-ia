@@ -13,6 +13,7 @@ from app.api import (
     auth,
     biodiversity,
     construction,
+    disasters,
     environmental,
     neuro3d,
     neurocore,
@@ -59,7 +60,7 @@ def create_app() -> FastAPI:
         return JSONResponse(status_code=500, content={"detail": "Error interno. Revise los registros del servidor."})
 
     for module in (system, auth, neurocore, neurodata, alerts, biodiversity, environmental, neurotraining, neuroprediction, neurovision,
-                   neuro3d, simulation, terrain, construction,
+                   neuro3d, simulation, terrain, construction, disasters,
                    neurovoice, territories):
         app.include_router(module.router)
 
