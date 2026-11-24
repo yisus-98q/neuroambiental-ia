@@ -1,0 +1,90 @@
+{
+  "manifiesto_version": 1,
+  "id": "0e8516c43d2d4e1980d5761d01433a81",
+  "titulo": "Inventario INGEMMET de peligros geológicos · 181 eventos",
+  "tipo": "geojson",
+  "formato": "application/geo+json",
+  "sha256": "b75616af9dabeba06fe67b7efeedce7d817db45a6f21139387bc4a7a2b4e242c",
+  "tamano_bytes": 80889,
+  "simulado": false,
+  "estado_validacion": "valido",
+  "calidad_declarada": "sin_evaluar",
+  "fuente": {
+    "nombre": "INGEMMET — GEOCATMIN Peligros Geológicos del Perú",
+    "tipo": "archivo",
+    "url": null,
+    "licencia": "No declarada por el servicio; uso interno de investigación autorizado por el usuario; no redistribuir",
+    "terminos_revisados": false
+  },
+  "procedencia": "Consulta por recorte [-77.205, -9.6, -76.705, -9.1] al servicio oficial https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_PELIGROS_GEOLOGICOS/MapServer/0/query (GEOCATMIN). Eventos inventariados en campo y gabinete por INGEMMET. Licencia no declarada: uso interno. El título del servicio dice «Feb 2013», pero el servicio se sigue actualizando (en Huaraz hay registros de 2007 y de 2018–2026). El campo FECHA parece la fecha del estudio o del registro, no la del evento.",
+  "fechas": {
+    "adquisicion": "2026-11-24T21:09:31.672565",
+    "dato": "desconocida"
+  },
+  "sistema_coordenadas": "EPSG:4326 (WGS84 lon/lat)",
+  "cobertura_bbox": [
+    -77.20235352600002,
+    -9.597754122000026,
+    -76.70731637799997,
+    -9.100764541999979
+  ],
+  "resolucion": {
+    "espacial": "desconocida (vectorial o tabular)"
+  },
+  "variables": [],
+  "etiquetas": {
+    "1000|1600": 24,
+    "1000|1500": 27,
+    "1000|1300": 82,
+    "1000|1100": 39,
+    "1000|1700": 8,
+    "1000|1200": 1
+  },
+  "linaje": [],
+  "transformaciones": [
+    {
+      "ejecucion": "41b218c4515a40548107af8ca16ad922",
+      "tipo": "inventario_ingemmet",
+      "estado": "ok",
+      "rol": "produjo",
+      "fecha": "2026-11-24T21:09:29.515695"
+    },
+    {
+      "ejecucion": "ea1cbb80cd07435bb8af53da15ec28d4",
+      "tipo": "validacion_externa",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T21:16:08.601129"
+    }
+  ],
+  "estadisticas_registradas": null,
+  "duplicado_exacto_de": [],
+  "calidad": {
+    "elementos": 181,
+    "tipos_geometria": {
+      "Point": 181
+    },
+    "propiedades": [
+      "AUTOR",
+      "COD_INV",
+      "FECHA",
+      "FUENTE",
+      "NM_DIST",
+      "NM_DPTO",
+      "NM_PROV",
+      "NM_SECTOR",
+      "NOM_PELIGRO",
+      "TIESTU_ANO",
+      "TIP_PELIGRO"
+    ],
+    "nulos_por_propiedad": {
+      "FUENTE": 160,
+      "NM_SECTOR": 19,
+      "NOM_PELIGRO": 12,
+      "FECHA": 1,
+      "AUTOR": 5,
+      "TIESTU_ANO": 5
+    },
+    "geometrias_duplicadas": 0
+  }
+}

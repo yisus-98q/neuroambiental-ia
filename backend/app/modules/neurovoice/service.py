@@ -59,7 +59,8 @@ def _disaster_lines(db: Session) -> list[str]:
                                       Run.status == "ok").order_by(Run.started_at.desc()).limit(1))
     if run is None or not run.result_summary:
         return ["Aún no hay ninguna validación con eventos reales. Importe el inventario de INGEMMET y valide en "
-                "NEURODISASTER."]
+                "NEURODISASTER.",
+                "Una estimación de susceptibilidad no es una predicción cierta de un desastre ni una alerta oficial."]
     r = run.result_summary
     libre, aj = r.get("ausencias_libres", {}), r.get("ausencias_mismo_rango_elevacion", {})
     lr = (aj.get("regresion_logistica") or {}).get("espacial") or {}
@@ -69,7 +70,16 @@ def _disaster_lines(db: Session) -> list[str]:
              f"Pendiente + elevación con el sesgo de altura corregido, validación espacial: AUC {_dec(lr.get('auc_mean'))}"
              f" ± {_dec(lr.get('auc_sd'))}."]
     lines += list(r.get("conclusion_automatica") or [])[:3]
+    ext = db.scalar(select(Run).where(Run.module_key == "disasters", Run.run_type == "validacion_externa",
+                                      Run.status == "ok").order_by(Run.started_at.desc()).limit(1))
+    if ext is not None:
+        ez = ext.result_summary or {}
+        estados = [st["estado"] for g in (ez.get("grupos") or {}).values() for st in (g.get("estados") or {}).values()]
+        lines.append(f"Evaluación EXTERNA en {ez.get('zona_externa')}: ningún modelo superó los criterios "
+                     "prerregistrados." if "VALIDACIÓN EXTERNA PROMETEDORA" not in estados else
+                     f"Evaluación EXTERNA en {ez.get('zona_externa')}: hay resultados prometedores, aún NO validados.")
     lines.append("Ningún modelo de susceptibilidad está validado: es una evaluación experimental.")
+    lines.append("Una estimación de susceptibilidad no es una predicción cierta de un desastre ni una alerta oficial.")
     return lines
 
 

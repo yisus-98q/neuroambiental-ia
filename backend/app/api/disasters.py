@@ -103,3 +103,10 @@ def import_geology(body: GeologyIn, user: User = Depends(require_role("analista"
 @router.get("/geology")
 def geology_layers(_: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[dict]:
     return service.list_geology(db)
+
+
+
+@router.get("/external")
+def external_runs(_: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Evaluaciones externas (misión 2.1): zona, fecha, datasets, estados por modelo, métricas e incertidumbre."""
+    return service.list_external(db)

@@ -201,6 +201,28 @@ def export_fact_sheets(out: str) -> int:
     return 0
 
 
+def external_validation(a: argparse.Namespace) -> int:
+    """Evaluación externa prerregistrada (misión 2.1) como acción del sistema."""
+    import json
+
+    from app.database.session import SessionLocal
+    from app.modules.disasters import service as disasters
+
+    with SessionLocal() as db:
+        r = disasters.external_validation(db, None, dem_a=a.dem_a, inv_a=a.inv_a, lito_a=a.lito_a, dem_b=a.dem_b,
+                                          inv_b=a.inv_b, lito_b=a.lito_b, zona_b=a.zona)
+    print("Ejecución:", r["run_id"], "| recursos:", r.get("recursos"))
+    for g, v in r["grupos"].items():
+        print(f"\n== {g}: {v['n_eventos_externos']} eventos externos")
+        for name, st in v["estados"].items():
+            f = (v.get("franja") or {}).get(name) or {}
+            print(f"  {name:24s} {st['estado']:32s} AUC {f.get('auc_sorteos', {}).get('media')} "
+                  f"IC95 {f.get('auc_ic95_bloques')}")
+    if a.salida:
+        Path(a.salida).write_text(json.dumps(r, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m app.cli")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -225,6 +247,13 @@ def main(argv: list[str] | None = None) -> int:
     em.add_argument("--salida", default=str(Path(__file__).resolve().parents[2] / "datasets" / "manifiestos"))
     ef = sub.add_parser("exportar-fichas", help="Genera docs/FICHAS_TECNICAS_MODULOS.md desde el registro")
     ef.add_argument("--salida", default=str(Path(__file__).resolve().parents[2] / "docs" / "FICHAS_TECNICAS_MODULOS.md"))
+    ve = sub.add_parser("validacion-externa", help="Evaluación externa prerregistrada (misión 2.1)")
+    for k in ("dem-a", "inv-a", "dem-b", "inv-b"):
+        ve.add_argument(f"--{k}", required=True)
+    ve.add_argument("--lito-a", default=None)
+    ve.add_argument("--lito-b", default=None)
+    ve.add_argument("--zona", required=True)
+    ve.add_argument("--salida", default=None, help="JSON con el resultado completo")
     args = parser.parse_args(argv)
     if args.cmd == "migrate":
         migrate()
@@ -232,6 +261,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.cmd == "create-admin":
         return create_admin(args.username, args.password)
+    if args.cmd == "validacion-externa":
+        return external_validation(args)
     if args.cmd == "exportar-fichas":
         return export_fact_sheets(args.salida)
     if args.cmd == "exportar-manifiestos":

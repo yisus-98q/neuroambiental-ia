@@ -1,0 +1,68 @@
+{
+  "manifiesto_version": 1,
+  "id": "c556e14eb07a461e93d935da9788bb3a",
+  "titulo": "DEM GLO-30 [-77.205, -9.600, -76.705, -9.100]",
+  "tipo": "raster_dem",
+  "formato": "image/tiff",
+  "sha256": "78cdd420936984c82ff6f2f69b1ed4352013033382eb84402df07b0e21041321",
+  "tamano_bytes": 8626875,
+  "simulado": false,
+  "estado_validacion": "valido",
+  "calidad_declarada": "media",
+  "fuente": {
+    "nombre": "Copernicus DEM GLO-30 (AWS Open Data)",
+    "tipo": "satelite",
+    "url": "https://registry.opendata.aws/copernicus-dem/",
+    "licencia": "Copernicus DEM: uso libre con atribución",
+    "terminos_revisados": false
+  },
+  "procedencia": "Teselas Copernicus_DSM_COG_10_S10_00_W078_00_DEM, Copernicus_DSM_COG_10_S10_00_W077_00_DEM leídas por rangos HTTP y remuestreadas (promedio) a una malla EPSG:4326 de 0.0003125° (1600x1600 px). Copernicus DEM GLO-30 © DLR e.V. 2010-2014 y © Airbus Defence and Space GmbH 2014-2018, proporcionado bajo COPERNICUS por la Unión Europea y la ESA.",
+  "fechas": {
+    "adquisicion": "2026-11-24T21:13:13.124933",
+    "dato": "desconocida"
+  },
+  "sistema_coordenadas": "EPSG:4326 (WGS84 lon/lat)",
+  "cobertura_bbox": [
+    -77.205,
+    -9.6,
+    -76.705,
+    -9.1
+  ],
+  "resolucion": {
+    "espacial_grados": 0.0003125,
+    "espacial_m_aprox": 34.3,
+    "malla": "1600x1600"
+  },
+  "variables": [
+    "m (elevación)"
+  ],
+  "etiquetas": null,
+  "linaje": [],
+  "transformaciones": [
+    {
+      "ejecucion": "01a9bd9bf116470e899ee382fed65c5b",
+      "tipo": "dem",
+      "estado": "ok",
+      "rol": "produjo",
+      "fecha": "2026-11-24T21:09:53.824118"
+    },
+    {
+      "ejecucion": "ea1cbb80cd07435bb8af53da15ec28d4",
+      "tipo": "validacion_externa",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T21:16:08.601129"
+    }
+  ],
+  "estadisticas_registradas": {
+    "min": 2121.7,
+    "max": 5044.5,
+    "mean": 3766.4,
+    "valid_pct": 100.0
+  },
+  "duplicado_exacto_de": [],
+  "calidad": {
+    "validos_pct": 100.0,
+    "nota": "estadísticas calculadas al registrar"
+  }
+}

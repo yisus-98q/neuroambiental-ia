@@ -190,3 +190,52 @@ def list_geology(db: Session) -> list[dict]:
     return [{"id": r.id, "title": r.title, "capa": r.extra.get("geology"), "campo": r.extra.get("field"),
              "clases": r.extra.get("classes"), "received_at": r.received_at, "license": r.source.license}
             for r in db.scalars(q) if (r.extra or {}).get("geology")]
+
+
+def external_validation(db: Session, user: User | None, *, dem_a: str, inv_a: str, lito_a: str | None, dem_b: str,
+                        inv_b: str, lito_b: str | None, zona_b: str) -> dict:
+    """Misión 2.1: entrena SOLO en la zona A y evalúa en la zona B (protocolo prerregistrado)."""
+    from app.modules.disasters import external
+
+    recs = {"dem_a": _record(db, dem_a, "raster_dem"), "inv_a": _record(db, inv_a, "geojson"),
+            "dem_b": _record(db, dem_b, "raster_dem"), "inv_b": _record(db, inv_b, "geojson")}
+    for k in ("inv_a", "inv_b"):
+        if not (recs[k].extra or {}).get("inventory"):
+            raise validation.ValidationError("Los inventarios deben ser inventarios importados.")
+    lito = {k: (_record(db, v, "geojson") if v else None) for k, v in (("a", lito_a), ("b", lito_b))}
+    params = {"dem_a": dem_a, "inv_a": inv_a, "lito_a": lito_a, "dem_b": dem_b, "inv_b": inv_b, "lito_b": lito_b,
+              "zona_b": zona_b, "protocolo": "docs/MISION_2_1_PROTOCOLO_VALIDACION_EXTERNA.md"}
+    def _cells(r):
+        g = (r.extra or {}).get("grid") or {}
+        return int(g["width"]) * int(g["height"]) if g else max(int(r.file_size or 0) // 4, 10_000)
+    # Pico medido: 413 MB con dos mallas de 1600x1600 (≈100 MB base + ≈60 MB por millón de celdas y zona).
+    estimate_mb = 100 + (_cells(recs["dem_a"]) + _cells(recs["dem_b"])) * 60 / 1e6
+    with jobs.exclusive("validacion_externa", estimate_mb), jobs.resources() as res_:
+        run = _start(db, "validacion_externa", params)
+        try:
+            arr_a, bbox_a = demlib.read_dem(absolute_path(recs["dem_a"]))
+            arr_b, bbox_b = demlib.read_dem(absolute_path(recs["dem_b"]))
+            out = external.run(arr_a, bbox_a, validation.load_fc(absolute_path(recs["inv_a"])),
+                               validation.load_fc(absolute_path(lito["a"])) if lito["a"] else None,
+                               arr_b, bbox_b, validation.load_fc(absolute_path(recs["inv_b"])),
+                               validation.load_fc(absolute_path(lito["b"])) if lito["b"] else None)
+            simulated = any(r.is_simulated for r in list(recs.values()) + [x for x in lito.values() if x])
+            out.update({"zona_entrenamiento_bbox": bbox_a, "zona_externa_bbox": bbox_b, "zona_externa": zona_b,
+                        "simulado": simulated, "recursos": rec_res_snapshot(res_), "parametros": params})
+            audit(db, "validacion_externa", user_id=getattr(user, "id", None), target_type="run", target_id=run.id,
+                  details={"zona": zona_b}, commit=False)
+            run.status, run.finished_at, run.result_summary = "ok", utcnow(), out
+            db.commit()
+            return {"run_id": run.id, **out}
+        except Exception as exc:
+            _fail(db, run, exc)
+            raise
+
+
+def list_external(db: Session) -> list[dict]:
+    q = select(Run).where(Run.module_key == "disasters", Run.run_type == "validacion_externa", Run.status == "ok") \
+        .order_by(Run.started_at.desc()).limit(20)
+    return [{"id": r.id, "fecha": r.finished_at, "zona": (r.result_summary or {}).get("zona_externa"),
+             "parametros": r.parameters,
+             "estados": {g: v.get("estados") for g, v in ((r.result_summary or {}).get("grupos") or {}).items()},
+             "resultado": r.result_summary} for r in db.scalars(q)]

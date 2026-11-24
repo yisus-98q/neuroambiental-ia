@@ -35,7 +35,10 @@ DESCRIPTOR = ModuleDescriptor(
         "(1500) la distancia a cauce sola discrimina (AUC 0,72); combinar variables no mejora con tan pocos eventos.",
         "Litología y geomorfología de INGEMMET (uso interno): en flujos la litología sube el AUC de 0,70 a 0,78, "
         "pero la clase «Sedimento» puede contener los depósitos de los propios eventos (circularidad).",
-        "Faltan lluvia y cobertura vegetal; no hay prueba independiente fuera de Huaraz.",
+        "Evaluación externa prerregistrada (misión 2.1, Callejón de Conchucos): ningún modelo generaliza lo "
+        "suficiente (mejor AUC externo 0,65 en general; la pendiente para caídas cae a 0,57). Flujos: señal "
+        "coherente (distancia a cauce 0,76) pero solo 27 eventos externos: validación insuficiente.",
+        "Faltan lluvia y cobertura vegetal; una sola zona externa evaluada.",
     ],
     keywords=["huayco", "huaico", "inundacion", "deslizamiento", "derrumbe", "incendio", "sequia",
               "sismo", "terremoto", "catastrofe", "desastre", "riesgo", "amenaza", "contaminacion", "fuga",

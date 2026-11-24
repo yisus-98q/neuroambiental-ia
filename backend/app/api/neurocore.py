@@ -100,5 +100,32 @@ def overview(_: User = Depends(get_current_user), db: Session = Depends(get_db))
         "validacion_cientifica": {"experimentos": len(exps), "por_estado": exp_states},
         "actividad_reciente": recent,
         "recursos": {**hardware.snapshot(), "trabajo_en_curso": jobs.current()},
+        "validacion_externa": _external_summary(db),
         "nota": "Un módulo «registrado» no es un módulo operativo: el estado se calcula con sus capacidades implementadas.",
     }
+
+
+
+def _external_summary(db: Session) -> dict | None:
+    """Última evaluación externa: fecha, zona, datasets, estados, métricas e incertidumbre (misión 2.1)."""
+    from app.models import Run
+    r = db.scalars(select(Run).where(Run.run_type == "validacion_externa", Run.status == "ok")
+                   .order_by(Run.started_at.desc()).limit(1)).first()
+    if r is None:
+        return None
+    res = r.result_summary or {}
+    hist = db.scalars(select(Run).where(Run.run_type.in_(("validacion_externa", "validacion_susceptibilidad")))
+                      .order_by(Run.started_at.desc()).limit(20)).all()
+    grupos = {}
+    for g, v in (res.get("grupos") or {}).items():
+        franja = v.get("franja") or {}
+        grupos[g] = {"eventos_externos": v.get("n_eventos_externos"),
+                     "modelos": {n: {"estado": st["estado"], "motivo": st.get("motivo"),
+                                     "auc": (franja.get(n) or {}).get("auc_sorteos", {}).get("media"),
+                                     "ic95": (franja.get(n) or {}).get("auc_ic95_bloques")}
+                                 for n, st in (v.get("estados") or {}).items()}}
+    return {"run_id": r.id, "fecha": r.finished_at, "zona": res.get("zona_externa"), "datasets": r.parameters,
+            "version_codigo": "posterior a la etiqueta mision-2.0-congelada", "grupos": grupos,
+            "limitaciones": ["Una sola zona externa; mismo estudio y autores que el entrenamiento.",
+                             "Pseudo-ausencias; IC por bootstrap de bloques; ningún modelo validado."],
+            "historial": [{"id": h.id, "tipo": h.run_type, "fecha": h.started_at} for h in hist]}

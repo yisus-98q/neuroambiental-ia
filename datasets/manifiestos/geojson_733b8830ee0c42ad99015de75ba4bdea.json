@@ -1,0 +1,76 @@
+{
+  "manifiesto_version": 1,
+  "id": "733b8830ee0c42ad99015de75ba4bdea",
+  "titulo": "Litologia INGEMMET · 874 polígonos · 8 clases",
+  "tipo": "geojson",
+  "formato": "application/geo+json",
+  "sha256": "2b146d9bdfdc7b61069d73795b53680b5c42faf26cf61fd25dcdd31f6be7719f",
+  "tamano_bytes": 1326968,
+  "simulado": false,
+  "estado_validacion": "valido",
+  "calidad_declarada": "sin_evaluar",
+  "fuente": {
+    "nombre": "INGEMMET — Mapa Geológico Integrado 1:50 000 (litología, TIPO_UNIDAD)",
+    "tipo": "archivo",
+    "url": null,
+    "licencia": "INGEMMET (copyright del servicio); sin licencia abierta declarada. Uso interno de investigación autorizado por el usuario; no redistribuir",
+    "terminos_revisados": false
+  },
+  "procedencia": "Consulta por recorte [-77.205, -9.6, -76.705, -9.1] a https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_GEOLOGIA_50K_INTEGRADA/MapServer/7/query (campo TIPO_UNIDAD); geometrías simplificadas ≈20 m en el servidor. Clases con su nombre oficial, sin reinterpretar.",
+  "fechas": {
+    "adquisicion": "2026-11-24T21:09:51.518042",
+    "dato": "desconocida"
+  },
+  "sistema_coordenadas": "EPSG:4326 (WGS84 lon/lat)",
+  "cobertura_bbox": [
+    -77.25,
+    -9.750023,
+    -76.499997,
+    -9.0
+  ],
+  "resolucion": {
+    "espacial": "desconocida (vectorial o tabular)"
+  },
+  "variables": [],
+  "etiquetas": {
+    "Sin denominación": 9,
+    "Sedimento": 197,
+    "Metamórfica": 58,
+    "Plutónica": 19,
+    "Sedimentaria": 519,
+    "Volcánica": 32,
+    "Subvolcánica": 8,
+    "Volcanosedimentaria": 32
+  },
+  "linaje": [],
+  "transformaciones": [
+    {
+      "ejecucion": "7465330ec1a14541a6b1f0531fcac354",
+      "tipo": "geologia_ingemmet",
+      "estado": "ok",
+      "rol": "produjo",
+      "fecha": "2026-11-24T21:09:37.185868"
+    },
+    {
+      "ejecucion": "ea1cbb80cd07435bb8af53da15ec28d4",
+      "tipo": "validacion_externa",
+      "estado": "ok",
+      "rol": "usó",
+      "fecha": "2026-11-24T21:16:08.601129"
+    }
+  ],
+  "estadisticas_registradas": null,
+  "duplicado_exacto_de": [],
+  "calidad": {
+    "elementos": 874,
+    "tipos_geometria": {
+      "Polygon": 857,
+      "MultiPolygon": 17
+    },
+    "propiedades": [
+      "TIPO_UNIDAD"
+    ],
+    "nulos_por_propiedad": {},
+    "geometrias_duplicadas": 0
+  }
+}

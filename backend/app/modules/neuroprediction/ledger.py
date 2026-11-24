@@ -151,6 +151,8 @@ def _item(tipo: str, id_: str, titulo: str, simulated: bool, **kw: Any) -> dict:
         "limitaciones": list(k["limitaciones"]),
         "recomendaciones_de_verificacion": k["verificacion"],
         "simulated": simulated, "verificado": k["verificado"] and not simulated,
+        # Misión 2.1: distinguir experimental / evaluado externamente / validado bajo alcance definido.
+        "estado_cientifico": kw.get("estado_cientifico") or DEFAULT_SCIENTIFIC.get(tipo),
     }
 
 
@@ -268,6 +270,36 @@ def _count(db: Session, model: Any, where: Any) -> int:
     return db.scalar(select(func.count()).select_from(model).where(where)) or 0
 
 
+DEFAULT_SCIENTIFIC = {"estimacion_modelo": "EXPERIMENTAL (sin evaluación externa)",
+                      "prediccion": "VALIDADO (modelo aprobado; alcance según su ficha)"}
+STATE_RANK = ("NO VALIDADO", "VALIDACIÓN INSUFICIENTE", "EXPERIMENTAL", "VALIDACIÓN EXTERNA PROMETEDORA",
+              "VALIDADO BAJO ALCANCE DEFINIDO")
+
+
+def _external_items(db: Session) -> list[dict]:
+    """Evaluaciones externas (misión 2.1) como estimaciones: muestran su estado científico real."""
+    out = []
+    for r in db.scalars(select(Run).where(Run.run_type == "validacion_externa", Run.status == "ok")
+                        .order_by(Run.started_at.desc()).limit(PRED_CAP)):
+        res = r.result_summary or {}
+        estados = [st["estado"] for g in (res.get("grupos") or {}).values() for st in (g.get("estados") or {}).values()]
+        best = max(estados, key=STATE_RANK.index) if estados else "EXPERIMENTAL"
+        ev = []
+        for g, v in (res.get("grupos") or {}).items():
+            cnt = {e: list((x["estado"] for x in v.get("estados", {}).values())).count(e) for e in STATE_RANK}
+            ev.append(f"{g}: {v.get('n_eventos_externos')} eventos externos; " +
+                      ", ".join(f"{n} {e.lower()}" for e, n in cnt.items() if n))
+        out.append(_item("estimacion_modelo", r.id, f"Evaluación externa de susceptibilidad · {res.get('zona_externa')}",
+                         bool(res.get("simulado")), fecha_analisis=r.finished_at or r.started_at,
+                         datos=[{"parametros": r.parameters}], modelo="Modelos de susceptibilidad (NEURODISASTER)",
+                         resultado=f"Mejor estado alcanzado: {best}. Una estimación de susceptibilidad no es una "
+                                   "predicción de que ocurra un desastre.",
+                         estado_cientifico=f"EVALUADO EXTERNAMENTE · mejor estado: {best}",
+                         incertidumbre="IC 95 % por bootstrap de bloques en la zona externa; ver el informe.",
+                         evidencias=ev))
+    return out
+
+
 def _predictions(db: Session, tipo: str) -> list[dict]:
     rows = db.scalars(select(Prediction).order_by(Prediction.created_at.desc()).limit(PRED_CAP)).all()
     ids = {p.model_id for p in rows if p.model_id}
@@ -277,6 +309,9 @@ def _predictions(db: Session, tipo: str) -> list[dict]:
         m = models.get(p.model_id)
         if _classify_prediction(p, m) == tipo:
             out.append(_from_prediction(tipo, p, m))
+    if tipo == "estimacion_modelo":
+        out += _external_items(db)
+        out.sort(key=lambda i: i["fecha_analisis"] or "", reverse=True)
     return out
 
 
@@ -330,6 +365,8 @@ def catalog(db: Session, tipo: str | None, limit: int, offset: int) -> dict:
 def detail(db: Session, tipo: str, id_: str) -> dict | None:
     if tipo in ("estimacion_modelo", "prediccion"):
         p = db.get(Prediction, id_)
+        if p is None and tipo == "estimacion_modelo":
+            return next((i for i in _external_items(db) if i["id"] == id_), None)
         m = db.get(AIModel, p.model_id) if p and p.model_id else None
         return _from_prediction(tipo, p, m) if p and _classify_prediction(p, m) == tipo else None
     for model, where, mapper, _ in _sources(tipo, db):
