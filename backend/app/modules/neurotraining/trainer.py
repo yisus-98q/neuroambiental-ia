@@ -18,7 +18,12 @@ from pathlib import Path
 
 import joblib
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.ensemble import (
+    HistGradientBoostingClassifier,
+    HistGradientBoostingRegressor,
+    RandomForestClassifier,
+    RandomForestRegressor,
+)
 from sklearn.linear_model import LogisticRegression, Ridge
 from sklearn.metrics import (
     accuracy_score,
@@ -32,7 +37,8 @@ from sklearn.metrics import (
     recall_score,
     roc_auc_score,
 )
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GroupShuffleSplit, train_test_split
+from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
@@ -41,16 +47,33 @@ from app.neurodata.validators import read_csv_rows
 MAX_FEATURES = 30
 MIN_ROWS = 60          # con 25 % de prueba quedan ≥15 filas para evaluar
 SMALL_TEST_WARNING = 50
+# Fábricas con semilla explícita (reproducibilidad). Los hilos salen del perfil de hardware.
+def _nj() -> int:
+    from app.core import hardware
+    return hardware.detect_profile().n_jobs
+
+
 ALGORITHMS = {
     "clasificacion": {
-        "random_forest": lambda: RandomForestClassifier(n_estimators=100, max_depth=12, n_jobs=1, random_state=42),
-        "regresion_logistica": lambda: make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000)),
+        "random_forest": lambda s: RandomForestClassifier(n_estimators=100, max_depth=12, n_jobs=_nj(), random_state=s),
+        "regresion_logistica": lambda s: make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000)),
+        "hist_gradient_boosting": lambda s: HistGradientBoostingClassifier(max_iter=200, learning_rate=0.1,
+                                                                           random_state=s),
+        "mlp": lambda s: make_pipeline(StandardScaler(), MLPClassifier(hidden_layer_sizes=(32, 16), max_iter=500,
+                                                                       early_stopping=True, random_state=s)),
     },
     "regresion": {
-        "random_forest": lambda: RandomForestRegressor(n_estimators=100, max_depth=12, n_jobs=1, random_state=42),
-        "ridge": lambda: make_pipeline(StandardScaler(), Ridge()),
+        "random_forest": lambda s: RandomForestRegressor(n_estimators=100, max_depth=12, n_jobs=_nj(), random_state=s),
+        "ridge": lambda s: make_pipeline(StandardScaler(), Ridge()),
+        "hist_gradient_boosting": lambda s: HistGradientBoostingRegressor(max_iter=200, learning_rate=0.1,
+                                                                          random_state=s),
+        "mlp": lambda s: make_pipeline(StandardScaler(), MLPRegressor(hidden_layer_sizes=(32, 16), max_iter=500,
+                                                                      early_stopping=True, random_state=s)),
     },
 }
+# Filas mínimas por algoritmo: no se usan modelos de más capacidad de la que los datos justifican.
+MIN_ROWS_BY_ALGORITHM = {"hist_gradient_boosting": 200, "mlp": 1000}
+SPLITS = ("aleatorio", "espacial")
 
 
 class TrainingError(ValueError):
@@ -66,6 +89,7 @@ class Dataset:
     dropped_rows: int
     classes: list[str] | None
     geo_columns: list[str] = field(default_factory=list)   # columnas de coordenadas presentes en el CSV
+    coords: np.ndarray | None = None                         # (lat, lon) por fila, si el CSV los tiene
 
 
 # Nombres habituales de columnas de coordenadas (en minúsculas, sin tildes).
@@ -105,7 +129,9 @@ def load_dataset(raw: bytes, *, target: str, features: list[str], task: str) -> 
         raise TrainingError(f"Indique entre 1 y {MAX_FEATURES} columnas de entrada.")
     if target in features:
         raise TrainingError("La columna objetivo no puede ser también una entrada (fuga de datos).")
-    X, y, dropped = [], [], 0
+    lat_col = next((h for h in headers if h.strip().lower() in ("lat", "latitud", "latitude")), None)
+    lon_col = next((h for h in headers if h.strip().lower() in ("lon", "lng", "longitud", "longitude")), None)
+    X, y, dropped, coords = [], [], 0, []
     for row in rows:
         xs = [_to_float(row.get(f)) for f in features]
         t = (row.get(target) or "").strip()
@@ -121,6 +147,8 @@ def load_dataset(raw: bytes, *, target: str, features: list[str], task: str) -> 
         else:
             y.append(t)
         X.append(xs)
+        if lat_col and lon_col:
+            coords.append((_to_float(row.get(lat_col)), _to_float(row.get(lon_col))))
     if len(X) < MIN_ROWS:
         raise TrainingError(f"Se necesitan al menos {MIN_ROWS} filas completas (hay {len(X)}).")
     classes = None
@@ -136,33 +164,78 @@ def load_dataset(raw: bytes, *, target: str, features: list[str], task: str) -> 
             raise TrainingError(f"Cada clase necesita al menos 2 filas para separar entrenamiento y prueba: {rare}")
         if round(len(y) * 0.25) < len(classes):
             raise TrainingError("Hay demasiadas clases para el número de filas: la prueba no podría incluirlas todas.")
+    c = np.asarray(coords, dtype="float64") if coords else None
+    if c is not None and not np.isfinite(c).all():
+        c = None
     return Dataset(np.asarray(X, dtype="float64"), np.asarray(y), features, target, dropped, classes,
-                   geo_columns(headers))
+                   geo_columns(headers), c)
 
 
-def train(ds: Dataset, *, task: str, algorithm: str, test_size: float = 0.25):
+def train(ds: Dataset, *, task: str, algorithm: str, test_size: float = 0.25, seed: int = 42,
+          split: str = "aleatorio", blocks: int = 4):
     try:
         factory = ALGORITHMS[task][algorithm]
     except KeyError as exc:
         raise TrainingError(f"Combinación no soportada: {task}/{algorithm}") from exc
+    need = MIN_ROWS_BY_ALGORITHM.get(algorithm, MIN_ROWS)
+    if len(ds.y) < need:
+        raise TrainingError(f"«{algorithm}» necesita al menos {need} filas para justificar su capacidad "
+                            f"(hay {len(ds.y)}): use regresión logística, ridge o random forest.")
+    if algorithm == "mlp":
+        from app.core import hardware
+        if not hardware.detect_profile().training_allowed:
+            raise TrainingError("El perfil «ligero» no entrena redes neuronales: hágalo en el equipo principal.")
+    if split not in SPLITS:
+        raise TrainingError(f"División desconocida: {split}")
+    if split == "espacial" and ds.coords is None:
+        raise TrainingError("La división espacial necesita columnas de latitud y longitud válidas en el CSV.")
     try:
-        return _train(ds, factory, task, test_size)
+        return _train(ds, lambda: factory(seed), task, test_size, seed, split, blocks, algorithm)
     except (ValueError, IndexError) as exc:  # casos borde de scikit-learn → error claro (422), no 500
         raise TrainingError(f"No se pudo entrenar/evaluar con estos datos: {exc}") from exc
 
 
-def _train(ds: Dataset, factory, task: str, test_size: float):
-    stratify = ds.y if task == "clasificacion" else None  # load_dataset garantiza ≥2 filas por clase
-    X_tr, X_te, y_tr, y_te = train_test_split(ds.X, ds.y, test_size=test_size, random_state=42, stratify=stratify)
+def spatial_blocks(coords: np.ndarray, blocks: int) -> np.ndarray:
+    """Bloque por cuantiles de latitud y longitud (rejilla blocks×blocks)."""
+    qa = np.quantile(coords[:, 0], np.linspace(0, 1, blocks + 1)[1:-1])
+    qo = np.quantile(coords[:, 1], np.linspace(0, 1, blocks + 1)[1:-1])
+    return np.searchsorted(qa, coords[:, 0]) * blocks + np.searchsorted(qo, coords[:, 1])
+
+
+def _train(ds: Dataset, factory, task: str, test_size: float, seed: int = 42, split: str = "aleatorio",
+           blocks: int = 4, algorithm: str = ""):
+    if split == "espacial":
+        groups = spatial_blocks(ds.coords, blocks)
+        gss = GroupShuffleSplit(n_splits=1, test_size=test_size, random_state=seed)
+        tr, te = next(gss.split(ds.X, ds.y, groups))
+        X_tr, X_te, y_tr, y_te = ds.X[tr], ds.X[te], ds.y[tr], ds.y[te]
+        if task == "clasificacion" and (len(set(y_te)) < 2 or len(set(y_tr)) < 2):
+            raise TrainingError("Los bloques de prueba no contienen todas las clases: pruebe otra semilla o menos bloques.")
+        evaluated = (f"bloques geográficos completos reservados ({blocks}×{blocks} por cuantiles de lat/lon; "
+                     f"≈{int(test_size * 100)} %); NO es una región independiente")
+    else:
+        stratify = ds.y if task == "clasificacion" else None  # load_dataset garantiza ≥2 filas por clase
+        X_tr, X_te, y_tr, y_te = train_test_split(ds.X, ds.y, test_size=test_size, random_state=seed,
+                                                  stratify=stratify)
+        evaluated = "25 % de filas reservadas del mismo CSV (corte aleatorio; no es un conjunto independiente)"
     model = factory()
     model.fit(X_tr, y_tr)
     pred = model.predict(X_te)
+    import platform
+
+    import sklearn
     metrics: dict = {
         "n_train": int(len(y_tr)), "n_test": int(len(y_te)), "dropped_rows": ds.dropped_rows,
-        # Honestidad: es un corte aleatorio del MISMO CSV, no un conjunto independiente.
-        "evaluated_on": "25 % de filas reservadas del mismo CSV (corte aleatorio; no es un conjunto independiente)",
+        # Honestidad: nunca es un conjunto independiente; se dice cuál fue.
+        "evaluated_on": evaluated, "division": split, "semilla": seed,
+        "hiperparametros": _params(model),
+        "versiones": {"python": platform.python_version(), "scikit_learn": sklearn.__version__,
+                      "numpy": np.__version__},
         "warnings": [],
     }
+    if algorithm == "mlp":
+        metrics["warnings"].append("Red neuronal (MLP): con pocos datos suele igualar o empeorar a modelos simples; "
+                                   "compárela siempre con la regresión logística en los mismos datos.")
     if ds.geo_columns:
         metrics["geoespacial"] = True
         metrics["random_split_insufficient"] = True
@@ -207,6 +280,17 @@ def _train(ds: Dataset, factory, task: str, test_size: float):
     if importances is not None:
         metrics["feature_importance"] = {f: round(float(v), 4) for f, v in zip(ds.features, importances)}
     return model, metrics
+
+
+def _params(model) -> dict:
+    """Hiperparámetros serializables (para registrar y reproducir)."""
+    out = {}
+    for k, v in model.get_params(deep=True).items():
+        if isinstance(v, (int, float, str, bool, type(None))):
+            out[k] = v
+        elif isinstance(v, (tuple, list)) and all(isinstance(x, (int, float, str)) for x in v):
+            out[k] = list(v)
+    return out
 
 
 def save_artifact(model, path: Path) -> str:

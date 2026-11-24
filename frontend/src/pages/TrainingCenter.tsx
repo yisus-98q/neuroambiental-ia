@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { SimBadge, StatusBadge } from "../components/Badges";
 import { ErrorText, Loading, Notice } from "../components/Notice";
-import { canWrite, fmtDate, post, session } from "../services/api";
+import { apiBlobUrl, canWrite, fmtDate, post, session } from "../services/api";
 import type { AIModel, DataRecord, ModuleInfo, PredictResult } from "../services/types";
 import { useApi } from "../services/useApi";
 
@@ -127,6 +127,7 @@ function ModelDetail({ model, datasets, onChange, writable, isAdmin }: { model: 
       <div className="stack">
         {writable && model.status !== "validado" && model.status !== "retirado" && <TrainForm model={model} datasets={datasets} onDone={onChange} />}
         {writable && (model.status === "entrenado" || model.status === "validado") && <PredictForm model={model} datasets={datasets} />}
+        {writable && <ReproduceExport model={model} />}
       </div>
     </div>
   );
@@ -168,14 +169,20 @@ function TrainForm({ model, datasets, onDone }: { model: AIModel; datasets: Data
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const columns = useMemo(() => (datasets.find((d) => d.id === dsId)?.extra.columns as string[] | undefined) ?? [], [datasets, dsId]);
-  const algos = task === "clasificacion" ? ["random_forest", "regresion_logistica"] : ["random_forest", "ridge"];
+  const algos = task === "clasificacion"
+    ? ["regresion_logistica", "random_forest", "hist_gradient_boosting", "mlp"]
+    : ["ridge", "random_forest", "hist_gradient_boosting", "mlp"];
+  const [seed, setSeed] = useState("42");
+  const [split, setSplit] = useState<"aleatorio" | "espacial">("aleatorio");
+  const hasCoords = columns.some((c) => ["lat", "latitud", "latitude"].includes(c.toLowerCase()))
+    && columns.some((c) => ["lon", "lng", "longitud", "longitude"].includes(c.toLowerCase()));
   // Al cambiar de tarea, el algoritmo debe ser válido para ella.
   useEffect(() => { if (!algos.includes(algorithm)) setAlgorithm(algos[0]); }, [task]);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     setBusy(true); setError(null);
-    try { await post(`/api/neurotraining/models/${model.id}/train`, { dataset_record_id: dsId, task, target, features, algorithm }); onDone(); }
+    try { await post(`/api/neurotraining/models/${model.id}/train`, { dataset_record_id: dsId, task, target, features, algorithm, seed: Number(seed), split }); onDone(); }
     catch (err) { setError((err as Error).message); } finally { setBusy(false); }
   }
 
@@ -192,8 +199,19 @@ function TrainForm({ model, datasets, onDone }: { model: AIModel; datasets: Data
           <select id="tr-task" value={task} onChange={(e) => setTask(e.target.value as "clasificacion" | "regresion")}>
             <option value="clasificacion">Clasificación</option><option value="regresion">Regresión</option></select></div>
         <div className="field"><label htmlFor="tr-alg">Algoritmo</label>
-          <select id="tr-alg" value={algorithm} onChange={(e) => setAlgorithm(e.target.value)}>{algos.map((a) => <option key={a} value={a}>{a}</option>)}</select></div>
+          <select id="tr-alg" value={algorithm} onChange={(e) => setAlgorithm(e.target.value)}>{algos.map((a) => <option key={a} value={a}>{ALGO_LABEL[a] ?? a}</option>)}</select></div>
+        <div className="field"><label htmlFor="tr-seed">Semilla (reproducibilidad)</label>
+          <input id="tr-seed" type="number" min={0} value={seed} onChange={(e) => setSeed(e.target.value)} /></div>
+        <div className="field"><label htmlFor="tr-split">División de prueba</label>
+          <select id="tr-split" value={split} onChange={(e) => setSplit(e.target.value as "aleatorio" | "espacial")}>
+            <option value="aleatorio">Aleatoria (25 %)</option>
+            <option value="espacial" disabled={!hasCoords}>Espacial por bloques {hasCoords ? "" : "(requiere latitud/longitud)"}</option>
+          </select></div>
       </div>
+      {(algorithm === "mlp" || algorithm === "hist_gradient_boosting") && (
+        <p className="small muted" style={{ margin: 0 }}>{algorithm === "mlp"
+          ? "Red neuronal: requiere ≥ 1000 filas y el equipo principal; compárela siempre con la regresión logística."
+          : "Gradient boosting: requiere ≥ 200 filas."}</p>)}
       <div className="field"><label htmlFor="tr-target">Columna objetivo</label>
         <select id="tr-target" value={target} onChange={(e) => { setTarget(e.target.value); setFeatures((f) => f.filter((x) => x !== e.target.value)); }} required>
           <option value="">Seleccione…</option>{columns.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
@@ -208,6 +226,43 @@ function TrainForm({ model, datasets, onDone }: { model: AIModel; datasets: Data
       {busy && <p className="small muted" style={{ margin: 0 }}>El entrenamiento se ejecuta en el servidor; esta pantalla espera el resultado real (sin barra de progreso simulada).</p>}
       <ErrorText error={error} />
     </form>
+  );
+}
+
+const ALGO_LABEL: Record<string, string> = {
+  regresion_logistica: "Regresión logística (referencia)", ridge: "Ridge (referencia)", random_forest: "Random Forest",
+  hist_gradient_boosting: "HistGradientBoosting (≥ 200 filas)", mlp: "Red neuronal MLP (≥ 1000 filas)",
+};
+
+export function ReproduceExport({ model }: { model: AIModel }) {
+  const [out, setOut] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  async function reproduce() {
+    setError(null); setOut(null);
+    try {
+      const r = await post<{ reproducible: boolean; semilla: number; division: string }>(`/api/neurotraining/models/${model.id}/reproduce`);
+      setOut(r.reproducible ? `Reproducible: mismas métricas con semilla ${r.semilla} (${r.division}).`
+        : "NO reproducible: las métricas cambiaron. Revise el dataset y las versiones de librerías.");
+    } catch (e) { setError((e as Error).message); }
+  }
+  async function exportZip() {
+    setError(null);
+    try {
+      const url = await apiBlobUrl(`/api/neurotraining/models/${model.id}/export`);
+      const a = document.createElement("a"); a.href = url; a.download = `modelo_${model.id}_v${model.version}.zip`; a.click();
+    } catch (e) { setError((e as Error).message); }
+  }
+  if (!model.artifact_sha256) return null;
+  return (
+    <div className="card stack">
+      <h2>Reproducibilidad y exportación</h2>
+      <div className="row" style={{ gap: 8 }}>
+        <button className="btn" onClick={reproduce}>Reproducir entrenamiento</button>
+        <button className="btn" onClick={exportZip}>Exportar modelo + ficha (.zip)</button>
+      </div>
+      {out && <p className="small" style={{ margin: 0 }}>{out}</p>}
+      <ErrorText error={error} />
+    </div>
   );
 }
 

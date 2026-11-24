@@ -29,7 +29,10 @@ class TrainIn(BaseModel):
     task: Literal["clasificacion", "regresion"]
     target: str = Field(min_length=1, max_length=128)
     features: list[str] = Field(min_length=1, max_length=MAX_FEATURES)
-    algorithm: Literal["random_forest", "regresion_logistica", "ridge"]
+    algorithm: Literal["random_forest", "regresion_logistica", "ridge", "hist_gradient_boosting", "mlp"]
+    seed: int = Field(default=42, ge=0, le=1_000_000)
+    split: Literal["aleatorio", "espacial"] = "aleatorio"
+    blocks: int = Field(default=4, ge=2, le=10)
 
 
 class ValidateIn(BaseModel):
@@ -89,7 +92,8 @@ def train(model_id: str, body: TrainIn, user: User = Depends(require_role("anali
     model = _get(db, model_id)
     return _handle(lambda: service.train_model(db, user, model, dataset_id=body.dataset_record_id, task=body.task,
                                                target=body.target, features=body.features,
-                                               algorithm=body.algorithm))
+                                               algorithm=body.algorithm, seed=body.seed, split=body.split,
+                                               blocks=body.blocks))
 
 
 @router.post("/models/{model_id}/validate", response_model=AIModelOut)
@@ -127,3 +131,34 @@ def list_runs(_: User = Depends(get_current_user), db: Session = Depends(get_db)
     return [{"id": r.id, "run_type": r.run_type, "module_key": r.module_key, "status": r.status,
              "started_at": r.started_at, "finished_at": r.finished_at, "result_summary": r.result_summary}
             for r in rows]
+
+
+
+@router.post("/models/{model_id}/reproduce")
+def reproduce(model_id: str, user: User = Depends(require_role("analista")), db: Session = Depends(get_db)) -> dict:
+    """Reentrena en memoria con la misma semilla y datos y compara las métricas (no guarda nada)."""
+    return _handle(lambda: service.reproduce(db, user, _get(db, model_id)))
+
+
+@router.get("/models/{model_id}/export")
+def export_model(model_id: str, _: User = Depends(require_role("analista")), db: Session = Depends(get_db)):
+    """ZIP con el artefacto .joblib y su ficha (model_card.json) para llevarlo a otro equipo."""
+    import io
+    import json
+    import zipfile
+
+    from fastapi.responses import Response
+
+    from app.core.config import settings
+    model = _get(db, model_id)
+    if not model.artifact_path or not model.artifact_sha256:
+        raise HTTPException(422, "El modelo no tiene artefacto entrenado.")
+    path = settings.uploads_dir / model.artifact_path
+    if not path.is_file() or trainer.sha256_file(path) != model.artifact_sha256:
+        raise HTTPException(422, "El artefacto no existe o fue modificado (SHA-256 distinto).")
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        z.write(path, arcname=f"{model.id}_v{model.version}.joblib")
+        z.writestr("model_card.json", json.dumps(service.model_card(model), ensure_ascii=False, indent=2, default=str))
+    return Response(buf.getvalue(), media_type="application/zip",
+                    headers={"Content-Disposition": f'attachment; filename="modelo_{model.id}_v{model.version}.zip"'})

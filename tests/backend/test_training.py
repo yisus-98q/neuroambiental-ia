@@ -182,3 +182,50 @@ def test_geospatial_dataset_cannot_be_validated_with_random_split(client, analys
     v = client.post(f"/api/neurotraining/models/{mid}/validate", headers=admin_h,
                     json=_reviewed(m, "Evaluado con 120 eventos independientes de 2024, revisado por geólogo."))
     assert v.status_code == 422 and "geoespacial" in v.text
+
+
+def _geo_csv(n=300, seed=21) -> bytes:
+    rng = np.random.default_rng(seed)
+    lat, lon, pend = -9.5 + rng.random(n) * 0.5, -77.7 + rng.random(n) * 0.5, rng.random(n) * 40
+    ev = np.where(pend + rng.normal(0, 6, n) > 20, "si", "no")
+    return ("latitud,longitud,pendiente_deg,evento\n" + "\n".join(
+        f"{a:.5f},{b:.5f},{c:.2f},{d}" for a, b, c, d in zip(lat, lon, pend, ev)) + "\n").encode()
+
+
+def test_new_algorithms_spatial_split_seed_and_hyperparameters(client, analyst_h):
+    ds = _upload(client, analyst_h, "geo300.csv", _geo_csv(), "true")
+    mid = _model(client, analyst_h, "HGB espacial")
+    r = _train(client, analyst_h, mid, ds, target="evento", features=["pendiente_deg"],
+               algorithm="hist_gradient_boosting", split="espacial", blocks=4, seed=7)
+    assert r.status_code == 200, r.text
+    met = r.json()["metrics"]
+    assert met["division"] == "espacial" and met["semilla"] == 7 and "bloques" in met["evaluated_on"]
+    assert met["hiperparametros"]["random_state"] == 7 and "scikit_learn" in met["versiones"]
+    assert met["dataset_sha256"]
+    # MLP con 300 filas: no se justifica (mínimo 1000).
+    r = _train(client, analyst_h, _model(client, analyst_h, "MLP"), ds, target="evento",
+               features=["pendiente_deg"], algorithm="mlp")
+    assert r.status_code == 422 and "1000" in r.text
+    # División espacial sin coordenadas: rechazada.
+    plain = _upload(client, analyst_h, "plain.csv", _csv(), "true")
+    r = _train(client, analyst_h, _model(client, analyst_h, "Sin coords"), plain, split="espacial")
+    assert r.status_code == 422 and "latitud" in r.text
+
+
+def test_reproduce_and_export_model(client, analyst_h, reader_h):
+    import io
+    import json
+    import zipfile
+    ds = _upload(client, analyst_h, "rep.csv", _csv(seed=11), "true")
+    mid = _model(client, analyst_h, "Reproducible")
+    assert _train(client, analyst_h, mid, ds, seed=5).status_code == 200
+    rep = client.post(f"/api/neurotraining/models/{mid}/reproduce", headers=analyst_h).json()
+    assert rep["reproducible"] is True and rep["semilla"] == 5 and rep["metricas"]["accuracy"]["original"] is not None
+    assert client.get(f"/api/neurotraining/models/{mid}/export", headers=reader_h).status_code == 403
+    z = client.get(f"/api/neurotraining/models/{mid}/export", headers=analyst_h)
+    assert z.status_code == 200 and z.headers["content-type"] == "application/zip"
+    with zipfile.ZipFile(io.BytesIO(z.content)) as f:
+        names = f.namelist()
+        card = json.loads(f.read("model_card.json"))
+    assert any(n.endswith(".joblib") for n in names)
+    assert card["semilla"] == 5 and card["entrenado_con_simulados"] is True and len(card["artefacto_sha256"]) == 64

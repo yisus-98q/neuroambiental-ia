@@ -45,7 +45,8 @@ def _bump(version: str) -> str:
 
 
 def train_model(db: Session, user: User, model: AIModel, *, dataset_id: str, task: str, target: str,
-                features: list[str], algorithm: str) -> AIModel:
+                features: list[str], algorithm: str, seed: int = 42, split: str = "aleatorio",
+                blocks: int = 4) -> AIModel:
     if model.status not in ("planificado", "entrenado"):
         raise ModelStateError(f"No se puede entrenar un modelo en estado «{model.status}».")
     dataset = _csv_record(db, dataset_id)
@@ -56,12 +57,15 @@ def train_model(db: Session, user: User, model: AIModel, *, dataset_id: str, tas
             stale.result_summary = {"error": "Interrumpido: el servidor se detuvo durante el entrenamiento."}
         run = Run(run_type="entrenamiento", module_key=model.module_key, model_id=model.id, status="en_proceso",
                   parameters={"dataset": dataset_id, "task": task, "target": target, "features": features,
-                              "algorithm": algorithm, "trained_by": user.id})
+                              "algorithm": algorithm, "trained_by": user.id, "seed": seed, "split": split,
+                              "blocks": blocks, "dataset_sha256": dataset.sha256})
         db.add(run)
         db.commit()
         try:
             ds = trainer.load_dataset(absolute_path(dataset).read_bytes(), target=target, features=features, task=task)
-            fitted, metrics = trainer.train(ds, task=task, algorithm=algorithm)
+            fitted, metrics = trainer.train(ds, task=task, algorithm=algorithm, seed=seed, split=split,
+                                            blocks=blocks)
+            metrics["dataset_sha256"] = dataset.sha256
             model.version = _bump(model.version)
             path, rel = _artifact_path(model)
             sha = trainer.save_artifact(fitted, path)
@@ -162,3 +166,47 @@ def predict(db: Session, user: User, model: AIModel, dataset_id: str) -> dict:
     return {"prediction_id": pred.id, "model_status": model.status, "n": len(rows), "skipped": skipped,
             "summary": summary, "rows": rows, "uncertainty": uncertainty, "is_validated": validated,
             "input_simulated": dataset.is_simulated, "model_trained_with_simulated": model.trained_with_simulated}
+
+
+REPRO_KEYS = ("accuracy", "f1_macro", "roc_auc", "brier_score", "mae", "rmse", "r2")
+
+
+def reproduce(db: Session, user: User, model: AIModel) -> dict:
+    """Vuelve a entrenar EN MEMORIA con los mismos datos, semilla y parámetros, y compara las métricas.
+    No guarda ni reemplaza el artefacto (no sobrescribe modelos)."""
+    run = db.scalar(select(Run).where(Run.model_id == model.id, Run.run_type == "entrenamiento", Run.status == "ok")
+                    .order_by(Run.started_at.desc()).limit(1))
+    if run is None:
+        raise ModelStateError("El modelo no tiene un entrenamiento registrado que reproducir.")
+    p = run.parameters or {}
+    dataset = _csv_record(db, p["dataset"])
+    if p.get("dataset_sha256") and dataset.sha256 != p["dataset_sha256"]:
+        raise ModelStateError("El dataset cambió desde el entrenamiento (SHA-256 distinto): no es reproducible.")
+    with jobs.exclusive("reproduccion"):
+        ds = trainer.load_dataset(absolute_path(dataset).read_bytes(), target=p["target"], features=p["features"],
+                                  task=p["task"])
+        _, metrics = trainer.train(ds, task=p["task"], algorithm=p["algorithm"], seed=p.get("seed", 42),
+                                   split=p.get("split", "aleatorio"), blocks=p.get("blocks", 4))
+    orig = model.metrics or {}
+    diffs = {k: {"original": orig.get(k), "reproducido": metrics.get(k)} for k in REPRO_KEYS
+             if k in orig or k in metrics}
+    same = all(v["original"] == v["reproducido"] for v in diffs.values())
+    audit(db, "reproducir_modelo", user_id=user.id, target_type="ai_model", target_id=model.id,
+          details={"reproducible": same}, commit=True)
+    return {"model_id": model.id, "version": model.version, "reproducible": same, "metricas": diffs,
+            "semilla": p.get("seed", 42), "division": p.get("split", "aleatorio")}
+
+
+def model_card(model: AIModel) -> dict:
+    """Ficha del modelo para exportarlo (p. ej. al equipo de 4 GB): qué es, con qué datos y qué tan fiable es."""
+    m = model.metrics or {}
+    return {"ficha_version": 1, "id": model.id, "nombre": model.name, "modulo": model.module_key,
+            "version": model.version, "estado": model.status, "tarea": model.task, "objetivo": model.target,
+            "variables": model.features, "algoritmo": model.algorithm, "artefacto_sha256": model.artifact_sha256,
+            "entrenado_con_simulados": model.trained_with_simulated, "dataset_id": model.dataset_record_id,
+            "dataset_sha256": m.get("dataset_sha256"), "division": m.get("division"), "semilla": m.get("semilla"),
+            "hiperparametros": m.get("hiperparametros"), "versiones": m.get("versiones"),
+            "metricas": {k: m.get(k) for k in (*REPRO_KEYS, "baseline_majority", "baseline_mae_mean", "n_train",
+                                               "n_test") if k in m},
+            "evaluado_en": m.get("evaluated_on"), "advertencias": m.get("warnings", []),
+            "uso": "Cargar solo verificando el SHA-256. Un modelo no «validado» es experimental."}
