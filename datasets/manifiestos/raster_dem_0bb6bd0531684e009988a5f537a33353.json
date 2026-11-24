@@ -1,0 +1,61 @@
+{
+  "manifiesto_version": 1,
+  "id": "0bb6bd0531684e009988a5f537a33353",
+  "titulo": "DEM GLO-30 [-78.000, -9.235, -77.500, -8.735]",
+  "tipo": "raster_dem",
+  "formato": "image/tiff",
+  "sha256": "6a23121f49dba59ebe94d10ea8148118f28c4c6fafcd310a5c786365e2321ba4",
+  "tamano_bytes": 8721531,
+  "simulado": false,
+  "estado_validacion": "valido",
+  "calidad_declarada": "media",
+  "fuente": {
+    "nombre": "Copernicus DEM GLO-30 (AWS Open Data)",
+    "tipo": "satelite",
+    "url": "https://registry.opendata.aws/copernicus-dem/",
+    "licencia": "Copernicus DEM: uso libre con atribución",
+    "terminos_revisados": false
+  },
+  "procedencia": "Teselas Copernicus_DSM_COG_10_S10_00_W078_00_DEM, Copernicus_DSM_COG_10_S09_00_W078_00_DEM leídas por rangos HTTP y remuestreadas (promedio) a una malla EPSG:4326 de 0.0003125° (1600x1600 px). Copernicus DEM GLO-30 © DLR e.V. 2010-2014 y © Airbus Defence and Space GmbH 2014-2018, proporcionado bajo COPERNICUS por la Unión Europea y la ESA.",
+  "fechas": {
+    "adquisicion": "2026-11-24T22:09:23.430377",
+    "dato": "desconocida"
+  },
+  "sistema_coordenadas": "EPSG:4326 (WGS84 lon/lat)",
+  "cobertura_bbox": [
+    -78.0,
+    -9.235,
+    -77.5,
+    -8.735
+  ],
+  "resolucion": {
+    "espacial_grados": 0.0003125,
+    "espacial_m_aprox": 34.4,
+    "malla": "1600x1600"
+  },
+  "variables": [
+    "m (elevación)"
+  ],
+  "etiquetas": null,
+  "linaje": [],
+  "transformaciones": [
+    {
+      "ejecucion": "35c3c3d47f1d4f46b40bbcb4f31ac073",
+      "tipo": "dem",
+      "estado": "ok",
+      "rol": "produjo",
+      "fecha": "2026-11-24T22:07:44.340017"
+    }
+  ],
+  "estadisticas_registradas": {
+    "min": 1058.0,
+    "max": 6733.9,
+    "mean": 3851.6,
+    "valid_pct": 100.0
+  },
+  "duplicado_exacto_de": [],
+  "calidad": {
+    "validos_pct": 100.0,
+    "nota": "estadísticas calculadas al registrar"
+  }
+}

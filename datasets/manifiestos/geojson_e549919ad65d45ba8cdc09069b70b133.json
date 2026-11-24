@@ -1,0 +1,81 @@
+{
+  "manifiesto_version": 1,
+  "id": "e549919ad65d45ba8cdc09069b70b133",
+  "titulo": "Inventario INGEMMET de peligros geológicos · 160 eventos",
+  "tipo": "geojson",
+  "formato": "application/geo+json",
+  "sha256": "12fbd084125356fae43fa57b37f986d9c0767c1ba70e8a236bf1b4433c174c38",
+  "tamano_bytes": 70522,
+  "simulado": false,
+  "estado_validacion": "valido",
+  "calidad_declarada": "sin_evaluar",
+  "fuente": {
+    "nombre": "INGEMMET — GEOCATMIN Peligros Geológicos del Perú",
+    "tipo": "archivo",
+    "url": null,
+    "licencia": "No declarada por el servicio; uso interno de investigación autorizado por el usuario; no redistribuir",
+    "terminos_revisados": false
+  },
+  "procedencia": "Consulta por recorte [-78.0, -9.235, -77.5, -8.735] al servicio oficial https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_PELIGROS_GEOLOGICOS/MapServer/0/query (GEOCATMIN). Eventos inventariados en campo y gabinete por INGEMMET. Licencia no declarada: uso interno. El título del servicio dice «Feb 2013», pero el servicio se sigue actualizando (en Huaraz hay registros de 2007 y de 2018–2026). El campo FECHA parece la fecha del estudio o del registro, no la del evento.",
+  "fechas": {
+    "adquisicion": "2026-11-24T22:07:14.992776",
+    "dato": "desconocida"
+  },
+  "sistema_coordenadas": "EPSG:4326 (WGS84 lon/lat)",
+  "cobertura_bbox": [
+    -77.994398838,
+    -9.225095780000004,
+    -77.501850622,
+    -8.737748432999979
+  ],
+  "resolucion": {
+    "espacial": "desconocida (vectorial o tabular)"
+  },
+  "variables": [],
+  "etiquetas": {
+    "1000|1500": 50,
+    "1000|1300": 56,
+    "1000|1600": 13,
+    "1000|1100": 41
+  },
+  "linaje": [],
+  "transformaciones": [
+    {
+      "ejecucion": "7dda0dc4e1fe413fafc0cdae8597998e",
+      "tipo": "inventario_ingemmet",
+      "estado": "ok",
+      "rol": "produjo",
+      "fecha": "2026-11-24T22:07:12.604217"
+    }
+  ],
+  "estadisticas_registradas": null,
+  "duplicado_exacto_de": [],
+  "calidad": {
+    "elementos": 160,
+    "tipos_geometria": {
+      "Point": 160
+    },
+    "propiedades": [
+      "AUTOR",
+      "COD_INV",
+      "FECHA",
+      "FUENTE",
+      "NM_DIST",
+      "NM_DPTO",
+      "NM_PROV",
+      "NM_SECTOR",
+      "NOM_PELIGRO",
+      "TIESTU_ANO",
+      "TIP_PELIGRO"
+    ],
+    "nulos_por_propiedad": {
+      "FUENTE": 149,
+      "NOM_PELIGRO": 10,
+      "NM_SECTOR": 1,
+      "FECHA": 4,
+      "AUTOR": 10,
+      "TIESTU_ANO": 10
+    },
+    "geometrias_duplicadas": 0
+  }
+}

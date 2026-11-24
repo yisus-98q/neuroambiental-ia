@@ -50,3 +50,22 @@ Después:
 
 - Antes de cada cambio de esquema se copia la base a `data/backups/` (local, excluida de Git).
 - El historial de Git permite volver a cualquier fase con `git checkout <commit>`, sin borrar nada.
+
+## GitHub Actions (cómputo en la nube, 0 USD)
+
+Para el trabajo que no cabe en el equipo de 4 GB.
+
+| Flujo | Cuándo | Qué hace |
+|---|---|---|
+| `Pruebas` (`.github/workflows/pruebas.yml`) | Cada subida a `master` y cada PR | Pytest del backend con las versiones exactas de `backend/requirements-lock.txt`, más la compilación del frontend |
+| `Validación externa` (`.github/workflows/validacion-externa.yml`) | **Solo a mano**: Actions → «Validación externa» → Run workflow, eligiendo la zona N o E | Pruebas, luego `scripts/ci_validacion_externa.py`: descarga los recortes oficiales de Huaraz y de la zona y ejecuta el protocolo prerregistrado |
+
+- **Coste:** los repositorios privados del plan gratuito tienen una cuota mensual de minutos de Actions. Con el límite de gasto en 0 USD, que es el valor por defecto, al agotarla los flujos se detienen en lugar de cobrar. Un flujo de pruebas dura unos 5 minutos y una validación externa unos 15–25.
+- **Datos y licencias:**
+  - Los datos de INGEMMET y Copernicus se descargan **dentro** de la máquina temporal de GitHub, que se destruye al terminar. Es procesamiento para uso interno en el repositorio privado.
+  - **No** se suben al repositorio ni a los artefactos. El artefacto contiene solo métricas, el resumen y las huellas SHA-256.
+- **Reproducibilidad:**
+  - El resumen compara el SHA-256 de cada dataset descargado con su manifiesto versionado.
+  - Si INGEMMET cambió su inventario, se marca «fuente cambiada» y los resultados ya no son directamente comparables.
+- **Riesgo conocido:** el servidor de INGEMMET podría responder lento o bloquear el acceso desde fuera de Perú. Si ocurre, el flujo falla con el mensaje de red y no se inventa nada.
+- **Resultados:** se descargan desde la pestaña Actions → ejecución → Artifacts. Para incorporarlos al repositorio se copian a `datasets/resultados/` en un commit identificable.

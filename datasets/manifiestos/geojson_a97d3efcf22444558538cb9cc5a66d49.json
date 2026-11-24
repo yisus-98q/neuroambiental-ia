@@ -1,0 +1,68 @@
+{
+  "manifiesto_version": 1,
+  "id": "a97d3efcf22444558538cb9cc5a66d49",
+  "titulo": "Litologia INGEMMET · 1060 polígonos · 7 clases",
+  "tipo": "geojson",
+  "formato": "application/geo+json",
+  "sha256": "629d6cd2fbb3f171bf46413bf3f0a833b3c95c32b1f42009cea0d5ffb665808d",
+  "tamano_bytes": 1358667,
+  "simulado": false,
+  "estado_validacion": "valido",
+  "calidad_declarada": "sin_evaluar",
+  "fuente": {
+    "nombre": "INGEMMET — Mapa Geológico Integrado 1:50 000 (litología, TIPO_UNIDAD)",
+    "tipo": "archivo",
+    "url": null,
+    "licencia": "INGEMMET (copyright del servicio); sin licencia abierta declarada. Uso interno de investigación autorizado por el usuario; no redistribuir",
+    "terminos_revisados": false
+  },
+  "procedencia": "Consulta por recorte [-78.0, -9.235, -77.5, -8.735] a https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_GEOLOGIA_50K_INTEGRADA/MapServer/7/query (campo TIPO_UNIDAD); geometrías simplificadas ≈20 m en el servidor. Clases con su nombre oficial, sin reinterpretar.",
+  "fechas": {
+    "adquisicion": "2026-11-24T22:07:39.308915",
+    "dato": "desconocida"
+  },
+  "sistema_coordenadas": "EPSG:4326 (WGS84 lon/lat)",
+  "cobertura_bbox": [
+    -78.156308,
+    -9.250022,
+    -77.259528,
+    -8.510658
+  ],
+  "resolucion": {
+    "espacial": "desconocida (vectorial o tabular)"
+  },
+  "variables": [],
+  "etiquetas": {
+    "Volcánica": 42,
+    "Sedimento": 554,
+    "Plutónica": 72,
+    "Sedimentaria": 314,
+    "Sin denominación": 29,
+    "Subvolcánica": 40,
+    "Volcanosedimentaria": 9
+  },
+  "linaje": [],
+  "transformaciones": [
+    {
+      "ejecucion": "614106f68afc49b2a4c84d3345070ffe",
+      "tipo": "geologia_ingemmet",
+      "estado": "ok",
+      "rol": "produjo",
+      "fecha": "2026-11-24T22:07:21.641532"
+    }
+  ],
+  "estadisticas_registradas": null,
+  "duplicado_exacto_de": [],
+  "calidad": {
+    "elementos": 1060,
+    "tipos_geometria": {
+      "Polygon": 1047,
+      "MultiPolygon": 13
+    },
+    "propiedades": [
+      "TIPO_UNIDAD"
+    ],
+    "nulos_por_propiedad": {},
+    "geometrias_duplicadas": 0
+  }
+}
