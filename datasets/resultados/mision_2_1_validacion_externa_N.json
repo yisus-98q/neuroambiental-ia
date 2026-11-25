@@ -1,0 +1,4005 @@
+{
+ "run_id": "0fad32ac9e1c4ff78408a3f9bce71fec",
+ "grupos": {
+  "todos": {
+   "n_eventos_externos": 160,
+   "libre": {
+    "V-pendiente_deg": {
+     "auc": 0.4302,
+     "auc_ic95_bloques": [
+      0.3698,
+      0.5152
+     ],
+     "pr_auc": 0.225,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 63,
+      "fp": 236,
+      "vn": 244,
+      "fn": 97
+     },
+     "precision": 0.2107,
+     "sensibilidad": 0.3937,
+     "especificidad": 0.5083,
+     "f1": 0.2745,
+     "umbral_fijado_en_entrenamiento": 28.0243,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.4299,
+      "sd": 0.0081,
+      "n": 10
+     }
+    },
+    "V-elevacion_m": {
+     "auc": 0.7654,
+     "auc_ic95_bloques": [
+      0.6811,
+      0.8298
+     ],
+     "pr_auc": 0.553,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 127,
+      "fp": 195,
+      "vn": 285,
+      "fn": 33
+     },
+     "precision": 0.3944,
+     "sensibilidad": 0.7937,
+     "especificidad": 0.5938,
+     "f1": 0.527,
+     "umbral_fijado_en_entrenamiento": -3692.8323,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.7719,
+      "sd": 0.0086,
+      "n": 10
+     }
+    },
+    "V-curvatura": {
+     "auc": 0.5909,
+     "auc_ic95_bloques": [
+      0.541,
+      0.6634
+     ],
+     "pr_auc": 0.3134,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 109,
+      "fp": 267,
+      "vn": 213,
+      "fn": 51
+     },
+     "precision": 0.2899,
+     "sensibilidad": 0.6813,
+     "especificidad": 0.4437,
+     "f1": 0.4067,
+     "umbral_fijado_en_entrenamiento": -0.0113,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.5941,
+      "sd": 0.0103,
+      "n": 10
+     }
+    },
+    "V-tpi_m": {
+     "auc": 0.6458,
+     "auc_ic95_bloques": [
+      0.595,
+      0.7242
+     ],
+     "pr_auc": 0.3541,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 117,
+      "fp": 250,
+      "vn": 230,
+      "fn": 43
+     },
+     "precision": 0.3188,
+     "sensibilidad": 0.7312,
+     "especificidad": 0.4792,
+     "f1": 0.444,
+     "umbral_fijado_en_entrenamiento": 1.0835,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6439,
+      "sd": 0.0078,
+      "n": 10
+     }
+    },
+    "V-dist_cauce_m": {
+     "auc": 0.6948,
+     "auc_ic95_bloques": [
+      0.668,
+      0.7277
+     ],
+     "pr_auc": 0.3818,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 91,
+      "fp": 156,
+      "vn": 324,
+      "fn": 69
+     },
+     "precision": 0.3684,
+     "sensibilidad": 0.5687,
+     "especificidad": 0.675,
+     "f1": 0.4472,
+     "umbral_fijado_en_entrenamiento": -153.6485,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.689,
+      "sd": 0.0132,
+      "n": 10
+     }
+    },
+    "R1-solo_elevacion": {
+     "auc": 0.7654,
+     "auc_ic95_bloques": [
+      0.6811,
+      0.8298
+     ],
+     "pr_auc": 0.553,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 127,
+      "fp": 195,
+      "vn": 285,
+      "fn": 33
+     },
+     "precision": 0.3944,
+     "sensibilidad": 0.7937,
+     "especificidad": 0.5938,
+     "f1": 0.527,
+     "umbral_fijado_en_entrenamiento": -3692.8323,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.7719,
+      "sd": 0.0086,
+      "n": 10
+     }
+    },
+    "R2-heuristico_pendiente": {
+     "auc": 0.4304,
+     "auc_ic95_bloques": [
+      0.37,
+      0.5146
+     ],
+     "pr_auc": 0.2258,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 63,
+      "fp": 236,
+      "vn": 244,
+      "fn": 97
+     },
+     "precision": 0.2107,
+     "sensibilidad": 0.3937,
+     "especificidad": 0.5083,
+     "f1": 0.2745,
+     "umbral_fijado_en_entrenamiento": 0.6228,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.43,
+      "sd": 0.0081,
+      "n": 10
+     }
+    },
+    "M1-base": {
+     "auc": 0.7561,
+     "auc_ic95_bloques": [
+      0.6687,
+      0.82
+     ],
+     "pr_auc": 0.5357,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 136,
+      "fp": 242,
+      "vn": 238,
+      "fn": 24
+     },
+     "precision": 0.3598,
+     "sensibilidad": 0.85,
+     "especificidad": 0.4958,
+     "f1": 0.5056,
+     "umbral_fijado_en_entrenamiento": 0.2373,
+     "brier": 0.2066,
+     "calibracion": [
+      {
+       "prob_media": 0.044,
+       "tasa_observada": 0.07,
+       "n": 128
+      },
+      {
+       "prob_media": 0.139,
+       "tasa_observada": 0.109,
+       "n": 128
+      },
+      {
+       "prob_media": 0.35,
+       "tasa_observada": 0.234,
+       "n": 128
+      },
+      {
+       "prob_media": 0.645,
+       "tasa_observada": 0.289,
+       "n": 128
+      },
+      {
+       "prob_media": 0.882,
+       "tasa_observada": 0.547,
+       "n": 128
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.7623,
+      "sd": 0.0083,
+      "n": 10
+     }
+    },
+    "M2-topografico": {
+     "auc": 0.7776,
+     "auc_ic95_bloques": [
+      0.7226,
+      0.8316
+     ],
+     "pr_auc": 0.5475,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 143,
+      "fp": 246,
+      "vn": 234,
+      "fn": 17
+     },
+     "precision": 0.3676,
+     "sensibilidad": 0.8938,
+     "especificidad": 0.4875,
+     "f1": 0.5209,
+     "umbral_fijado_en_entrenamiento": 0.2121,
+     "brier": 0.2007,
+     "calibracion": [
+      {
+       "prob_media": 0.032,
+       "tasa_observada": 0.047,
+       "n": 128
+      },
+      {
+       "prob_media": 0.129,
+       "tasa_observada": 0.094,
+       "n": 128
+      },
+      {
+       "prob_media": 0.36,
+       "tasa_observada": 0.219,
+       "n": 128
+      },
+      {
+       "prob_media": 0.652,
+       "tasa_observada": 0.367,
+       "n": 128
+      },
+      {
+       "prob_media": 0.89,
+       "tasa_observada": 0.523,
+       "n": 128
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.7834,
+      "sd": 0.0095,
+      "n": 10
+     }
+    },
+    "M4-bosque": {
+     "auc": 0.7331,
+     "auc_ic95_bloques": [
+      0.6827,
+      0.7774
+     ],
+     "pr_auc": 0.4256,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 118,
+      "fp": 178,
+      "vn": 302,
+      "fn": 42
+     },
+     "precision": 0.3986,
+     "sensibilidad": 0.7375,
+     "especificidad": 0.6292,
+     "f1": 0.5175,
+     "umbral_fijado_en_entrenamiento": 0.3645,
+     "brier": 0.1755,
+     "calibracion": [
+      {
+       "prob_media": 0.049,
+       "tasa_observada": 0.047,
+       "n": 128
+      },
+      {
+       "prob_media": 0.15,
+       "tasa_observada": 0.078,
+       "n": 128
+      },
+      {
+       "prob_media": 0.332,
+       "tasa_observada": 0.32,
+       "n": 128
+      },
+      {
+       "prob_media": 0.499,
+       "tasa_observada": 0.352,
+       "n": 128
+      },
+      {
+       "prob_media": 0.641,
+       "tasa_observada": 0.453,
+       "n": 128
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.7515,
+      "sd": 0.0099,
+      "n": 10
+     }
+    },
+    "M3-topo+litologia": {
+     "auc": 0.7675,
+     "auc_ic95_bloques": [
+      0.7133,
+      0.8154
+     ],
+     "pr_auc": 0.5355,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 141,
+      "fp": 228,
+      "vn": 252,
+      "fn": 19
+     },
+     "precision": 0.3821,
+     "sensibilidad": 0.8812,
+     "especificidad": 0.525,
+     "f1": 0.5331,
+     "umbral_fijado_en_entrenamiento": 0.2508,
+     "brier": 0.209,
+     "calibracion": [
+      {
+       "prob_media": 0.029,
+       "tasa_observada": 0.055,
+       "n": 128
+      },
+      {
+       "prob_media": 0.128,
+       "tasa_observada": 0.07,
+       "n": 128
+      },
+      {
+       "prob_media": 0.348,
+       "tasa_observada": 0.273,
+       "n": 128
+      },
+      {
+       "prob_media": 0.658,
+       "tasa_observada": 0.32,
+       "n": 128
+      },
+      {
+       "prob_media": 0.914,
+       "tasa_observada": 0.531,
+       "n": 128
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.7743,
+      "sd": 0.0096,
+      "n": 10
+     }
+    },
+    "M3s-sin_Sedimento": {
+     "auc": 0.7633,
+     "auc_ic95_bloques": [
+      0.7085,
+      0.8171
+     ],
+     "pr_auc": 0.5305,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 142,
+      "fp": 231,
+      "vn": 249,
+      "fn": 18
+     },
+     "precision": 0.3807,
+     "sensibilidad": 0.8875,
+     "especificidad": 0.5188,
+     "f1": 0.5328,
+     "umbral_fijado_en_entrenamiento": 0.2485,
+     "brier": 0.2146,
+     "calibracion": [
+      {
+       "prob_media": 0.028,
+       "tasa_observada": 0.055,
+       "n": 128
+      },
+      {
+       "prob_media": 0.13,
+       "tasa_observada": 0.07,
+       "n": 128
+      },
+      {
+       "prob_media": 0.356,
+       "tasa_observada": 0.273,
+       "n": 128
+      },
+      {
+       "prob_media": 0.677,
+       "tasa_observada": 0.336,
+       "n": 128
+      },
+      {
+       "prob_media": 0.919,
+       "tasa_observada": 0.516,
+       "n": 128
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.7704,
+      "sd": 0.0095,
+      "n": 10
+     }
+    }
+   },
+   "franja": {
+    "V-pendiente_deg": {
+     "auc": 0.4429,
+     "auc_ic95_bloques": [
+      0.3804,
+      0.5258
+     ],
+     "pr_auc": 0.2415,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 63,
+      "fp": 238,
+      "vn": 242,
+      "fn": 97
+     },
+     "precision": 0.2093,
+     "sensibilidad": 0.3937,
+     "especificidad": 0.5042,
+     "f1": 0.2733,
+     "umbral_fijado_en_entrenamiento": 28.0243,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.4387,
+      "sd": 0.0145,
+      "n": 10
+     }
+    },
+    "V-elevacion_m": {
+     "auc": 0.7393,
+     "auc_ic95_bloques": [
+      0.6399,
+      0.8255
+     ],
+     "pr_auc": 0.5145,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 127,
+      "fp": 204,
+      "vn": 276,
+      "fn": 33
+     },
+     "precision": 0.3837,
+     "sensibilidad": 0.7937,
+     "especificidad": 0.575,
+     "f1": 0.5173,
+     "umbral_fijado_en_entrenamiento": -3692.8323,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.7333,
+      "sd": 0.0082,
+      "n": 10
+     }
+    },
+    "V-curvatura": {
+     "auc": 0.6038,
+     "auc_ic95_bloques": [
+      0.5658,
+      0.6744
+     ],
+     "pr_auc": 0.3345,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 109,
+      "fp": 258,
+      "vn": 222,
+      "fn": 51
+     },
+     "precision": 0.297,
+     "sensibilidad": 0.6813,
+     "especificidad": 0.4625,
+     "f1": 0.4137,
+     "umbral_fijado_en_entrenamiento": -0.0113,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.5856,
+      "sd": 0.0147,
+      "n": 10
+     }
+    },
+    "V-tpi_m": {
+     "auc": 0.6364,
+     "auc_ic95_bloques": [
+      0.6013,
+      0.7044
+     ],
+     "pr_auc": 0.3545,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 117,
+      "fp": 249,
+      "vn": 231,
+      "fn": 43
+     },
+     "precision": 0.3197,
+     "sensibilidad": 0.7312,
+     "especificidad": 0.4813,
+     "f1": 0.4449,
+     "umbral_fijado_en_entrenamiento": 1.0835,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6266,
+      "sd": 0.0111,
+      "n": 10
+     }
+    },
+    "V-dist_cauce_m": {
+     "auc": 0.6644,
+     "auc_ic95_bloques": [
+      0.6001,
+      0.7158
+     ],
+     "pr_auc": 0.3583,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 91,
+      "fp": 189,
+      "vn": 291,
+      "fn": 69
+     },
+     "precision": 0.325,
+     "sensibilidad": 0.5687,
+     "especificidad": 0.6062,
+     "f1": 0.4136,
+     "umbral_fijado_en_entrenamiento": -153.6485,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6568,
+      "sd": 0.0137,
+      "n": 10
+     }
+    },
+    "R1-solo_elevacion": {
+     "auc": 0.7393,
+     "auc_ic95_bloques": [
+      0.6399,
+      0.8255
+     ],
+     "pr_auc": 0.5145,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 127,
+      "fp": 204,
+      "vn": 276,
+      "fn": 33
+     },
+     "precision": 0.3837,
+     "sensibilidad": 0.7937,
+     "especificidad": 0.575,
+     "f1": 0.5173,
+     "umbral_fijado_en_entrenamiento": -3692.8323,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.7333,
+      "sd": 0.0082,
+      "n": 10
+     }
+    },
+    "R2-heuristico_pendiente": {
+     "auc": 0.4427,
+     "auc_ic95_bloques": [
+      0.3806,
+      0.5237
+     ],
+     "pr_auc": 0.2334,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 63,
+      "fp": 238,
+      "vn": 242,
+      "fn": 97
+     },
+     "precision": 0.2093,
+     "sensibilidad": 0.3937,
+     "especificidad": 0.5042,
+     "f1": 0.2733,
+     "umbral_fijado_en_entrenamiento": 0.6228,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.4387,
+      "sd": 0.0146,
+      "n": 10
+     }
+    },
+    "M1-base": {
+     "auc": 0.7292,
+     "auc_ic95_bloques": [
+      0.6296,
+      0.8107
+     ],
+     "pr_auc": 0.5051,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 136,
+      "fp": 250,
+      "vn": 230,
+      "fn": 24
+     },
+     "precision": 0.3523,
+     "sensibilidad": 0.85,
+     "especificidad": 0.4792,
+     "f1": 0.4982,
+     "umbral_fijado_en_entrenamiento": 0.2373,
+     "brier": 0.2259,
+     "calibracion": [
+      {
+       "prob_media": 0.071,
+       "tasa_observada": 0.078,
+       "n": 128
+      },
+      {
+       "prob_media": 0.168,
+       "tasa_observada": 0.109,
+       "n": 128
+      },
+      {
+       "prob_media": 0.371,
+       "tasa_observada": 0.242,
+       "n": 128
+      },
+      {
+       "prob_media": 0.677,
+       "tasa_observada": 0.328,
+       "n": 128
+      },
+      {
+       "prob_media": 0.897,
+       "tasa_observada": 0.492,
+       "n": 128
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.7202,
+      "sd": 0.0098,
+      "n": 10
+     }
+    },
+    "M2-topografico": {
+     "auc": 0.7515,
+     "auc_ic95_bloques": [
+      0.674,
+      0.8166
+     ],
+     "pr_auc": 0.5059,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 143,
+      "fp": 269,
+      "vn": 211,
+      "fn": 17
+     },
+     "precision": 0.3471,
+     "sensibilidad": 0.8938,
+     "especificidad": 0.4396,
+     "f1": 0.5,
+     "umbral_fijado_en_entrenamiento": 0.2121,
+     "brier": 0.2198,
+     "calibracion": [
+      {
+       "prob_media": 0.052,
+       "tasa_observada": 0.055,
+       "n": 128
+      },
+      {
+       "prob_media": 0.169,
+       "tasa_observada": 0.109,
+       "n": 128
+      },
+      {
+       "prob_media": 0.388,
+       "tasa_observada": 0.219,
+       "n": 128
+      },
+      {
+       "prob_media": 0.684,
+       "tasa_observada": 0.375,
+       "n": 128
+      },
+      {
+       "prob_media": 0.9,
+       "tasa_observada": 0.492,
+       "n": 128
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.7432,
+      "sd": 0.0101,
+      "n": 10
+     }
+    },
+    "M4-bosque": {
+     "auc": 0.7225,
+     "auc_ic95_bloques": [
+      0.658,
+      0.7711
+     ],
+     "pr_auc": 0.4108,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 118,
+      "fp": 188,
+      "vn": 292,
+      "fn": 42
+     },
+     "precision": 0.3856,
+     "sensibilidad": 0.7375,
+     "especificidad": 0.6083,
+     "f1": 0.5064,
+     "umbral_fijado_en_entrenamiento": 0.3645,
+     "brier": 0.1809,
+     "calibracion": [
+      {
+       "prob_media": 0.057,
+       "tasa_observada": 0.062,
+       "n": 128
+      },
+      {
+       "prob_media": 0.182,
+       "tasa_observada": 0.109,
+       "n": 128
+      },
+      {
+       "prob_media": 0.349,
+       "tasa_observada": 0.281,
+       "n": 128
+      },
+      {
+       "prob_media": 0.498,
+       "tasa_observada": 0.367,
+       "n": 128
+      },
+      {
+       "prob_media": 0.645,
+       "tasa_observada": 0.43,
+       "n": 128
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.7052,
+      "sd": 0.0102,
+      "n": 10
+     }
+    },
+    "M3-topo+litologia": {
+     "auc": 0.7428,
+     "auc_ic95_bloques": [
+      0.6698,
+      0.8062
+     ],
+     "pr_auc": 0.4868,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 141,
+      "fp": 239,
+      "vn": 241,
+      "fn": 19
+     },
+     "precision": 0.3711,
+     "sensibilidad": 0.8812,
+     "especificidad": 0.5021,
+     "f1": 0.5222,
+     "umbral_fijado_en_entrenamiento": 0.2508,
+     "brier": 0.2292,
+     "calibracion": [
+      {
+       "prob_media": 0.047,
+       "tasa_observada": 0.07,
+       "n": 128
+      },
+      {
+       "prob_media": 0.151,
+       "tasa_observada": 0.07,
+       "n": 128
+      },
+      {
+       "prob_media": 0.38,
+       "tasa_observada": 0.281,
+       "n": 128
+      },
+      {
+       "prob_media": 0.696,
+       "tasa_observada": 0.344,
+       "n": 128
+      },
+      {
+       "prob_media": 0.925,
+       "tasa_observada": 0.484,
+       "n": 128
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.7318,
+      "sd": 0.0111,
+      "n": 10
+     }
+    },
+    "M3s-sin_Sedimento": {
+     "auc": 0.7362,
+     "auc_ic95_bloques": [
+      0.6649,
+      0.7991
+     ],
+     "pr_auc": 0.4813,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 142,
+      "fp": 249,
+      "vn": 231,
+      "fn": 18
+     },
+     "precision": 0.3632,
+     "sensibilidad": 0.8875,
+     "especificidad": 0.4813,
+     "f1": 0.5154,
+     "umbral_fijado_en_entrenamiento": 0.2485,
+     "brier": 0.2359,
+     "calibracion": [
+      {
+       "prob_media": 0.049,
+       "tasa_observada": 0.078,
+       "n": 128
+      },
+      {
+       "prob_media": 0.163,
+       "tasa_observada": 0.086,
+       "n": 128
+      },
+      {
+       "prob_media": 0.394,
+       "tasa_observada": 0.258,
+       "n": 128
+      },
+      {
+       "prob_media": 0.712,
+       "tasa_observada": 0.352,
+       "n": 128
+      },
+      {
+       "prob_media": 0.929,
+       "tasa_observada": 0.477,
+       "n": 128
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.7269,
+      "sd": 0.0105,
+      "n": 10
+     }
+    }
+   },
+   "rango_elevacion_franja_m": [
+    1430,
+    4740
+   ],
+   "entrenamiento": {
+    "n_eventos": 181,
+    "n_ausencias": 543,
+    "auc_entrenamiento": {
+     "V-pendiente_deg": 0.504,
+     "V-elevacion_m": 0.7991,
+     "V-curvatura": 0.5949,
+     "V-tpi_m": 0.6529,
+     "V-dist_cauce_m": 0.6855,
+     "R1-solo_elevacion": 0.7991,
+     "R2-heuristico_pendiente": 0.5042,
+     "M1-base": 0.8113,
+     "M2-topografico": 0.831,
+     "M4-bosque": 0.9442,
+     "M3-topo+litologia": 0.8468,
+     "M3s-sin_Sedimento": 0.846
+    }
+   },
+   "estados": {
+    "V-pendiente_deg": {
+     "estado": "NO VALIDADO",
+     "motivo": "AUC externo 0.44, IC95 inferior 0.38"
+    },
+    "V-elevacion_m": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.73, IC95 0.64–0.83, solo elevación 0.73"
+    },
+    "V-curvatura": {
+     "estado": "NO VALIDADO",
+     "motivo": "AUC externo 0.59, IC95 inferior 0.57"
+    },
+    "V-tpi_m": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.63, IC95 0.60–0.70, solo elevación 0.73"
+    },
+    "V-dist_cauce_m": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.66, IC95 0.60–0.72, solo elevación 0.73"
+    },
+    "R1-solo_elevacion": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.73, IC95 0.64–0.83, solo elevación 0.73"
+    },
+    "R2-heuristico_pendiente": {
+     "estado": "NO VALIDADO",
+     "motivo": "AUC externo 0.44, IC95 inferior 0.38"
+    },
+    "M1-base": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.72, IC95 0.63–0.81, solo elevación 0.73"
+    },
+    "M2-topografico": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.74, IC95 0.67–0.82, solo elevación 0.73"
+    },
+    "M4-bosque": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.71, IC95 0.66–0.77, solo elevación 0.73"
+    },
+    "M3-topo+litologia": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.73, IC95 0.67–0.81, solo elevación 0.73"
+    },
+    "M3s-sin_Sedimento": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.73, IC95 0.66–0.80, solo elevación 0.73"
+    }
+   }
+  },
+  "1000|1100": {
+   "n_eventos_externos": 41,
+   "libre": {
+    "V-pendiente_deg": {
+     "auc": 0.5433,
+     "auc_ic95_bloques": [
+      0.3949,
+      0.6691
+     ],
+     "pr_auc": 0.3104,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 25,
+      "fp": 64,
+      "vn": 59,
+      "fn": 16
+     },
+     "precision": 0.2809,
+     "sensibilidad": 0.6098,
+     "especificidad": 0.4797,
+     "f1": 0.3846,
+     "umbral_fijado_en_entrenamiento": 29.5062,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.5807,
+      "sd": 0.0221,
+      "n": 10
+     }
+    },
+    "V-elevacion_m": {
+     "auc": 0.6381,
+     "auc_ic95_bloques": [
+      0.4433,
+      0.8316
+     ],
+     "pr_auc": 0.4028,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 33,
+      "fp": 79,
+      "vn": 44,
+      "fn": 8
+     },
+     "precision": 0.2946,
+     "sensibilidad": 0.8049,
+     "especificidad": 0.3577,
+     "f1": 0.4314,
+     "umbral_fijado_en_entrenamiento": -4343.5029,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.638,
+      "sd": 0.0116,
+      "n": 10
+     }
+    },
+    "V-curvatura": {
+     "auc": 0.6336,
+     "auc_ic95_bloques": [
+      0.5584,
+      0.7037
+     ],
+     "pr_auc": 0.4272,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 13,
+      "fp": 12,
+      "vn": 111,
+      "fn": 28
+     },
+     "precision": 0.52,
+     "sensibilidad": 0.3171,
+     "especificidad": 0.9024,
+     "f1": 0.3939,
+     "umbral_fijado_en_entrenamiento": 0.4296,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6332,
+      "sd": 0.0173,
+      "n": 10
+     }
+    },
+    "V-tpi_m": {
+     "auc": 0.6276,
+     "auc_ic95_bloques": [
+      0.5528,
+      0.7136
+     ],
+     "pr_auc": 0.4313,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 18,
+      "fp": 31,
+      "vn": 92,
+      "fn": 23
+     },
+     "precision": 0.3673,
+     "sensibilidad": 0.439,
+     "especificidad": 0.748,
+     "f1": 0.4,
+     "umbral_fijado_en_entrenamiento": 21.1691,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6422,
+      "sd": 0.0162,
+      "n": 10
+     }
+    },
+    "V-dist_cauce_m": {
+     "auc": 0.6272,
+     "auc_ic95_bloques": [
+      0.5639,
+      0.6952
+     ],
+     "pr_auc": 0.3298,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 18,
+      "fp": 37,
+      "vn": 86,
+      "fn": 23
+     },
+     "precision": 0.3273,
+     "sensibilidad": 0.439,
+     "especificidad": 0.6992,
+     "f1": 0.375,
+     "umbral_fijado_en_entrenamiento": -153.6485,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6144,
+      "sd": 0.0172,
+      "n": 10
+     }
+    },
+    "R1-solo_elevacion": {
+     "auc": 0.6381,
+     "auc_ic95_bloques": [
+      0.4433,
+      0.8316
+     ],
+     "pr_auc": 0.4028,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 33,
+      "fp": 79,
+      "vn": 44,
+      "fn": 8
+     },
+     "precision": 0.2946,
+     "sensibilidad": 0.8049,
+     "especificidad": 0.3577,
+     "f1": 0.4314,
+     "umbral_fijado_en_entrenamiento": -4343.5029,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.638,
+      "sd": 0.0116,
+      "n": 10
+     }
+    },
+    "R2-heuristico_pendiente": {
+     "auc": 0.5445,
+     "auc_ic95_bloques": [
+      0.3947,
+      0.6711
+     ],
+     "pr_auc": 0.3179,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 25,
+      "fp": 64,
+      "vn": 59,
+      "fn": 16
+     },
+     "precision": 0.2809,
+     "sensibilidad": 0.6098,
+     "especificidad": 0.4797,
+     "f1": 0.3846,
+     "umbral_fijado_en_entrenamiento": 0.6557,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.5807,
+      "sd": 0.0218,
+      "n": 10
+     }
+    },
+    "M1-base": {
+     "auc": 0.6661,
+     "auc_ic95_bloques": [
+      0.5273,
+      0.7775
+     ],
+     "pr_auc": 0.3758,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 31,
+      "fp": 56,
+      "vn": 67,
+      "fn": 10
+     },
+     "precision": 0.3563,
+     "sensibilidad": 0.7561,
+     "especificidad": 0.5447,
+     "f1": 0.4844,
+     "umbral_fijado_en_entrenamiento": 0.3169,
+     "brier": 0.2157,
+     "calibracion": [
+      {
+       "prob_media": 0.091,
+       "tasa_observada": 0.152,
+       "n": 33
+      },
+      {
+       "prob_media": 0.206,
+       "tasa_observada": 0.121,
+       "n": 33
+      },
+      {
+       "prob_media": 0.344,
+       "tasa_observada": 0.188,
+       "n": 32
+      },
+      {
+       "prob_media": 0.55,
+       "tasa_observada": 0.364,
+       "n": 33
+      },
+      {
+       "prob_media": 0.766,
+       "tasa_observada": 0.424,
+       "n": 33
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.6778,
+      "sd": 0.0168,
+      "n": 10
+     }
+    },
+    "M2-topografico": {
+     "auc": 0.6938,
+     "auc_ic95_bloques": [
+      0.5909,
+      0.7936
+     ],
+     "pr_auc": 0.4123,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 33,
+      "fp": 68,
+      "vn": 55,
+      "fn": 8
+     },
+     "precision": 0.3267,
+     "sensibilidad": 0.8049,
+     "especificidad": 0.4472,
+     "f1": 0.4648,
+     "umbral_fijado_en_entrenamiento": 0.2204,
+     "brier": 0.2118,
+     "calibracion": [
+      {
+       "prob_media": 0.073,
+       "tasa_observada": 0.091,
+       "n": 33
+      },
+      {
+       "prob_media": 0.181,
+       "tasa_observada": 0.182,
+       "n": 33
+      },
+      {
+       "prob_media": 0.319,
+       "tasa_observada": 0.125,
+       "n": 32
+      },
+      {
+       "prob_media": 0.55,
+       "tasa_observada": 0.455,
+       "n": 33
+      },
+      {
+       "prob_media": 0.805,
+       "tasa_observada": 0.394,
+       "n": 33
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.7141,
+      "sd": 0.0166,
+      "n": 10
+     }
+    },
+    "M4-bosque": {
+     "auc": 0.6903,
+     "auc_ic95_bloques": [
+      0.6205,
+      0.7409
+     ],
+     "pr_auc": 0.436,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 31,
+      "fp": 55,
+      "vn": 68,
+      "fn": 10
+     },
+     "precision": 0.3605,
+     "sensibilidad": 0.7561,
+     "especificidad": 0.5528,
+     "f1": 0.4882,
+     "umbral_fijado_en_entrenamiento": 0.31,
+     "brier": 0.1812,
+     "calibracion": [
+      {
+       "prob_media": 0.098,
+       "tasa_observada": 0.061,
+       "n": 33
+      },
+      {
+       "prob_media": 0.21,
+       "tasa_observada": 0.182,
+       "n": 33
+      },
+      {
+       "prob_media": 0.32,
+       "tasa_observada": 0.219,
+       "n": 32
+      },
+      {
+       "prob_media": 0.419,
+       "tasa_observada": 0.424,
+       "n": 33
+      },
+      {
+       "prob_media": 0.602,
+       "tasa_observada": 0.364,
+       "n": 33
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.7027,
+      "sd": 0.0153,
+      "n": 10
+     }
+    },
+    "M3-topo+litologia": {
+     "auc": 0.6433,
+     "auc_ic95_bloques": [
+      0.5456,
+      0.7561
+     ],
+     "pr_auc": 0.3463,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 30,
+      "fp": 67,
+      "vn": 56,
+      "fn": 11
+     },
+     "precision": 0.3093,
+     "sensibilidad": 0.7317,
+     "especificidad": 0.4553,
+     "f1": 0.4348,
+     "umbral_fijado_en_entrenamiento": 0.2347,
+     "brier": 0.2458,
+     "calibracion": [
+      {
+       "prob_media": 0.05,
+       "tasa_observada": 0.091,
+       "n": 33
+      },
+      {
+       "prob_media": 0.159,
+       "tasa_observada": 0.212,
+       "n": 33
+      },
+      {
+       "prob_media": 0.322,
+       "tasa_observada": 0.25,
+       "n": 32
+      },
+      {
+       "prob_media": 0.569,
+       "tasa_observada": 0.364,
+       "n": 33
+      },
+      {
+       "prob_media": 0.873,
+       "tasa_observada": 0.333,
+       "n": 33
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.663,
+      "sd": 0.0135,
+      "n": 10
+     }
+    },
+    "M3s-sin_Sedimento": {
+     "auc": 0.6536,
+     "auc_ic95_bloques": [
+      0.5556,
+      0.764
+     ],
+     "pr_auc": 0.3558,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 30,
+      "fp": 63,
+      "vn": 60,
+      "fn": 11
+     },
+     "precision": 0.3226,
+     "sensibilidad": 0.7317,
+     "especificidad": 0.4878,
+     "f1": 0.4478,
+     "umbral_fijado_en_entrenamiento": 0.2597,
+     "brier": 0.2425,
+     "calibracion": [
+      {
+       "prob_media": 0.053,
+       "tasa_observada": 0.121,
+       "n": 33
+      },
+      {
+       "prob_media": 0.161,
+       "tasa_observada": 0.182,
+       "n": 33
+      },
+      {
+       "prob_media": 0.319,
+       "tasa_observada": 0.219,
+       "n": 32
+      },
+      {
+       "prob_media": 0.58,
+       "tasa_observada": 0.394,
+       "n": 33
+      },
+      {
+       "prob_media": 0.869,
+       "tasa_observada": 0.333,
+       "n": 33
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.6681,
+      "sd": 0.0143,
+      "n": 10
+     }
+    }
+   },
+   "franja": {
+    "V-pendiente_deg": {
+     "auc": 0.5856,
+     "auc_ic95_bloques": [
+      0.4379,
+      0.6836
+     ],
+     "pr_auc": 0.3284,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 25,
+      "fp": 55,
+      "vn": 68,
+      "fn": 16
+     },
+     "precision": 0.3125,
+     "sensibilidad": 0.6098,
+     "especificidad": 0.5528,
+     "f1": 0.4132,
+     "umbral_fijado_en_entrenamiento": 29.5062,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.5927,
+      "sd": 0.0204,
+      "n": 10
+     }
+    },
+    "V-elevacion_m": {
+     "auc": 0.6336,
+     "auc_ic95_bloques": [
+      0.4364,
+      0.82
+     ],
+     "pr_auc": 0.4348,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 33,
+      "fp": 81,
+      "vn": 42,
+      "fn": 8
+     },
+     "precision": 0.2895,
+     "sensibilidad": 0.8049,
+     "especificidad": 0.3415,
+     "f1": 0.4258,
+     "umbral_fijado_en_entrenamiento": -4343.5029,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6393,
+      "sd": 0.0142,
+      "n": 10
+     }
+    },
+    "V-curvatura": {
+     "auc": 0.5987,
+     "auc_ic95_bloques": [
+      0.5324,
+      0.6619
+     ],
+     "pr_auc": 0.3813,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 13,
+      "fp": 18,
+      "vn": 105,
+      "fn": 28
+     },
+     "precision": 0.4194,
+     "sensibilidad": 0.3171,
+     "especificidad": 0.8537,
+     "f1": 0.3611,
+     "umbral_fijado_en_entrenamiento": 0.4296,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6337,
+      "sd": 0.0293,
+      "n": 10
+     }
+    },
+    "V-tpi_m": {
+     "auc": 0.6347,
+     "auc_ic95_bloques": [
+      0.5656,
+      0.7026
+     ],
+     "pr_auc": 0.4463,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 18,
+      "fp": 25,
+      "vn": 98,
+      "fn": 23
+     },
+     "precision": 0.4186,
+     "sensibilidad": 0.439,
+     "especificidad": 0.7967,
+     "f1": 0.4286,
+     "umbral_fijado_en_entrenamiento": 21.1691,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6502,
+      "sd": 0.0231,
+      "n": 10
+     }
+    },
+    "V-dist_cauce_m": {
+     "auc": 0.625,
+     "auc_ic95_bloques": [
+      0.5283,
+      0.734
+     ],
+     "pr_auc": 0.3321,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 18,
+      "fp": 37,
+      "vn": 86,
+      "fn": 23
+     },
+     "precision": 0.3273,
+     "sensibilidad": 0.439,
+     "especificidad": 0.6992,
+     "f1": 0.375,
+     "umbral_fijado_en_entrenamiento": -153.6485,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6125,
+      "sd": 0.0212,
+      "n": 10
+     }
+    },
+    "R1-solo_elevacion": {
+     "auc": 0.6336,
+     "auc_ic95_bloques": [
+      0.4364,
+      0.82
+     ],
+     "pr_auc": 0.4348,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 33,
+      "fp": 81,
+      "vn": 42,
+      "fn": 8
+     },
+     "precision": 0.2895,
+     "sensibilidad": 0.8049,
+     "especificidad": 0.3415,
+     "f1": 0.4258,
+     "umbral_fijado_en_entrenamiento": -4343.5029,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6393,
+      "sd": 0.0142,
+      "n": 10
+     }
+    },
+    "R2-heuristico_pendiente": {
+     "auc": 0.5848,
+     "auc_ic95_bloques": [
+      0.4383,
+      0.6819
+     ],
+     "pr_auc": 0.3121,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 25,
+      "fp": 55,
+      "vn": 68,
+      "fn": 16
+     },
+     "precision": 0.3125,
+     "sensibilidad": 0.6098,
+     "especificidad": 0.5528,
+     "f1": 0.4132,
+     "umbral_fijado_en_entrenamiento": 0.6557,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.5921,
+      "sd": 0.0202,
+      "n": 10
+     }
+    },
+    "M1-base": {
+     "auc": 0.6786,
+     "auc_ic95_bloques": [
+      0.5302,
+      0.7903
+     ],
+     "pr_auc": 0.4197,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 31,
+      "fp": 56,
+      "vn": 67,
+      "fn": 10
+     },
+     "precision": 0.3563,
+     "sensibilidad": 0.7561,
+     "especificidad": 0.5447,
+     "f1": 0.4844,
+     "umbral_fijado_en_entrenamiento": 0.3169,
+     "brier": 0.2075,
+     "calibracion": [
+      {
+       "prob_media": 0.083,
+       "tasa_observada": 0.091,
+       "n": 33
+      },
+      {
+       "prob_media": 0.193,
+       "tasa_observada": 0.182,
+       "n": 33
+      },
+      {
+       "prob_media": 0.342,
+       "tasa_observada": 0.156,
+       "n": 32
+      },
+      {
+       "prob_media": 0.537,
+       "tasa_observada": 0.364,
+       "n": 33
+      },
+      {
+       "prob_media": 0.754,
+       "tasa_observada": 0.455,
+       "n": 33
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.6837,
+      "sd": 0.0102,
+      "n": 10
+     }
+    },
+    "M2-topografico": {
+     "auc": 0.7018,
+     "auc_ic95_bloques": [
+      0.5962,
+      0.7952
+     ],
+     "pr_auc": 0.4514,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 33,
+      "fp": 70,
+      "vn": 53,
+      "fn": 8
+     },
+     "precision": 0.3204,
+     "sensibilidad": 0.8049,
+     "especificidad": 0.4309,
+     "f1": 0.4583,
+     "umbral_fijado_en_entrenamiento": 0.2204,
+     "brier": 0.2042,
+     "calibracion": [
+      {
+       "prob_media": 0.068,
+       "tasa_observada": 0.091,
+       "n": 33
+      },
+      {
+       "prob_media": 0.173,
+       "tasa_observada": 0.182,
+       "n": 33
+      },
+      {
+       "prob_media": 0.335,
+       "tasa_observada": 0.188,
+       "n": 32
+      },
+      {
+       "prob_media": 0.548,
+       "tasa_observada": 0.303,
+       "n": 33
+      },
+      {
+       "prob_media": 0.779,
+       "tasa_observada": 0.485,
+       "n": 33
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.7189,
+      "sd": 0.0084,
+      "n": 10
+     }
+    },
+    "M4-bosque": {
+     "auc": 0.7071,
+     "auc_ic95_bloques": [
+      0.6274,
+      0.7801
+     ],
+     "pr_auc": 0.4008,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 31,
+      "fp": 48,
+      "vn": 75,
+      "fn": 10
+     },
+     "precision": 0.3924,
+     "sensibilidad": 0.7561,
+     "especificidad": 0.6098,
+     "f1": 0.5167,
+     "umbral_fijado_en_entrenamiento": 0.31,
+     "brier": 0.1807,
+     "calibracion": [
+      {
+       "prob_media": 0.077,
+       "tasa_observada": 0.061,
+       "n": 33
+      },
+      {
+       "prob_media": 0.183,
+       "tasa_observada": 0.182,
+       "n": 33
+      },
+      {
+       "prob_media": 0.299,
+       "tasa_observada": 0.156,
+       "n": 32
+      },
+      {
+       "prob_media": 0.413,
+       "tasa_observada": 0.515,
+       "n": 33
+      },
+      {
+       "prob_media": 0.626,
+       "tasa_observada": 0.333,
+       "n": 33
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.713,
+      "sd": 0.0223,
+      "n": 10
+     }
+    },
+    "M3-topo+litologia": {
+     "auc": 0.6466,
+     "auc_ic95_bloques": [
+      0.5462,
+      0.7227
+     ],
+     "pr_auc": 0.3768,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 30,
+      "fp": 68,
+      "vn": 55,
+      "fn": 11
+     },
+     "precision": 0.3061,
+     "sensibilidad": 0.7317,
+     "especificidad": 0.4472,
+     "f1": 0.4317,
+     "umbral_fijado_en_entrenamiento": 0.2347,
+     "brier": 0.2397,
+     "calibracion": [
+      {
+       "prob_media": 0.055,
+       "tasa_observada": 0.121,
+       "n": 33
+      },
+      {
+       "prob_media": 0.177,
+       "tasa_observada": 0.212,
+       "n": 33
+      },
+      {
+       "prob_media": 0.326,
+       "tasa_observada": 0.219,
+       "n": 32
+      },
+      {
+       "prob_media": 0.578,
+       "tasa_observada": 0.364,
+       "n": 33
+      },
+      {
+       "prob_media": 0.846,
+       "tasa_observada": 0.333,
+       "n": 33
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.6666,
+      "sd": 0.0166,
+      "n": 10
+     }
+    },
+    "M3s-sin_Sedimento": {
+     "auc": 0.6609,
+     "auc_ic95_bloques": [
+      0.5524,
+      0.7467
+     ],
+     "pr_auc": 0.3906,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 30,
+      "fp": 61,
+      "vn": 62,
+      "fn": 11
+     },
+     "precision": 0.3297,
+     "sensibilidad": 0.7317,
+     "especificidad": 0.5041,
+     "f1": 0.4545,
+     "umbral_fijado_en_entrenamiento": 0.2597,
+     "brier": 0.2336,
+     "calibracion": [
+      {
+       "prob_media": 0.055,
+       "tasa_observada": 0.121,
+       "n": 33
+      },
+      {
+       "prob_media": 0.177,
+       "tasa_observada": 0.152,
+       "n": 33
+      },
+      {
+       "prob_media": 0.312,
+       "tasa_observada": 0.25,
+       "n": 32
+      },
+      {
+       "prob_media": 0.588,
+       "tasa_observada": 0.333,
+       "n": 33
+      },
+      {
+       "prob_media": 0.838,
+       "tasa_observada": 0.394,
+       "n": 33
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.6702,
+      "sd": 0.0183,
+      "n": 10
+     }
+    }
+   },
+   "rango_elevacion_franja_m": [
+    1908,
+    5278
+   ],
+   "entrenamiento": {
+    "n_eventos": 33,
+    "n_ausencias": 99,
+    "auc_entrenamiento": {
+     "V-pendiente_deg": 0.6621,
+     "V-elevacion_m": 0.6985,
+     "V-curvatura": 0.6327,
+     "V-tpi_m": 0.6728,
+     "V-dist_cauce_m": 0.6064,
+     "R1-solo_elevacion": 0.6985,
+     "R2-heuristico_pendiente": 0.6627,
+     "M1-base": 0.7787,
+     "M2-topografico": 0.8237,
+     "M4-bosque": 0.9467,
+     "M3-topo+litologia": 0.8549,
+     "M3s-sin_Sedimento": 0.8482
+    }
+   },
+   "estados": {
+    "V-pendiente_deg": {
+     "estado": "NO VALIDADO",
+     "motivo": "AUC externo 0.59, IC95 inferior 0.44"
+    },
+    "V-elevacion_m": {
+     "estado": "VALIDACIÓN INSUFICIENTE",
+     "motivo": "IC 95 % no calculable o demasiado ancho ([0.4364, 0.82])"
+    },
+    "V-curvatura": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.63, IC95 0.53–0.66, solo elevación 0.64"
+    },
+    "V-tpi_m": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.65, IC95 0.57–0.70, solo elevación 0.64"
+    },
+    "V-dist_cauce_m": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.61, IC95 0.53–0.73, solo elevación 0.64"
+    },
+    "R1-solo_elevacion": {
+     "estado": "VALIDACIÓN INSUFICIENTE",
+     "motivo": "IC 95 % no calculable o demasiado ancho ([0.4364, 0.82])"
+    },
+    "R2-heuristico_pendiente": {
+     "estado": "NO VALIDADO",
+     "motivo": "AUC externo 0.59, IC95 inferior 0.44"
+    },
+    "M1-base": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.68, IC95 0.53–0.79, solo elevación 0.64"
+    },
+    "M2-topografico": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.72, IC95 0.60–0.80, solo elevación 0.64"
+    },
+    "M4-bosque": {
+     "estado": "VALIDACIÓN EXTERNA PROMETEDORA",
+     "motivo": "AUC 0.71, IC95 0.63–0.78, +0.07 sobre solo elevación",
+     "nota": "No es «validado»: falta una segunda zona independiente y dos aprobaciones humanas."
+    },
+    "M3-topo+litologia": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.67, IC95 0.55–0.72, solo elevación 0.64; posible circularidad (depende de «Sedimento»)"
+    },
+    "M3s-sin_Sedimento": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.67, IC95 0.55–0.75, solo elevación 0.64"
+    }
+   }
+  },
+  "1000|1300": {
+   "n_eventos_externos": 56,
+   "libre": {
+    "V-pendiente_deg": {
+     "auc": 0.4565,
+     "auc_ic95_bloques": [
+      0.3609,
+      0.5312
+     ],
+     "pr_auc": 0.2224,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 35,
+      "fp": 111,
+      "vn": 57,
+      "fn": 21
+     },
+     "precision": 0.2397,
+     "sensibilidad": 0.625,
+     "especificidad": 0.3393,
+     "f1": 0.3465,
+     "umbral_fijado_en_entrenamiento": 21.0489,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.4474,
+      "sd": 0.0253,
+      "n": 10
+     }
+    },
+    "V-elevacion_m": {
+     "auc": 0.8447,
+     "auc_ic95_bloques": [
+      0.7799,
+      0.8852
+     ],
+     "pr_auc": 0.6051,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 51,
+      "fp": 68,
+      "vn": 100,
+      "fn": 5
+     },
+     "precision": 0.4286,
+     "sensibilidad": 0.9107,
+     "especificidad": 0.5952,
+     "f1": 0.5829,
+     "umbral_fijado_en_entrenamiento": -3591.3491,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.8641,
+      "sd": 0.0196,
+      "n": 10
+     }
+    },
+    "V-curvatura": {
+     "auc": 0.5143,
+     "auc_ic95_bloques": [
+      0.4442,
+      0.699
+     ],
+     "pr_auc": 0.2519,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 26,
+      "fp": 73,
+      "vn": 95,
+      "fn": 30
+     },
+     "precision": 0.2626,
+     "sensibilidad": 0.4643,
+     "especificidad": 0.5655,
+     "f1": 0.3355,
+     "umbral_fijado_en_entrenamiento": 0.071,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.5161,
+      "sd": 0.0141,
+      "n": 10
+     }
+    },
+    "V-tpi_m": {
+     "auc": 0.5519,
+     "auc_ic95_bloques": [
+      0.5012,
+      0.6674
+     ],
+     "pr_auc": 0.2613,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 36,
+      "fp": 87,
+      "vn": 81,
+      "fn": 20
+     },
+     "precision": 0.2927,
+     "sensibilidad": 0.6429,
+     "especificidad": 0.4821,
+     "f1": 0.4022,
+     "umbral_fijado_en_entrenamiento": 1.0835,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.5518,
+      "sd": 0.0239,
+      "n": 10
+     }
+    },
+    "V-dist_cauce_m": {
+     "auc": 0.7081,
+     "auc_ic95_bloques": [
+      0.6692,
+      0.7674
+     ],
+     "pr_auc": 0.3723,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 45,
+      "fp": 76,
+      "vn": 92,
+      "fn": 11
+     },
+     "precision": 0.3719,
+     "sensibilidad": 0.8036,
+     "especificidad": 0.5476,
+     "f1": 0.5085,
+     "umbral_fijado_en_entrenamiento": -247.943,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6584,
+      "sd": 0.0245,
+      "n": 10
+     }
+    },
+    "R1-solo_elevacion": {
+     "auc": 0.8447,
+     "auc_ic95_bloques": [
+      0.7799,
+      0.8852
+     ],
+     "pr_auc": 0.6051,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 51,
+      "fp": 68,
+      "vn": 100,
+      "fn": 5
+     },
+     "precision": 0.4286,
+     "sensibilidad": 0.9107,
+     "especificidad": 0.5952,
+     "f1": 0.5829,
+     "umbral_fijado_en_entrenamiento": -3591.3491,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.8641,
+      "sd": 0.0196,
+      "n": 10
+     }
+    },
+    "R2-heuristico_pendiente": {
+     "auc": 0.4565,
+     "auc_ic95_bloques": [
+      0.3609,
+      0.5312
+     ],
+     "pr_auc": 0.2224,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 35,
+      "fp": 111,
+      "vn": 57,
+      "fn": 21
+     },
+     "precision": 0.2397,
+     "sensibilidad": 0.625,
+     "especificidad": 0.3393,
+     "f1": 0.3465,
+     "umbral_fijado_en_entrenamiento": 0.4678,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.4474,
+      "sd": 0.0253,
+      "n": 10
+     }
+    },
+    "M1-base": {
+     "auc": 0.8442,
+     "auc_ic95_bloques": [
+      0.7822,
+      0.8854
+     ],
+     "pr_auc": 0.6042,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 51,
+      "fp": 69,
+      "vn": 99,
+      "fn": 5
+     },
+     "precision": 0.425,
+     "sensibilidad": 0.9107,
+     "especificidad": 0.5893,
+     "f1": 0.5795,
+     "umbral_fijado_en_entrenamiento": 0.3249,
+     "brier": 0.2021,
+     "calibracion": [
+      {
+       "prob_media": 0.013,
+       "tasa_observada": 0.0,
+       "n": 45
+      },
+      {
+       "prob_media": 0.093,
+       "tasa_observada": 0.0,
+       "n": 45
+      },
+      {
+       "prob_media": 0.42,
+       "tasa_observada": 0.227,
+       "n": 44
+      },
+      {
+       "prob_media": 0.804,
+       "tasa_observada": 0.489,
+       "n": 45
+      },
+      {
+       "prob_media": 0.964,
+       "tasa_observada": 0.533,
+       "n": 45
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.8629,
+      "sd": 0.0196,
+      "n": 10
+     }
+    },
+    "M2-topografico": {
+     "auc": 0.8532,
+     "auc_ic95_bloques": [
+      0.7967,
+      0.8969
+     ],
+     "pr_auc": 0.6195,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 55,
+      "fp": 71,
+      "vn": 97,
+      "fn": 1
+     },
+     "precision": 0.4365,
+     "sensibilidad": 0.9821,
+     "especificidad": 0.5774,
+     "f1": 0.6044,
+     "umbral_fijado_en_entrenamiento": 0.2701,
+     "brier": 0.1937,
+     "calibracion": [
+      {
+       "prob_media": 0.01,
+       "tasa_observada": 0.0,
+       "n": 45
+      },
+      {
+       "prob_media": 0.095,
+       "tasa_observada": 0.022,
+       "n": 45
+      },
+      {
+       "prob_media": 0.41,
+       "tasa_observada": 0.182,
+       "n": 44
+      },
+      {
+       "prob_media": 0.795,
+       "tasa_observada": 0.533,
+       "n": 45
+      },
+      {
+       "prob_media": 0.963,
+       "tasa_observada": 0.511,
+       "n": 45
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.8678,
+      "sd": 0.0198,
+      "n": 10
+     }
+    },
+    "M4-bosque": {
+     "auc": 0.8158,
+     "auc_ic95_bloques": [
+      0.7562,
+      0.8673
+     ],
+     "pr_auc": 0.4918,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 53,
+      "fp": 69,
+      "vn": 99,
+      "fn": 3
+     },
+     "precision": 0.4344,
+     "sensibilidad": 0.9464,
+     "especificidad": 0.5893,
+     "f1": 0.5955,
+     "umbral_fijado_en_entrenamiento": 0.3149,
+     "brier": 0.1574,
+     "calibracion": [
+      {
+       "prob_media": 0.025,
+       "tasa_observada": 0.0,
+       "n": 45
+      },
+      {
+       "prob_media": 0.104,
+       "tasa_observada": 0.022,
+       "n": 45
+      },
+      {
+       "prob_media": 0.386,
+       "tasa_observada": 0.227,
+       "n": 44
+      },
+      {
+       "prob_media": 0.592,
+       "tasa_observada": 0.533,
+       "n": 45
+      },
+      {
+       "prob_media": 0.7,
+       "tasa_observada": 0.467,
+       "n": 45
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.8489,
+      "sd": 0.0279,
+      "n": 10
+     }
+    },
+    "M3-topo+litologia": {
+     "auc": 0.8272,
+     "auc_ic95_bloques": [
+      0.769,
+      0.8745
+     ],
+     "pr_auc": 0.5724,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 52,
+      "fp": 76,
+      "vn": 92,
+      "fn": 4
+     },
+     "precision": 0.4062,
+     "sensibilidad": 0.9286,
+     "especificidad": 0.5476,
+     "f1": 0.5652,
+     "umbral_fijado_en_entrenamiento": 0.3142,
+     "brier": 0.217,
+     "calibracion": [
+      {
+       "prob_media": 0.011,
+       "tasa_observada": 0.0,
+       "n": 45
+      },
+      {
+       "prob_media": 0.101,
+       "tasa_observada": 0.067,
+       "n": 45
+      },
+      {
+       "prob_media": 0.445,
+       "tasa_observada": 0.182,
+       "n": 44
+      },
+      {
+       "prob_media": 0.829,
+       "tasa_observada": 0.489,
+       "n": 45
+      },
+      {
+       "prob_media": 0.977,
+       "tasa_observada": 0.511,
+       "n": 45
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.847,
+      "sd": 0.0219,
+      "n": 10
+     }
+    },
+    "M3s-sin_Sedimento": {
+     "auc": 0.8263,
+     "auc_ic95_bloques": [
+      0.7683,
+      0.8731
+     ],
+     "pr_auc": 0.5712,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 52,
+      "fp": 76,
+      "vn": 92,
+      "fn": 4
+     },
+     "precision": 0.4062,
+     "sensibilidad": 0.9286,
+     "especificidad": 0.5476,
+     "f1": 0.5652,
+     "umbral_fijado_en_entrenamiento": 0.3098,
+     "brier": 0.2175,
+     "calibracion": [
+      {
+       "prob_media": 0.011,
+       "tasa_observada": 0.0,
+       "n": 45
+      },
+      {
+       "prob_media": 0.101,
+       "tasa_observada": 0.067,
+       "n": 45
+      },
+      {
+       "prob_media": 0.446,
+       "tasa_observada": 0.205,
+       "n": 44
+      },
+      {
+       "prob_media": 0.83,
+       "tasa_observada": 0.467,
+       "n": 45
+      },
+      {
+       "prob_media": 0.977,
+       "tasa_observada": 0.511,
+       "n": 45
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.8467,
+      "sd": 0.0219,
+      "n": 10
+     }
+    }
+   },
+   "franja": {
+    "V-pendiente_deg": {
+     "auc": 0.4781,
+     "auc_ic95_bloques": [
+      0.3744,
+      0.5558
+     ],
+     "pr_auc": 0.2296,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 35,
+      "fp": 108,
+      "vn": 60,
+      "fn": 21
+     },
+     "precision": 0.2448,
+     "sensibilidad": 0.625,
+     "especificidad": 0.3571,
+     "f1": 0.3518,
+     "umbral_fijado_en_entrenamiento": 21.0489,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.4835,
+      "sd": 0.024,
+      "n": 10
+     }
+    },
+    "V-elevacion_m": {
+     "auc": 0.6264,
+     "auc_ic95_bloques": [
+      0.4009,
+      0.7319
+     ],
+     "pr_auc": 0.4109,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 51,
+      "fp": 164,
+      "vn": 4,
+      "fn": 5
+     },
+     "precision": 0.2372,
+     "sensibilidad": 0.9107,
+     "especificidad": 0.0238,
+     "f1": 0.3764,
+     "umbral_fijado_en_entrenamiento": -3591.3491,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6274,
+      "sd": 0.0143,
+      "n": 10
+     }
+    },
+    "V-curvatura": {
+     "auc": 0.5189,
+     "auc_ic95_bloques": [
+      0.4743,
+      0.6326
+     ],
+     "pr_auc": 0.2502,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 26,
+      "fp": 69,
+      "vn": 99,
+      "fn": 30
+     },
+     "precision": 0.2737,
+     "sensibilidad": 0.4643,
+     "especificidad": 0.5893,
+     "f1": 0.3444,
+     "umbral_fijado_en_entrenamiento": 0.071,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.5101,
+      "sd": 0.0142,
+      "n": 10
+     }
+    },
+    "V-tpi_m": {
+     "auc": 0.5711,
+     "auc_ic95_bloques": [
+      0.5043,
+      0.6554
+     ],
+     "pr_auc": 0.2779,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 36,
+      "fp": 83,
+      "vn": 85,
+      "fn": 20
+     },
+     "precision": 0.3025,
+     "sensibilidad": 0.6429,
+     "especificidad": 0.506,
+     "f1": 0.4114,
+     "umbral_fijado_en_entrenamiento": 1.0835,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.5474,
+      "sd": 0.0251,
+      "n": 10
+     }
+    },
+    "V-dist_cauce_m": {
+     "auc": 0.5744,
+     "auc_ic95_bloques": [
+      0.5062,
+      0.6467
+     ],
+     "pr_auc": 0.2741,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 45,
+      "fp": 104,
+      "vn": 64,
+      "fn": 11
+     },
+     "precision": 0.302,
+     "sensibilidad": 0.8036,
+     "especificidad": 0.381,
+     "f1": 0.439,
+     "umbral_fijado_en_entrenamiento": -247.943,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.5967,
+      "sd": 0.0254,
+      "n": 10
+     }
+    },
+    "R1-solo_elevacion": {
+     "auc": 0.6264,
+     "auc_ic95_bloques": [
+      0.4009,
+      0.7319
+     ],
+     "pr_auc": 0.4109,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 51,
+      "fp": 164,
+      "vn": 4,
+      "fn": 5
+     },
+     "precision": 0.2372,
+     "sensibilidad": 0.9107,
+     "especificidad": 0.0238,
+     "f1": 0.3764,
+     "umbral_fijado_en_entrenamiento": -3591.3491,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6274,
+      "sd": 0.0143,
+      "n": 10
+     }
+    },
+    "R2-heuristico_pendiente": {
+     "auc": 0.4781,
+     "auc_ic95_bloques": [
+      0.3744,
+      0.5558
+     ],
+     "pr_auc": 0.2296,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 35,
+      "fp": 108,
+      "vn": 60,
+      "fn": 21
+     },
+     "precision": 0.2448,
+     "sensibilidad": 0.625,
+     "especificidad": 0.3571,
+     "f1": 0.3518,
+     "umbral_fijado_en_entrenamiento": 0.4678,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.4835,
+      "sd": 0.024,
+      "n": 10
+     }
+    },
+    "M1-base": {
+     "auc": 0.6216,
+     "auc_ic95_bloques": [
+      0.3953,
+      0.7363
+     ],
+     "pr_auc": 0.416,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 51,
+      "fp": 166,
+      "vn": 2,
+      "fn": 5
+     },
+     "precision": 0.235,
+     "sensibilidad": 0.9107,
+     "especificidad": 0.0119,
+     "f1": 0.3736,
+     "umbral_fijado_en_entrenamiento": 0.3249,
+     "brier": 0.4594,
+     "calibracion": [
+      {
+       "prob_media": 0.421,
+       "tasa_observada": 0.133,
+       "n": 45
+      },
+      {
+       "prob_media": 0.637,
+       "tasa_observada": 0.133,
+       "n": 45
+      },
+      {
+       "prob_media": 0.826,
+       "tasa_observada": 0.364,
+       "n": 44
+      },
+      {
+       "prob_media": 0.918,
+       "tasa_observada": 0.244,
+       "n": 45
+      },
+      {
+       "prob_media": 0.978,
+       "tasa_observada": 0.378,
+       "n": 45
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.6263,
+      "sd": 0.0141,
+      "n": 10
+     }
+    },
+    "M2-topografico": {
+     "auc": 0.6325,
+     "auc_ic95_bloques": [
+      0.4374,
+      0.7488
+     ],
+     "pr_auc": 0.3981,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 55,
+      "fp": 165,
+      "vn": 3,
+      "fn": 1
+     },
+     "precision": 0.25,
+     "sensibilidad": 0.9821,
+     "especificidad": 0.0179,
+     "f1": 0.3986,
+     "umbral_fijado_en_entrenamiento": 0.2701,
+     "brier": 0.4496,
+     "calibracion": [
+      {
+       "prob_media": 0.396,
+       "tasa_observada": 0.133,
+       "n": 45
+      },
+      {
+       "prob_media": 0.629,
+       "tasa_observada": 0.156,
+       "n": 45
+      },
+      {
+       "prob_media": 0.825,
+       "tasa_observada": 0.318,
+       "n": 44
+      },
+      {
+       "prob_media": 0.919,
+       "tasa_observada": 0.289,
+       "n": 45
+      },
+      {
+       "prob_media": 0.979,
+       "tasa_observada": 0.356,
+       "n": 45
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.6401,
+      "sd": 0.0168,
+      "n": 10
+     }
+    },
+    "M4-bosque": {
+     "auc": 0.5759,
+     "auc_ic95_bloques": [
+      0.4837,
+      0.619
+     ],
+     "pr_auc": 0.2908,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 53,
+      "fp": 163,
+      "vn": 5,
+      "fn": 3
+     },
+     "precision": 0.2454,
+     "sensibilidad": 0.9464,
+     "especificidad": 0.0298,
+     "f1": 0.3897,
+     "umbral_fijado_en_entrenamiento": 0.3149,
+     "brier": 0.3017,
+     "calibracion": [
+      {
+       "prob_media": 0.39,
+       "tasa_observada": 0.2,
+       "n": 45
+      },
+      {
+       "prob_media": 0.524,
+       "tasa_observada": 0.133,
+       "n": 45
+      },
+      {
+       "prob_media": 0.59,
+       "tasa_observada": 0.273,
+       "n": 44
+      },
+      {
+       "prob_media": 0.648,
+       "tasa_observada": 0.356,
+       "n": 45
+      },
+      {
+       "prob_media": 0.731,
+       "tasa_observada": 0.289,
+       "n": 45
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.5779,
+      "sd": 0.0175,
+      "n": 10
+     }
+    },
+    "M3-topo+litologia": {
+     "auc": 0.5864,
+     "auc_ic95_bloques": [
+      0.3641,
+      0.7094
+     ],
+     "pr_auc": 0.3612,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 52,
+      "fp": 161,
+      "vn": 7,
+      "fn": 4
+     },
+     "precision": 0.2441,
+     "sensibilidad": 0.9286,
+     "especificidad": 0.0417,
+     "f1": 0.3866,
+     "umbral_fijado_en_entrenamiento": 0.3142,
+     "brier": 0.4904,
+     "calibracion": [
+      {
+       "prob_media": 0.388,
+       "tasa_observada": 0.156,
+       "n": 45
+      },
+      {
+       "prob_media": 0.674,
+       "tasa_observada": 0.2,
+       "n": 45
+      },
+      {
+       "prob_media": 0.862,
+       "tasa_observada": 0.273,
+       "n": 44
+      },
+      {
+       "prob_media": 0.948,
+       "tasa_observada": 0.311,
+       "n": 45
+      },
+      {
+       "prob_media": 0.989,
+       "tasa_observada": 0.311,
+       "n": 45
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.5974,
+      "sd": 0.013,
+      "n": 10
+     }
+    },
+    "M3s-sin_Sedimento": {
+     "auc": 0.5865,
+     "auc_ic95_bloques": [
+      0.3634,
+      0.7098
+     ],
+     "pr_auc": 0.3612,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 52,
+      "fp": 162,
+      "vn": 6,
+      "fn": 4
+     },
+     "precision": 0.243,
+     "sensibilidad": 0.9286,
+     "especificidad": 0.0357,
+     "f1": 0.3852,
+     "umbral_fijado_en_entrenamiento": 0.3098,
+     "brier": 0.4911,
+     "calibracion": [
+      {
+       "prob_media": 0.388,
+       "tasa_observada": 0.133,
+       "n": 45
+      },
+      {
+       "prob_media": 0.676,
+       "tasa_observada": 0.222,
+       "n": 45
+      },
+      {
+       "prob_media": 0.863,
+       "tasa_observada": 0.273,
+       "n": 44
+      },
+      {
+       "prob_media": 0.948,
+       "tasa_observada": 0.311,
+       "n": 45
+      },
+      {
+       "prob_media": 0.989,
+       "tasa_observada": 0.311,
+       "n": 45
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.5967,
+      "sd": 0.0127,
+      "n": 10
+     }
+    }
+   },
+   "rango_elevacion_franja_m": [
+    1444,
+    3658
+   ],
+   "entrenamiento": {
+    "n_eventos": 68,
+    "n_ausencias": 204,
+    "auc_entrenamiento": {
+     "V-pendiente_deg": 0.5216,
+     "V-elevacion_m": 0.8861,
+     "V-curvatura": 0.5407,
+     "V-tpi_m": 0.5902,
+     "V-dist_cauce_m": 0.686,
+     "R1-solo_elevacion": 0.8861,
+     "R2-heuristico_pendiente": 0.5216,
+     "M1-base": 0.8875,
+     "M2-topografico": 0.8923,
+     "M4-bosque": 0.9698,
+     "M3-topo+litologia": 0.9012,
+     "M3s-sin_Sedimento": 0.9012
+    }
+   },
+   "estados": {
+    "V-pendiente_deg": {
+     "estado": "NO VALIDADO",
+     "motivo": "AUC externo 0.48, IC95 inferior 0.37"
+    },
+    "V-elevacion_m": {
+     "estado": "VALIDACIÓN INSUFICIENTE",
+     "motivo": "IC 95 % no calculable o demasiado ancho ([0.4009, 0.7319])"
+    },
+    "V-curvatura": {
+     "estado": "NO VALIDADO",
+     "motivo": "AUC externo 0.51, IC95 inferior 0.47"
+    },
+    "V-tpi_m": {
+     "estado": "NO VALIDADO",
+     "motivo": "AUC externo 0.55, IC95 inferior 0.50"
+    },
+    "V-dist_cauce_m": {
+     "estado": "NO VALIDADO",
+     "motivo": "AUC externo 0.60, IC95 inferior 0.51"
+    },
+    "R1-solo_elevacion": {
+     "estado": "VALIDACIÓN INSUFICIENTE",
+     "motivo": "IC 95 % no calculable o demasiado ancho ([0.4009, 0.7319])"
+    },
+    "R2-heuristico_pendiente": {
+     "estado": "NO VALIDADO",
+     "motivo": "AUC externo 0.48, IC95 inferior 0.37"
+    },
+    "M1-base": {
+     "estado": "VALIDACIÓN INSUFICIENTE",
+     "motivo": "IC 95 % no calculable o demasiado ancho ([0.3953, 0.7363])"
+    },
+    "M2-topografico": {
+     "estado": "VALIDACIÓN INSUFICIENTE",
+     "motivo": "IC 95 % no calculable o demasiado ancho ([0.4374, 0.7488])"
+    },
+    "M4-bosque": {
+     "estado": "NO VALIDADO",
+     "motivo": "AUC externo 0.58, IC95 inferior 0.48"
+    },
+    "M3-topo+litologia": {
+     "estado": "VALIDACIÓN INSUFICIENTE",
+     "motivo": "IC 95 % no calculable o demasiado ancho ([0.3641, 0.7094])"
+    },
+    "M3s-sin_Sedimento": {
+     "estado": "VALIDACIÓN INSUFICIENTE",
+     "motivo": "IC 95 % no calculable o demasiado ancho ([0.3634, 0.7098])"
+    }
+   }
+  },
+  "1000|1500": {
+   "n_eventos_externos": 50,
+   "libre": {
+    "V-pendiente_deg": {
+     "auc": 0.7109,
+     "auc_ic95_bloques": [
+      0.5412,
+      0.7852
+     ],
+     "pr_auc": 0.4988,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 14,
+      "fp": 8,
+      "vn": 142,
+      "fn": 36
+     },
+     "precision": 0.6364,
+     "sensibilidad": 0.28,
+     "especificidad": 0.9467,
+     "f1": 0.3889,
+     "umbral_fijado_en_entrenamiento": -7.6758,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.7082,
+      "sd": 0.0228,
+      "n": 10
+     }
+    },
+    "V-elevacion_m": {
+     "auc": 0.786,
+     "auc_ic95_bloques": [
+      0.7185,
+      0.8734
+     ],
+     "pr_auc": 0.5416,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 48,
+      "fp": 82,
+      "vn": 68,
+      "fn": 2
+     },
+     "precision": 0.3692,
+     "sensibilidad": 0.96,
+     "especificidad": 0.4533,
+     "f1": 0.5333,
+     "umbral_fijado_en_entrenamiento": -4089.2883,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.7923,
+      "sd": 0.0228,
+      "n": 10
+     }
+    },
+    "V-curvatura": {
+     "auc": 0.646,
+     "auc_ic95_bloques": [
+      0.5264,
+      0.7677
+     ],
+     "pr_auc": 0.3908,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 38,
+      "fp": 76,
+      "vn": 74,
+      "fn": 12
+     },
+     "precision": 0.3333,
+     "sensibilidad": 0.76,
+     "especificidad": 0.4933,
+     "f1": 0.4634,
+     "umbral_fijado_en_entrenamiento": -0.0113,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6444,
+      "sd": 0.0161,
+      "n": 10
+     }
+    },
+    "V-tpi_m": {
+     "auc": 0.7123,
+     "auc_ic95_bloques": [
+      0.5928,
+      0.8377
+     ],
+     "pr_auc": 0.4438,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 32,
+      "fp": 57,
+      "vn": 93,
+      "fn": 18
+     },
+     "precision": 0.3596,
+     "sensibilidad": 0.64,
+     "especificidad": 0.62,
+     "f1": 0.4604,
+     "umbral_fijado_en_entrenamiento": 7.6364,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6871,
+      "sd": 0.0194,
+      "n": 10
+     }
+    },
+    "V-dist_cauce_m": {
+     "auc": 0.7977,
+     "auc_ic95_bloques": [
+      0.7382,
+      0.8618
+     ],
+     "pr_auc": 0.561,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 38,
+      "fp": 47,
+      "vn": 103,
+      "fn": 12
+     },
+     "precision": 0.4471,
+     "sensibilidad": 0.76,
+     "especificidad": 0.6867,
+     "f1": 0.563,
+     "umbral_fijado_en_entrenamiento": -138.2175,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.7778,
+      "sd": 0.0162,
+      "n": 10
+     }
+    },
+    "R1-solo_elevacion": {
+     "auc": 0.786,
+     "auc_ic95_bloques": [
+      0.7185,
+      0.8734
+     ],
+     "pr_auc": 0.5416,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 48,
+      "fp": 82,
+      "vn": 68,
+      "fn": 2
+     },
+     "precision": 0.3692,
+     "sensibilidad": 0.96,
+     "especificidad": 0.4533,
+     "f1": 0.5333,
+     "umbral_fijado_en_entrenamiento": -4089.2883,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.7923,
+      "sd": 0.0228,
+      "n": 10
+     }
+    },
+    "R2-heuristico_pendiente": {
+     "auc": 0.2893,
+     "auc_ic95_bloques": [
+      0.2149,
+      0.4563
+     ],
+     "pr_auc": 0.2019,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 8,
+      "fp": 47,
+      "vn": 103,
+      "fn": 42
+     },
+     "precision": 0.1455,
+     "sensibilidad": 0.16,
+     "especificidad": 0.6867,
+     "f1": 0.1524,
+     "umbral_fijado_en_entrenamiento": 0.7354,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.2921,
+      "sd": 0.0229,
+      "n": 10
+     }
+    },
+    "M1-base": {
+     "auc": 0.7803,
+     "auc_ic95_bloques": [
+      0.708,
+      0.8704
+     ],
+     "pr_auc": 0.5425,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 48,
+      "fp": 86,
+      "vn": 64,
+      "fn": 2
+     },
+     "precision": 0.3582,
+     "sensibilidad": 0.96,
+     "especificidad": 0.4267,
+     "f1": 0.5217,
+     "umbral_fijado_en_entrenamiento": 0.157,
+     "brier": 0.1958,
+     "calibracion": [
+      {
+       "prob_media": 0.041,
+       "tasa_observada": 0.025,
+       "n": 40
+      },
+      {
+       "prob_media": 0.144,
+       "tasa_observada": 0.075,
+       "n": 40
+      },
+      {
+       "prob_media": 0.301,
+       "tasa_observada": 0.325,
+       "n": 40
+      },
+      {
+       "prob_media": 0.615,
+       "tasa_observada": 0.225,
+       "n": 40
+      },
+      {
+       "prob_media": 0.895,
+       "tasa_observada": 0.6,
+       "n": 40
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.7854,
+      "sd": 0.0224,
+      "n": 10
+     }
+    },
+    "M2-topografico": {
+     "auc": 0.8244,
+     "auc_ic95_bloques": [
+      0.7671,
+      0.8939
+     ],
+     "pr_auc": 0.5615,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 48,
+      "fp": 70,
+      "vn": 80,
+      "fn": 2
+     },
+     "precision": 0.4068,
+     "sensibilidad": 0.96,
+     "especificidad": 0.5333,
+     "f1": 0.5714,
+     "umbral_fijado_en_entrenamiento": 0.2088,
+     "brier": 0.1672,
+     "calibracion": [
+      {
+       "prob_media": 0.02,
+       "tasa_observada": 0.025,
+       "n": 40
+      },
+      {
+       "prob_media": 0.119,
+       "tasa_observada": 0.0,
+       "n": 40
+      },
+      {
+       "prob_media": 0.3,
+       "tasa_observada": 0.25,
+       "n": 40
+      },
+      {
+       "prob_media": 0.562,
+       "tasa_observada": 0.375,
+       "n": 40
+      },
+      {
+       "prob_media": 0.874,
+       "tasa_observada": 0.6,
+       "n": 40
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.8177,
+      "sd": 0.0229,
+      "n": 10
+     }
+    },
+    "M4-bosque": {
+     "auc": 0.8025,
+     "auc_ic95_bloques": [
+      0.7398,
+      0.8741
+     ],
+     "pr_auc": 0.6023,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 39,
+      "fp": 50,
+      "vn": 100,
+      "fn": 11
+     },
+     "precision": 0.4382,
+     "sensibilidad": 0.78,
+     "especificidad": 0.6667,
+     "f1": 0.5612,
+     "umbral_fijado_en_entrenamiento": 0.3415,
+     "brier": 0.1497,
+     "calibracion": [
+      {
+       "prob_media": 0.053,
+       "tasa_observada": 0.025,
+       "n": 40
+      },
+      {
+       "prob_media": 0.141,
+       "tasa_observada": 0.075,
+       "n": 40
+      },
+      {
+       "prob_media": 0.294,
+       "tasa_observada": 0.25,
+       "n": 40
+      },
+      {
+       "prob_media": 0.452,
+       "tasa_observada": 0.375,
+       "n": 40
+      },
+      {
+       "prob_media": 0.663,
+       "tasa_observada": 0.525,
+       "n": 40
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.7986,
+      "sd": 0.0193,
+      "n": 10
+     }
+    },
+    "M3-topo+litologia": {
+     "auc": 0.8245,
+     "auc_ic95_bloques": [
+      0.7675,
+      0.8976
+     ],
+     "pr_auc": 0.5817,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 41,
+      "fp": 57,
+      "vn": 93,
+      "fn": 9
+     },
+     "precision": 0.4184,
+     "sensibilidad": 0.82,
+     "especificidad": 0.62,
+     "f1": 0.5541,
+     "umbral_fijado_en_entrenamiento": 0.3649,
+     "brier": 0.1866,
+     "calibracion": [
+      {
+       "prob_media": 0.016,
+       "tasa_observada": 0.025,
+       "n": 40
+      },
+      {
+       "prob_media": 0.152,
+       "tasa_observada": 0.075,
+       "n": 40
+      },
+      {
+       "prob_media": 0.391,
+       "tasa_observada": 0.15,
+       "n": 40
+      },
+      {
+       "prob_media": 0.651,
+       "tasa_observada": 0.35,
+       "n": 40
+      },
+      {
+       "prob_media": 0.927,
+       "tasa_observada": 0.65,
+       "n": 40
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.8237,
+      "sd": 0.024,
+      "n": 10
+     }
+    },
+    "M3s-sin_Sedimento": {
+     "auc": 0.8169,
+     "auc_ic95_bloques": [
+      0.7655,
+      0.893
+     ],
+     "pr_auc": 0.5733,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 43,
+      "fp": 66,
+      "vn": 84,
+      "fn": 7
+     },
+     "precision": 0.3945,
+     "sensibilidad": 0.86,
+     "especificidad": 0.56,
+     "f1": 0.5409,
+     "umbral_fijado_en_entrenamiento": 0.3371,
+     "brier": 0.1916,
+     "calibracion": [
+      {
+       "prob_media": 0.016,
+       "tasa_observada": 0.025,
+       "n": 40
+      },
+      {
+       "prob_media": 0.153,
+       "tasa_observada": 0.075,
+       "n": 40
+      },
+      {
+       "prob_media": 0.397,
+       "tasa_observada": 0.2,
+       "n": 40
+      },
+      {
+       "prob_media": 0.652,
+       "tasa_observada": 0.325,
+       "n": 40
+      },
+      {
+       "prob_media": 0.935,
+       "tasa_observada": 0.625,
+       "n": 40
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.8169,
+      "sd": 0.0251,
+      "n": 10
+     }
+    }
+   },
+   "franja": {
+    "V-pendiente_deg": {
+     "auc": 0.73,
+     "auc_ic95_bloques": [
+      0.5672,
+      0.7943
+     ],
+     "pr_auc": 0.5386,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 14,
+      "fp": 5,
+      "vn": 145,
+      "fn": 36
+     },
+     "precision": 0.7368,
+     "sensibilidad": 0.28,
+     "especificidad": 0.9667,
+     "f1": 0.4058,
+     "umbral_fijado_en_entrenamiento": -7.6758,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6974,
+      "sd": 0.0199,
+      "n": 10
+     }
+    },
+    "V-elevacion_m": {
+     "auc": 0.5913,
+     "auc_ic95_bloques": [
+      0.4082,
+      0.7523
+     ],
+     "pr_auc": 0.4452,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 48,
+      "fp": 150,
+      "vn": 0,
+      "fn": 2
+     },
+     "precision": 0.2424,
+     "sensibilidad": 0.96,
+     "especificidad": 0.0,
+     "f1": 0.3871,
+     "umbral_fijado_en_entrenamiento": -4089.2883,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6008,
+      "sd": 0.0149,
+      "n": 10
+     }
+    },
+    "V-curvatura": {
+     "auc": 0.6207,
+     "auc_ic95_bloques": [
+      0.5469,
+      0.7091
+     ],
+     "pr_auc": 0.3227,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 38,
+      "fp": 84,
+      "vn": 66,
+      "fn": 12
+     },
+     "precision": 0.3115,
+     "sensibilidad": 0.76,
+     "especificidad": 0.44,
+     "f1": 0.4419,
+     "umbral_fijado_en_entrenamiento": -0.0113,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6393,
+      "sd": 0.019,
+      "n": 10
+     }
+    },
+    "V-tpi_m": {
+     "auc": 0.6711,
+     "auc_ic95_bloques": [
+      0.5699,
+      0.7869
+     ],
+     "pr_auc": 0.3642,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 32,
+      "fp": 62,
+      "vn": 88,
+      "fn": 18
+     },
+     "precision": 0.3404,
+     "sensibilidad": 0.64,
+     "especificidad": 0.5867,
+     "f1": 0.4444,
+     "umbral_fijado_en_entrenamiento": 7.6364,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6796,
+      "sd": 0.0182,
+      "n": 10
+     }
+    },
+    "V-dist_cauce_m": {
+     "auc": 0.7571,
+     "auc_ic95_bloques": [
+      0.7067,
+      0.7906
+     ],
+     "pr_auc": 0.4748,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 38,
+      "fp": 63,
+      "vn": 87,
+      "fn": 12
+     },
+     "precision": 0.3762,
+     "sensibilidad": 0.76,
+     "especificidad": 0.58,
+     "f1": 0.5033,
+     "umbral_fijado_en_entrenamiento": -138.2175,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.7589,
+      "sd": 0.0176,
+      "n": 10
+     }
+    },
+    "R1-solo_elevacion": {
+     "auc": 0.5913,
+     "auc_ic95_bloques": [
+      0.4082,
+      0.7523
+     ],
+     "pr_auc": 0.4452,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 48,
+      "fp": 150,
+      "vn": 0,
+      "fn": 2
+     },
+     "precision": 0.2424,
+     "sensibilidad": 0.96,
+     "especificidad": 0.0,
+     "f1": 0.3871,
+     "umbral_fijado_en_entrenamiento": -4089.2883,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.6008,
+      "sd": 0.0149,
+      "n": 10
+     }
+    },
+    "R2-heuristico_pendiente": {
+     "auc": 0.27,
+     "auc_ic95_bloques": [
+      0.2059,
+      0.4315
+     ],
+     "pr_auc": 0.2064,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 8,
+      "fp": 47,
+      "vn": 103,
+      "fn": 42
+     },
+     "precision": 0.1455,
+     "sensibilidad": 0.16,
+     "especificidad": 0.6867,
+     "f1": 0.1524,
+     "umbral_fijado_en_entrenamiento": 0.7354,
+     "brier": null,
+     "calibracion": "no aplica: la puntuación no es una probabilidad",
+     "auc_sorteos": {
+      "media": 0.3029,
+      "sd": 0.0198,
+      "n": 10
+     }
+    },
+    "M1-base": {
+     "auc": 0.5752,
+     "auc_ic95_bloques": [
+      0.3968,
+      0.739
+     ],
+     "pr_auc": 0.4302,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 48,
+      "fp": 150,
+      "vn": 0,
+      "fn": 2
+     },
+     "precision": 0.2424,
+     "sensibilidad": 0.96,
+     "especificidad": 0.0,
+     "f1": 0.3871,
+     "umbral_fijado_en_entrenamiento": 0.157,
+     "brier": 0.3422,
+     "calibracion": [
+      {
+       "prob_media": 0.242,
+       "tasa_observada": 0.325,
+       "n": 40
+      },
+      {
+       "prob_media": 0.411,
+       "tasa_observada": 0.15,
+       "n": 40
+      },
+      {
+       "prob_media": 0.592,
+       "tasa_observada": 0.075,
+       "n": 40
+      },
+      {
+       "prob_media": 0.792,
+       "tasa_observada": 0.275,
+       "n": 40
+      },
+      {
+       "prob_media": 0.911,
+       "tasa_observada": 0.425,
+       "n": 40
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.5876,
+      "sd": 0.0154,
+      "n": 10
+     }
+    },
+    "M2-topografico": {
+     "auc": 0.6757,
+     "auc_ic95_bloques": [
+      0.5773,
+      0.7733
+     ],
+     "pr_auc": 0.4305,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 48,
+      "fp": 116,
+      "vn": 34,
+      "fn": 2
+     },
+     "precision": 0.2927,
+     "sensibilidad": 0.96,
+     "especificidad": 0.2267,
+     "f1": 0.4486,
+     "umbral_fijado_en_entrenamiento": 0.2088,
+     "brier": 0.2778,
+     "calibracion": [
+      {
+       "prob_media": 0.145,
+       "tasa_observada": 0.1,
+       "n": 40
+      },
+      {
+       "prob_media": 0.314,
+       "tasa_observada": 0.2,
+       "n": 40
+      },
+      {
+       "prob_media": 0.511,
+       "tasa_observada": 0.225,
+       "n": 40
+      },
+      {
+       "prob_media": 0.739,
+       "tasa_observada": 0.325,
+       "n": 40
+      },
+      {
+       "prob_media": 0.903,
+       "tasa_observada": 0.4,
+       "n": 40
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.6748,
+      "sd": 0.0218,
+      "n": 10
+     }
+    },
+    "M4-bosque": {
+     "auc": 0.6489,
+     "auc_ic95_bloques": [
+      0.5108,
+      0.7658
+     ],
+     "pr_auc": 0.4647,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 39,
+      "fp": 99,
+      "vn": 51,
+      "fn": 11
+     },
+     "precision": 0.2826,
+     "sensibilidad": 0.78,
+     "especificidad": 0.34,
+     "f1": 0.4149,
+     "umbral_fijado_en_entrenamiento": 0.3415,
+     "brier": 0.2112,
+     "calibracion": [
+      {
+       "prob_media": 0.163,
+       "tasa_observada": 0.1,
+       "n": 40
+      },
+      {
+       "prob_media": 0.327,
+       "tasa_observada": 0.25,
+       "n": 40
+      },
+      {
+       "prob_media": 0.42,
+       "tasa_observada": 0.3,
+       "n": 40
+      },
+      {
+       "prob_media": 0.513,
+       "tasa_observada": 0.175,
+       "n": 40
+      },
+      {
+       "prob_media": 0.701,
+       "tasa_observada": 0.425,
+       "n": 40
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.6379,
+      "sd": 0.0233,
+      "n": 10
+     }
+    },
+    "M3-topo+litologia": {
+     "auc": 0.7024,
+     "auc_ic95_bloques": [
+      0.6123,
+      0.8068
+     ],
+     "pr_auc": 0.4404,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 41,
+      "fp": 92,
+      "vn": 58,
+      "fn": 9
+     },
+     "precision": 0.3083,
+     "sensibilidad": 0.82,
+     "especificidad": 0.3867,
+     "f1": 0.4481,
+     "umbral_fijado_en_entrenamiento": 0.3649,
+     "brier": 0.2984,
+     "calibracion": [
+      {
+       "prob_media": 0.13,
+       "tasa_observada": 0.05,
+       "n": 40
+      },
+      {
+       "prob_media": 0.348,
+       "tasa_observada": 0.2,
+       "n": 40
+      },
+      {
+       "prob_media": 0.57,
+       "tasa_observada": 0.25,
+       "n": 40
+      },
+      {
+       "prob_media": 0.813,
+       "tasa_observada": 0.3,
+       "n": 40
+      },
+      {
+       "prob_media": 0.949,
+       "tasa_observada": 0.45,
+       "n": 40
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.7012,
+      "sd": 0.0193,
+      "n": 10
+     }
+    },
+    "M3s-sin_Sedimento": {
+     "auc": 0.6843,
+     "auc_ic95_bloques": [
+      0.5903,
+      0.7882
+     ],
+     "pr_auc": 0.4372,
+     "pr_auc_azar": 0.25,
+     "confusion": {
+      "vp": 43,
+      "fp": 104,
+      "vn": 46,
+      "fn": 7
+     },
+     "precision": 0.2925,
+     "sensibilidad": 0.86,
+     "especificidad": 0.3067,
+     "f1": 0.4365,
+     "umbral_fijado_en_entrenamiento": 0.3371,
+     "brier": 0.3186,
+     "calibracion": [
+      {
+       "prob_media": 0.131,
+       "tasa_observada": 0.05,
+       "n": 40
+      },
+      {
+       "prob_media": 0.367,
+       "tasa_observada": 0.2,
+       "n": 40
+      },
+      {
+       "prob_media": 0.599,
+       "tasa_observada": 0.275,
+       "n": 40
+      },
+      {
+       "prob_media": 0.839,
+       "tasa_observada": 0.275,
+       "n": 40
+      },
+      {
+       "prob_media": 0.953,
+       "tasa_observada": 0.45,
+       "n": 40
+      }
+     ],
+     "auc_sorteos": {
+      "media": 0.6855,
+      "sd": 0.0191,
+      "n": 10
+     }
+    }
+   },
+   "rango_elevacion_franja_m": [
+    1480,
+    4018
+   ],
+   "entrenamiento": {
+    "n_eventos": 55,
+    "n_ausencias": 165,
+    "auc_entrenamiento": {
+     "V-pendiente_deg": 0.598,
+     "V-elevacion_m": 0.7961,
+     "V-curvatura": 0.5788,
+     "V-tpi_m": 0.6471,
+     "V-dist_cauce_m": 0.7566,
+     "R1-solo_elevacion": 0.7961,
+     "R2-heuristico_pendiente": 0.4022,
+     "M1-base": 0.8036,
+     "M2-topografico": 0.8463,
+     "M4-bosque": 0.9687,
+     "M3-topo+litologia": 0.8876,
+     "M3s-sin_Sedimento": 0.8864
+    }
+   },
+   "estados": {
+    "V-pendiente_deg": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.70, IC95 0.57–0.79, solo elevación 0.60"
+    },
+    "V-elevacion_m": {
+     "estado": "VALIDACIÓN INSUFICIENTE",
+     "motivo": "IC 95 % no calculable o demasiado ancho ([0.4082, 0.7523])"
+    },
+    "V-curvatura": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.64, IC95 0.55–0.71, solo elevación 0.60"
+    },
+    "V-tpi_m": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.68, IC95 0.57–0.79, solo elevación 0.60"
+    },
+    "V-dist_cauce_m": {
+     "estado": "VALIDACIÓN EXTERNA PROMETEDORA",
+     "motivo": "AUC 0.76, IC95 0.71–0.79, +0.16 sobre solo elevación",
+     "nota": "No es «validado»: falta una segunda zona independiente y dos aprobaciones humanas."
+    },
+    "R1-solo_elevacion": {
+     "estado": "VALIDACIÓN INSUFICIENTE",
+     "motivo": "IC 95 % no calculable o demasiado ancho ([0.4082, 0.7523])"
+    },
+    "R2-heuristico_pendiente": {
+     "estado": "NO VALIDADO",
+     "motivo": "AUC externo 0.30, IC95 inferior 0.21"
+    },
+    "M1-base": {
+     "estado": "VALIDACIÓN INSUFICIENTE",
+     "motivo": "IC 95 % no calculable o demasiado ancho ([0.3968, 0.739])"
+    },
+    "M2-topografico": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.67, IC95 0.58–0.77, solo elevación 0.60"
+    },
+    "M4-bosque": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.64, IC95 0.51–0.77, solo elevación 0.60"
+    },
+    "M3-topo+litologia": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.70, IC95 0.61–0.81, solo elevación 0.60; posible circularidad (depende de «Sedimento»)"
+    },
+    "M3s-sin_Sedimento": {
+     "estado": "EXPERIMENTAL",
+     "motivo": "AUC 0.69, IC95 0.59–0.79, solo elevación 0.60"
+    }
+   }
+  }
+ },
+ "clases_litologia_de_entrenamiento": [
+  "Volcánica",
+  "Sedimento",
+  "Sedimentaria",
+  "Sin denominación",
+  "Plutónica"
+ ],
+ "clases_ausentes_en_zona_externa": [],
+ "semilla_entrenamiento": 42,
+ "semillas_ausencias_externas": [
+  100,
+  101,
+  102,
+  103,
+  104,
+  105,
+  106,
+  107,
+  108,
+  109
+ ],
+ "zona_entrenamiento_bbox": [
+  -77.75,
+  -9.78,
+  -77.25,
+  -9.28
+ ],
+ "zona_externa_bbox": [
+  -78.0,
+  -9.235,
+  -77.5,
+  -8.735
+ ],
+ "zona_externa": "N · Carhuaz–Yungay (−78,00/−9,235/−77,50/−8,735)",
+ "simulado": false,
+ "recursos": {
+  "pico_proceso_mb": 517.3,
+  "perfil": "estandar",
+  "medido_en": 1795570886.0
+ },
+ "parametros": {
+  "dem_a": "17b450ef97134d2a9cf7c48eabbf4113",
+  "inv_a": "265a418c289b4624a3d4789fb616c041",
+  "lito_a": "bb5b55412da64a72b8ab35c881cffff1",
+  "dem_b": "d1775e6b5d144d3bb3f42ad2043f7a04",
+  "inv_b": "1dfe2501b354450e89ff5fe9754ea2a6",
+  "lito_b": "c9592e048d614d159437c4657af55b13",
+  "zona_b": "N · Carhuaz–Yungay (−78,00/−9,235/−77,50/−8,735)",
+  "protocolo": "docs/MISION_2_1_PROTOCOLO_VALIDACION_EXTERNA.md"
+ }
+}

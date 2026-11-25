@@ -74,3 +74,19 @@ def test_external_results_are_integrated_and_labelled(client, analyst_h, reader_
     assert item["estado_cientifico"].startswith("EVALUADO EXTERNAMENTE") and "no es una predicción" in item["resultado"]
     r = client.post("/api/neurovoice/chat", headers=analyst_h, json={"message": "riesgo de deslizamientos"}).json()
     assert "no es una predicción cierta" in r["reply"]
+
+
+def test_register_external_result_from_another_machine(client, reader_h):
+    from app.database.session import SessionLocal
+    from app.modules.disasters import service as sd
+    from app.modules.disasters import validation as v
+    res = {"zona_externa": "Zona importada", "grupos": {"todos": {"n_eventos_externos": 40, "estados": {
+        "M2-topografico": {"estado": "EXPERIMENTAL", "motivo": "prueba"}}}}, "parametros": {"dem_b": "x"}}
+    with SessionLocal() as db:
+        run = sd.register_external_result(db, res, "GitHub Actions run 1")
+        assert run.parameters["origen"] == "GitHub Actions run 1" and run.parameters["importado"] is True
+        import pytest
+        with pytest.raises(v.ValidationError):
+            sd.register_external_result(db, {"x": 1}, "otro")
+    ext = client.get("/api/disasters/external", headers=reader_h).json()
+    assert any(e["zona"] == "Zona importada" for e in ext)

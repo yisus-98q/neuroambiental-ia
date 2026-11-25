@@ -77,3 +77,48 @@ TPI (0,78; IC 0,71–0,87), distancia a cauce (0,76) y pendiente inversa (0,73) 
 - **No se justifica.** El bosque aleatorio no supera al modelo lineal M2 de forma consistente: −0,03 en todos, +0,02 en caídas y −0,01 en deslizamientos, dentro del ruido. Por el criterio prerregistrado no se entrenan HistGradientBoosting ni Gradient Boosting.
 - **MLP y CNN quedan excluidos:** hay < 1000 eventos independientes por proceso, no hay imágenes etiquetadas y la independencia metodológica es incompleta.
 - **Lo que haría falta:** más eventos independientes, especialmente flujos, y una segunda zona externa.
+
+
+---
+
+## 5. Segunda zona externa: Carhuaz–Yungay (N), ejecutada en GitHub Actions
+
+- **Plan:** anexo prerregistrado `MISION_2_1_ANEXO_SEGUNDA_ZONA.md` (commit `cd21595`), confirmado antes de descargar o evaluar.
+- **Ejecución:** GitHub Actions, run `45527139022`, commit `b76d79f`, perfil «estándar». Este equipo no tenía memoria suficiente: la evaluación necesitaba ≈560 MB con el margen, y el pico en la nube fue de 517 MB.
+- **Resultado completo:** `datasets/resultados/mision_2_1_validacion_externa_N.json`. Registrado en la base local como la ejecución `9a434627…`, con su origen.
+
+### Reproducibilidad entre equipos (Windows local frente a Linux en la nube)
+
+- **SHA-256 idéntico** en los inventarios y en la litología de Huaraz y de N: la nube descargó los mismos datos.
+- **SHA-256 distinto en los DEM.** Las elevaciones, sin embargo, son las mismas: los **44 de 48 AUC de entrenamiento** de Huaraz son idénticos en ambos equipos. Solo cambia el bosque aleatorio, por la diferencia de árboles indicada abajo. La diferencia está en la codificación del GeoTIFF (GDAL de Windows frente al de Linux), no en los valores.
+- **Desviación declarada:** el perfil «estándar» usa 200 árboles en M4 (bosque aleatorio), frente a 100 en el equipo local. Solo afecta a M4.
+
+### Independencia
+
+0 registros compartidos con Huaraz y con E. Distancia mínima de 6,9 km a Huaraz (es la misma cuenca del Callejón de Huaylas, menos independiente que E) y de 34,9 km a E. Inventario dominado por Valderrama y Luque, 2007.
+
+### Resultados en N (franja de altura, 10 sorteos)
+
+| Hipótesis | Modelo | AUC N (IC 95 %) | Estado N | AUC E | Estado E | **Estado combinado** (regla del anexo) |
+|---|---|---|---|---|---|---|
+| **H1** Caídas: pendiente | V-pendiente | 0,59 (0,44–0,68) | NO VALIDADO | 0,57 | NO VALIDADO | **NO VALIDADO**, refutada en 2 zonas |
+| **H2** Flujos: distancia a cauce | V-dist_cauce | **0,76 ± 0,02 (0,71–0,79)**; +0,16 sobre la elevación | **VALIDACIÓN EXTERNA PROMETEDORA** | 0,76 | INSUFICIENTE (27 ev.) | **VALIDACIÓN INSUFICIENTE** |
+| **H3** Flujos: litología | M3 / M3s / M2 | 0,70 / 0,69 / 0,67 | EXPERIMENTAL | 0,70 / 0,68 / 0,76 | INSUFICIENTE | **EXPERIMENTAL**: mejora < 0,05; no aporta de forma consistente |
+| **H4** Pendiente + elevación | M1 frente a R1 | 0,72 frente a 0,73 | — | 0,64 frente a 0,66 | — | **Confirmado en 2 zonas**: la pendiente no aporta sobre la elevación |
+| Caídas: bosque aleatorio | M4 | 0,71 (0,63–0,78) | PROMETEDORA | 0,67 | EXPERIMENTAL | **EXPERIMENTAL** |
+| General (todos) | M2 | 0,74 (0,67–0,82) | EXPERIMENTAL | 0,65 | EXPERIMENTAL | **EXPERIMENTAL** |
+
+Además:
+- **Deslizamientos (1300) en N:** la mayoría de los modelos quedan en «insuficiente» por IC anchos. Con ausencias libres el AUC llega a 0,86, frente a 0,63 en la franja, y la especificidad baja a 0,01–0,04 con el umbral de Huaraz. Es el sesgo de elevación en su forma más fuerte.
+- **Umbral:** el de Huaraz sigue sin transferirse; con la elevación, en flujos, la especificidad es 0,00.
+
+### Interpretación
+
+1. **H2 es la evidencia más sólida de todo el proyecto.**
+   - La distancia a cauce discrimina los flujos con el **mismo AUC (0,76) en dos zonas externas** y en Huaraz (0,72–0,76).
+   - En N cumple todos los criterios de «prometedora».
+   - **No llega a validarse** porque, por la regla fijada de antemano, E tiene solo 27 flujos. No se rebajó ningún criterio para que pasara.
+2. **La pendiente como indicador de caídas queda refutada** en dos zonas.
+3. **La litología no aporta de forma consistente** fuera de Huaraz: la mejora original era local o circular.
+4. **El bosque aleatorio para caídas fue prometedor en N pero no en E:** resultado inestable entre zonas.
+5. **Ningún modelo está «VALIDADO BAJO ALCANCE DEFINIDO».**

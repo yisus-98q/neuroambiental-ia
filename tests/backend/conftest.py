@@ -64,3 +64,12 @@ def analyst_h(client):
 @pytest.fixture(scope="session")
 def reader_h(client):
     return _token(client, "lector")
+
+
+@pytest.fixture(autouse=True)
+def _memoria_determinista(monkeypatch):
+    """Las pruebas no deben depender de la RAM libre real del equipo (en uno de 4 GB varía de un minuto a otro).
+    Se simulan 8 GB totales y 4 GB libres; el control de memoria se prueba aparte (test_hardware.py) con sus
+    propios valores, que sobrescriben este."""
+    from app.core import hardware
+    monkeypatch.setattr(hardware, "memory_bytes", lambda: (8 * hardware.GB, 4 * hardware.GB))

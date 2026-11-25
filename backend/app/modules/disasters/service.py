@@ -239,3 +239,18 @@ def list_external(db: Session) -> list[dict]:
              "parametros": r.parameters,
              "estados": {g: v.get("estados") for g, v in ((r.result_summary or {}).get("grupos") or {}).items()},
              "resultado": r.result_summary} for r in db.scalars(q)]
+
+
+def register_external_result(db: Session, result: dict, origin: str) -> Run:
+    """Registra una evaluación externa ejecutada FUERA de este equipo (p. ej. GitHub Actions), tal cual, con su origen."""
+    if "grupos" not in result or "zona_externa" not in result:
+        raise validation.ValidationError("El JSON no es un resultado de evaluación externa.")
+    run = Run(run_type="validacion_externa", module_key="disasters", status="ok",
+              parameters={**(result.get("parametros") or {}), "origen": origin, "importado": True},
+              result_summary=result, started_at=utcnow(), finished_at=utcnow())
+    db.add(run)
+    db.flush()
+    audit(db, "registrar_validacion_externa", target_type="run", target_id=run.id, details={"origen": origin},
+          commit=False)
+    db.commit()
+    return run

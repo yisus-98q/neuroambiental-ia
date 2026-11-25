@@ -38,7 +38,10 @@ DESCRIPTOR = ModuleDescriptor(
         "Evaluación externa prerregistrada (misión 2.1, Callejón de Conchucos): ningún modelo generaliza lo "
         "suficiente (mejor AUC externo 0,65 en general; la pendiente para caídas cae a 0,57). Flujos: señal "
         "coherente (distancia a cauce 0,76) pero solo 27 eventos externos: validación insuficiente.",
-        "Faltan lluvia y cobertura vegetal; una sola zona externa evaluada.",
+        "Segunda zona externa (Carhuaz–Yungay): la distancia a cauce para flujos repite AUC 0,76 (IC 0,71–0,79): "
+        "VALIDACIÓN EXTERNA PROMETEDORA allí, pero el estado combinado sigue INSUFICIENTE (27 flujos en Conchucos). "
+        "La pendiente para caídas queda refutada en dos zonas.",
+        "Faltan lluvia y cobertura vegetal; ningún modelo validado bajo alcance definido.",
     ],
     keywords=["huayco", "huaico", "inundacion", "deslizamiento", "derrumbe", "incendio", "sequia",
               "sismo", "terremoto", "catastrofe", "desastre", "riesgo", "amenaza", "contaminacion", "fuga",

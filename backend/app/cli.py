@@ -223,6 +223,19 @@ def external_validation(a: argparse.Namespace) -> int:
     return 0
 
 
+def register_external(path: str, origin: str) -> int:
+    """Registra en la base local una evaluación externa ejecutada en otro equipo o en GitHub Actions."""
+    import json
+
+    from app.database.session import SessionLocal
+    from app.modules.disasters import service as disasters
+
+    with SessionLocal() as db:
+        run = disasters.register_external_result(db, json.loads(Path(path).read_text(encoding="utf-8")), origin)
+    print(f"Registrada como ejecución {run.id} (origen: {origin})")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m app.cli")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -254,6 +267,9 @@ def main(argv: list[str] | None = None) -> int:
     ve.add_argument("--lito-b", default=None)
     ve.add_argument("--zona", required=True)
     ve.add_argument("--salida", default=None, help="JSON con el resultado completo")
+    rx = sub.add_parser("registrar-validacion-externa", help="Registra un resultado externo (JSON) ejecutado en otro sitio")
+    rx.add_argument("--json", required=True)
+    rx.add_argument("--origen", required=True)
     args = parser.parse_args(argv)
     if args.cmd == "migrate":
         migrate()
@@ -261,6 +277,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.cmd == "create-admin":
         return create_admin(args.username, args.password)
+    if args.cmd == "registrar-validacion-externa":
+        return register_external(args.json, args.origen)
     if args.cmd == "validacion-externa":
         return external_validation(args)
     if args.cmd == "exportar-fichas":

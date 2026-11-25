@@ -1,0 +1,56 @@
+[
+ {
+  "dataset": "inv_a",
+  "titulo": "Inventario INGEMMET de peligros geológicos · 181 eventos",
+  "sha256_ci": "4306cb1aaa5d8193a8c26e04ee06aa8b78961cb050f8ca61c700098aaadf9dc0",
+  "sha256_manifiesto_local": "4306cb1aaa5d8193a8c26e04ee06aa8b78961cb050f8ca61c700098aaadf9dc0",
+  "coincide": true,
+  "descarga": null
+ },
+ {
+  "dataset": "lito_a",
+  "titulo": "Litologia INGEMMET · 1104 polígonos · 7 clases",
+  "sha256_ci": "a362b3e75607c3b5746e56621648478eed186ecd127742a8674f42d56532e201",
+  "sha256_manifiesto_local": "a362b3e75607c3b5746e56621648478eed186ecd127742a8674f42d56532e201",
+  "coincide": true,
+  "descarga": null
+ },
+ {
+  "dataset": "dem_a",
+  "titulo": "DEM GLO-30 [-77.750, -9.780, -77.250, -9.280]",
+  "sha256_ci": "1865f052a01ec6836cb0441cd0737e6e063f25731611319aa02936ca6d897e56",
+  "sha256_manifiesto_local": "f4763ec5e8090cecc96b0ba9f96702699e0934ede6c8b922d3ec2e166956820c",
+  "coincide": false,
+  "descarga": {
+   "bytes": 23068672,
+   "requests": 88
+  }
+ },
+ {
+  "dataset": "inv_b",
+  "titulo": "Inventario INGEMMET de peligros geológicos · 160 eventos",
+  "sha256_ci": "12fbd084125356fae43fa57b37f986d9c0767c1ba70e8a236bf1b4433c174c38",
+  "sha256_manifiesto_local": "12fbd084125356fae43fa57b37f986d9c0767c1ba70e8a236bf1b4433c174c38",
+  "coincide": true,
+  "descarga": null
+ },
+ {
+  "dataset": "lito_b",
+  "titulo": "Litologia INGEMMET · 1060 polígonos · 7 clases",
+  "sha256_ci": "629d6cd2fbb3f171bf46413bf3f0a833b3c95c32b1f42009cea0d5ffb665808d",
+  "sha256_manifiesto_local": "629d6cd2fbb3f171bf46413bf3f0a833b3c95c32b1f42009cea0d5ffb665808d",
+  "coincide": true,
+  "descarga": null
+ },
+ {
+  "dataset": "dem_b",
+  "titulo": "DEM GLO-30 [-78.000, -9.235, -77.500, -8.735]",
+  "sha256_ci": "c94547c75f5bdb4510712fb3e08cf46ade31153801bb72ae2f64255d418f20e0",
+  "sha256_manifiesto_local": "6a23121f49dba59ebe94d10ea8148118f28c4c6fafcd310a5c786365e2321ba4",
+  "coincide": false,
+  "descarga": {
+   "bytes": 13893632,
+   "requests": 53
+  }
+ }
+]

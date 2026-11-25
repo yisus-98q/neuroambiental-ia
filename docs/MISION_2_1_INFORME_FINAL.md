@@ -83,3 +83,14 @@ Ver `MISION_2_1_LIMITACIONES_Y_RIESGOS.md`:
 ## Pruebas
 
 **189 pasan**: las 186 previas más 3 nuevas, sin eliminar ninguna. El frontend compila.
+
+
+---
+
+## Actualización: segunda zona (Carhuaz–Yungay, GitHub Actions)
+
+- **Ejecutada en la nube** por falta de memoria local; **reproducibilidad verificada** frente a este equipo (44/48 AUC de entrenamiento idénticos; los datos tienen la misma huella salvo la codificación de los DEM).
+- **H2 (distancia a cauce, flujos): VALIDACIÓN EXTERNA PROMETEDORA en N** (0,76; IC 0,71–0,79), con el mismo AUC en E. El estado combinado sigue siendo **VALIDACIÓN INSUFICIENTE**, porque E tiene solo 27 flujos y la regla prerregistrada no se relaja.
+- **H1 refutada en dos zonas.** H3 no aporta. **H4 confirmada en dos zonas.**
+- **Siguiente paso para H2:** una tercera zona con ≥ 30 flujos. La zona S (Recuay–Cátac) tiene 37. Si confirma, H2 podría pasar a revisión humana en el SCIENTIFIC VALIDATION ENGINE.
+- Detalle en `MISION_2_1_RESULTADOS_CIENTIFICOS.md`, §5.
