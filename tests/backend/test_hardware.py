@@ -7,6 +7,8 @@ from app.core import hardware, jobs
 
 
 def test_profile_detection_and_env_override(monkeypatch):
+    for var in ("NEURO_PROFILE", "NEURO_RAM_TARGET_GB", "NEURO_RAM_MAX_GB", "NEURO_N_JOBS"):
+        monkeypatch.delenv(var, raising=False)          # la detección automática no depende del entorno
     monkeypatch.setattr(hardware, "memory_bytes", lambda: (4 * hardware.GB, 1 * hardware.GB))
     p = hardware.detect_profile()
     assert p.name == "ligero" and not p.training_allowed and p.ram_max_gb <= 3.0
