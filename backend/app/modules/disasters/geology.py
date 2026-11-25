@@ -19,6 +19,8 @@ from rasterio import features
 from rasterio.transform import from_origin
 from sqlalchemy.orm import Session
 
+from app.core import tls
+
 from app.models import DataRecord, User
 from app.modules.neuro3d import dem as demlib
 from app.neurodata.service import store_file
@@ -50,7 +52,7 @@ def _get(url: str, params: dict) -> dict:
     if urllib.parse.urlsplit(full).hostname != HOST:
         raise GeologyError("Host no permitido.")
     try:
-        with urllib.request.urlopen(urllib.request.Request(full, headers={"User-Agent": USER_AGENT}), timeout=120) as r:
+        with tls.urlopen(urllib.request.Request(full, headers={"User-Agent": USER_AGENT}), timeout=120) as r:
             raw = r.read()
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
         raise GeologyError(f"No se pudo consultar INGEMMET: {exc}") from exc

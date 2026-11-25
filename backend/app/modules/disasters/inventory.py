@@ -16,6 +16,8 @@ import urllib.request
 
 from sqlalchemy.orm import Session
 
+from app.core import tls
+
 from app.models import DataRecord, User
 from app.neurodata.service import store_file
 from app.neurodata.validators import validate_geojson
@@ -41,7 +43,7 @@ def _get(params: dict) -> dict:
     if urllib.parse.urlsplit(url).hostname != ALLOWED_HOST:
         raise InventoryError("Host no permitido.")
     try:
-        with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": USER_AGENT}), timeout=90) as r:
+        with tls.urlopen(urllib.request.Request(url, headers={"User-Agent": USER_AGENT}), timeout=90) as r:
             doc = json.loads(r.read().decode("utf-8", "replace"))
     except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError) as exc:
         raise InventoryError(f"No se pudo consultar INGEMMET: {exc}") from exc
